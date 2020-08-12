@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nev-r/answer-me.git"
+    "url": "git+https://github.com/nev-r/now-answer-me.git"
   },
   "author": "nev",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/nev-r/answer-me/issues"
+    "url": "https://github.com/nev-r/now-answer-me/issues"
   },
-  "homepage": "https://github.com/nev-r/answer-me#readme",
+  "homepage": "https://github.com/nev-r/now-answer-me#readme",
   "devDependencies": {
     "@types/node": "^14.0.11"
   },
