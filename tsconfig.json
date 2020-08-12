@@ -1,0 +1,17 @@
+{
+  "compileOnSave": true,
+  "include": ["./src/**/*"],
+  "compilerOptions": {
+    "lib": ["esnext", "dom"],
+    "outDir": "lib",
+    "declaration": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "strictNullChecks": true,
+    "jsx": "react",
+    "module": "es2015",
+    "target": "es2017"
+  }
+}
