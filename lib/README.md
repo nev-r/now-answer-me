@@ -13,7 +13,7 @@ init("smIcXn83zPK.1FEzAIM0GzMINbgJ1zeM1cNWzANOLT6NDVzZ50I9eY.l85E");
 
 <hr/>
 
-instead of a string, `command` can be multiple strings which will activate the same route  
+instead of a string, `command` can be multiple strings which will activate the same command  
 instead of a string, `response` can be a function which returns text to respond with
 ```js
 addCommand({ command: ["echo", "echothis"], response: echoSomething });
@@ -28,7 +28,7 @@ function echoSomething(args) {
 
 <hr/>
 
-for the power user, instead of a `response`, a route can have a `fnc`,  
+for the power user, instead of a `response`, a command can have a `fnc`,  
 and just deal with the discord.js `Message` object directly
 ```js
 addCommand({ command: "tattle", fnc: tattleOnUser });
