@@ -179,9 +179,9 @@ function routeTrigger(msg: Discord.Message) {
   if (fnc || response) {
     (
       fnc ??
-      ((msg: Discord.Message, args?: string) => {
+      ((msg: Discord.Message) => {
         msg.channel.send(
-          typeof response === "string" ? response : response!(args)
+          typeof response === "string" ? response : response!(msg.content)
         );
       })
     )(msg);
