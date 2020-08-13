@@ -42,10 +42,12 @@ export declare function addOnReconnect(...onReconnect_: typeof onReconnect): voi
 /** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
 export declare function setOnReconnect(onReconnect_: typeof onReconnect): void;
 export declare function init(token: string): Discord.Client;
+/** anything that can be fed into discord.js's send function. strings, embeds, etc. */
+declare type ValidMessage = Parameters<Discord.TextChannel["send"]>[number];
 /** does something given a discord message and maybe, anything found after the command */
 declare type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
-/** a string, or string generating function, to respond to a message with. accepts args if any */
-declare type Response = ((args?: string) => string | Promise<string>) | string;
+/** ValidMessage, or a ValidMessage-generating function, to respond to a message with. accepts args if the command parsing generated any */
+declare type Response = ((args?: string) => string | Promise<ValidMessage>) | ValidMessage;
 /** an object with either a Fnc, or a Response */
 declare type Route = {
     fnc?: Fnc;

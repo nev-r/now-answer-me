@@ -118,11 +118,14 @@ function startActivityUpkeep() {
       client.user?.setActivity(activities[activitiesIndex]);
   }, 30000);
 }
-
+/** anything that can be fed into discord.js's send function. strings, embeds, etc. */
+type ValidMessage = Parameters<Discord.TextChannel["send"]>[number];
 /** does something given a discord message and maybe, anything found after the command */
 type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
-/** a string, or string generating function, to respond to a message with. accepts args if any */
-type Response = ((args?: string) => string | Promise<string>) | string;
+/** ValidMessage, or a ValidMessage-generating function, to respond to a message with. accepts args if the command parsing generated any */
+type Response =
+  | ((args?: string) => string | Promise<ValidMessage>)
+  | ValidMessage;
 /** an object with either a Fnc, or a Response */
 type Route =
   | {
