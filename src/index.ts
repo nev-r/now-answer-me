@@ -119,39 +119,40 @@ function startActivityUpkeep() {
   }, 30000);
 }
 
-const commands: ({
-  command: string | string[];
-} & (
+/** does something given a discord message and maybe, anything found after the command */
+type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
+/** a string, or string generating function, to respond to a message with. accepts args if any */
+type Response = ((args?: string) => string | Promise<string>) | string;
+/** an object with either a Fnc, or a Response */
+type Route =
   | {
-      fnc?: (msg: Discord.Message, args?: string) => void;
+      fnc?: Fnc;
       response?: undefined;
     }
   | {
-      response?: ((args?: string) => void) | string;
+      response?: Response;
       fnc?: undefined;
-    }
-))[] = [];
+    };
+
+const commands: ({
+  command: string | string[];
+} & Route)[] = [];
 export function addCommand(...commands_: typeof commands) {
   commands.push(...commands_);
 }
 
 const triggers: ({
   trigger: RegExp;
-} & (
-  | {
-      fnc?: (msg: Discord.Message, args?: string) => void;
-      response?: undefined;
-    }
-  | {
-      response?: ((args?: string) => void) | string;
-      fnc?: undefined;
-    }
-))[] = [];
+} & Route)[] = [];
 export function addTrigger(...triggers_: typeof triggers) {
   triggers.push(...triggers_);
 }
 
-function routeCommand(msg: Discord.Message, command: string, args?: string) {
+async function routeCommand(
+  msg: Discord.Message,
+  command: string,
+  args?: string
+) {
   const { fnc, response } =
     commands.find((r) =>
       typeof r.command === "string"
@@ -161,16 +162,16 @@ function routeCommand(msg: Discord.Message, command: string, args?: string) {
   if (fnc || response) {
     (
       fnc ??
-      ((msg: Discord.Message, args?: string) => {
+      (async (msg: Discord.Message, args?: string) => {
         msg.channel.send(
-          typeof response === "string" ? response : response!(args)
+          typeof response === "string" ? response : await response!(args)
         );
       })
     )(msg, args);
   }
 }
 
-function routeTrigger(msg: Discord.Message) {
+async function routeTrigger(msg: Discord.Message) {
   if (!triggers.length) return;
 
   const { fnc, response } =
@@ -179,9 +180,9 @@ function routeTrigger(msg: Discord.Message) {
   if (fnc || response) {
     (
       fnc ??
-      ((msg: Discord.Message) => {
+      (async (msg: Discord.Message) => {
         msg.channel.send(
-          typeof response === "string" ? response : response!(msg.content)
+          typeof response === "string" ? response : await response!(msg.content)
         );
       })
     )(msg);

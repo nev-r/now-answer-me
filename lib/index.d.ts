@@ -42,23 +42,23 @@ export declare function addOnReconnect(...onReconnect_: typeof onReconnect): voi
 /** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
 export declare function setOnReconnect(onReconnect_: typeof onReconnect): void;
 export declare function init(token: string): Discord.Client;
-declare const commands: ({
-    command: string | string[];
-} & ({
-    fnc?: (msg: Discord.Message, args?: string) => void;
+/** does something given a discord message and maybe, anything found after the command */
+declare type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
+/** a string, or string generating function, to respond to a message with. accepts args if any */
+declare type Response = ((args?: string) => string | Promise<string>) | string;
+/** an object with either a Fnc, or a Response */
+declare type Route = {
+    fnc?: Fnc;
     response?: undefined;
 } | {
-    response?: ((args?: string) => void) | string;
+    response?: Response;
     fnc?: undefined;
-}))[];
+};
+declare const commands: ({
+    command: string | string[];
+} & Route)[];
 export declare function addCommand(...commands_: typeof commands): void;
 declare const triggers: ({
     trigger: RegExp;
-} & ({
-    fnc?: (msg: Discord.Message, args?: string) => void;
-    response?: undefined;
-} | {
-    response?: ((args?: string) => void) | string;
-    fnc?: undefined;
-}))[];
+} & Route)[];
 export declare function addTrigger(...triggers_: typeof triggers): void;
