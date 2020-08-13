@@ -119,20 +119,34 @@ function startActivityUpkeep() {
   }, 30000);
 }
 
-const router: {
+const router: ({
   command: string | string[];
-  fnc: (msg: Discord.Message, args?: string) => void;
-}[] = [];
+} & (
+  | { fnc?: (msg: Discord.Message, args?: string) => void; response: undefined }
+  | {
+      response?:
+        | ((args?: string, { asdf }?: { asdf: string }) => void)
+        | string;
+      fnc: undefined;
+    }
+))[] = [];
 export function addRoutes(...routes: typeof router) {
   router.push(...routes);
 }
 
 function routeCommand(msg: Discord.Message, command: string, args?: string) {
-  router
-    .find((r) =>
+  const { fnc, response } =
+    router.find((r) =>
       typeof r.command === "string"
         ? r.command === command
         : r.command.includes(command)
-    )
-    ?.fnc(msg, args) ?? console.log(`command not found: ${command}`);
+    ) ?? {};
+
+  (response === undefined
+    ? fnc ?? (() => console.log(`command not found: ${command}`))
+    : (msg: Discord.Message, args?: string) => {
+        msg.channel.send(
+          typeof response === "string" ? response : response(args)
+        );
+      })(msg, args);
 }

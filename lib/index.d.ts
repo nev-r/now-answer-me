@@ -42,8 +42,15 @@ export declare function addOnReconnect(...onReconnect_: typeof onReconnect): voi
 /** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
 export declare function setOnReconnect(onReconnect_: typeof onReconnect): void;
 export declare function init(token: string): Discord.Client;
-declare const router: {
+declare const router: ({
     command: string | string[];
-    fnc: (msg: Discord.Message, args?: string) => void;
-}[];
+} & ({
+    fnc?: (msg: Discord.Message, args?: string) => void;
+    response: undefined;
+} | {
+    response?: ((args?: string, { asdf }?: {
+        asdf: string;
+    }) => void) | string;
+    fnc: undefined;
+}))[];
 export declare function addRoutes(...routes: typeof router): void;

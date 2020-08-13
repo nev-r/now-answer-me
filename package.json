@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf ./lib && tsc && cp ./package.json ./lib",
+    "build": "rm -rf ./lib && tsc && cp ./package.json ./lib && cp ./README.md ./lib",
     "pub": "cp ./package.json ./lib && npm publish lib"
   },
   "repository": {
