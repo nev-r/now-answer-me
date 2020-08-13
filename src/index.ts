@@ -11,7 +11,7 @@ export function setPrefix(prefix_: string) {
   prefix = prefix_;
 }
 
-export let testPrefix: string | undefined;
+export let testPrefix = "!";
 export function setTestPrefix(testPrefix_: string) {
   testPrefix = testPrefix_;
 }
@@ -26,9 +26,9 @@ export function setEnv(env_: typeof env | boolean) {
 }
 
 let commandRegex: RegExp;
-export function setCommandRegex() {
+export function setupCommandRegex() {
   commandRegex = new RegExp(
-    (env === "production" ? prefix : testPrefix) +
+    escapeRegExp(env === "production" ? prefix : testPrefix) +
       "(?<command>[\\w?]+)(?: (?<args>.+))?$"
   );
 }
@@ -37,11 +37,11 @@ let activities: { name: string; options?: Discord.ActivityOptions }[] = [];
 /**
  * add discord presence statuses to cycle through
  */
-export function addActivities(...activities_: typeof activities) {
+export function addActivity(...activities_: typeof activities) {
   activities.push(...activities_);
 }
-/** completely replaces existing `activities` statuses. you may want `addActivities` */
-export function setActivities(activities_: typeof activities) {
+/** completely replaces existing `activities` statuses. you may want `addActivity` */
+export function setActivity(activities_: typeof activities) {
   activities = activities_;
 }
 
@@ -76,21 +76,21 @@ export function setOnReconnect(onReconnect_: typeof onReconnect) {
 const noCommandMatch = { command: undefined, args: undefined };
 
 export function init(token: string) {
-  setCommandRegex();
+  setupCommandRegex();
 
   client
     .on("message", (msg: Discord.Message) => {
+      // quit if this is your own message
+      if (msg.author === client.user) return;
+
       // match command name and args
       const { command, args } =
         (msg.content.startsWith(prefix) &&
           msg.content.match(commandRegex)?.groups) ||
         noCommandMatch;
 
-      // quit (↓ if no command)   or   (↓ if this is your own message)
-      if (!command || msg.author === client.user) return;
-
-      // dispatch to per-command subroutines
-      routeCommand(msg, command, args);
+      if (command) routeCommand(msg, command, args);
+      else routeTrigger(msg);
     })
     .once("ready", () => {
       startActivityUpkeep();
@@ -119,34 +119,70 @@ function startActivityUpkeep() {
   }, 30000);
 }
 
-const router: ({
+const commands: ({
   command: string | string[];
 } & (
   | { fnc?: (msg: Discord.Message, args?: string) => void; response: undefined }
   | {
-      response?:
-        | ((args?: string, { asdf }?: { asdf: string }) => void)
-        | string;
+      response?: ((args?: string) => void) | string;
       fnc: undefined;
     }
 ))[] = [];
-export function addRoutes(...routes: typeof router) {
-  router.push(...routes);
+export function addCommand(...commands_: typeof commands) {
+  commands.push(...commands_);
+}
+
+const triggers: ({
+  trigger: RegExp;
+} & (
+  | { fnc?: (msg: Discord.Message, args?: string) => void; response: undefined }
+  | {
+      response?: ((args?: string) => void) | string;
+      fnc: undefined;
+    }
+))[] = [];
+export function addTrigger(...triggers_: typeof triggers) {
+  triggers.push(...triggers_);
 }
 
 function routeCommand(msg: Discord.Message, command: string, args?: string) {
   const { fnc, response } =
-    router.find((r) =>
+    commands.find((r) =>
       typeof r.command === "string"
         ? r.command === command
         : r.command.includes(command)
     ) ?? {};
-
-  (response === undefined
-    ? fnc ?? (() => console.log(`command not found: ${command}`))
-    : (msg: Discord.Message, args?: string) => {
+  if (fnc || response) {
+    (
+      fnc ??
+      ((msg: Discord.Message, args?: string) => {
         msg.channel.send(
-          typeof response === "string" ? response : response(args)
+          typeof response === "string" ? response : response!(args)
         );
-      })(msg, args);
+      })
+    )(msg, args);
+  }
+}
+
+function routeTrigger(msg: Discord.Message) {
+  if (!triggers.length) return;
+
+  const { fnc, response } =
+    triggers.find((t) => t.trigger.test(msg.content)) ?? {};
+
+  if (fnc || response) {
+    (
+      fnc ??
+      ((msg: Discord.Message, args?: string) => {
+        msg.channel.send(
+          typeof response === "string" ? response : response!(args)
+        );
+      })
+    )(msg);
+  }
+}
+
+// via MDN
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }

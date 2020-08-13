@@ -2,9 +2,9 @@
 the goal is to make a simple discord bot possible in about as much time as it takes to type `npm install now-answer-me`
 
 ```js
-import { addRoutes, init } from "now-answer-me";
+import { addCommand, init } from "now-answer-me";
 
-addRoutes({ command: "hello", response: 'hi!' });
+addCommand({ command: "hello", response: 'hi!' });
 
 init("smIcXn83zPK.1FEzAIM0GzMINbgJ1zeM1cNWzANOLT6NDVzZ50I9eY.l85E");
 ```
@@ -16,7 +16,7 @@ init("smIcXn83zPK.1FEzAIM0GzMINbgJ1zeM1cNWzANOLT6NDVzZ50I9eY.l85E");
 instead of a string, `command` can be multiple strings which will activate the same route  
 instead of a string, `response` can be a function which returns text to respond with
 ```js
-addRoutes({ command: ["echo", "echothis"], response: echoSomething });
+addCommand({ command: ["echo", "echothis"], response: echoSomething });
 
 function echoSomething(args) {
   if (args) return args;
@@ -31,7 +31,7 @@ function echoSomething(args) {
 for the power user, instead of a `response`, a route can have a `fnc`,  
 and just deal with the discord.js `Message` object directly
 ```js
-addRoutes({ command: "tattle", fnc: tattleOnUser });
+addCommand({ command: "tattle", fnc: tattleOnUser });
 
 function tattleOnUser(msg, args, command) {
   const text = `i was sent ${args} by ${msg.author}!`;
@@ -49,7 +49,7 @@ import { setPrefix } from "now-answer-me";
 
 setPrefix('&&&&&');
 
-addActivities(
+addActivity(
 	{ name: 'in the fall leaves 🍃', options: { type: 'PLAYING' } }
 );
 ```
