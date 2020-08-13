@@ -46,19 +46,19 @@ declare const commands: ({
     command: string | string[];
 } & ({
     fnc?: (msg: Discord.Message, args?: string) => void;
-    response: undefined;
+    response?: undefined;
 } | {
     response?: ((args?: string) => void) | string;
-    fnc: undefined;
+    fnc?: undefined;
 }))[];
 export declare function addCommand(...commands_: typeof commands): void;
 declare const triggers: ({
     trigger: RegExp;
 } & ({
     fnc?: (msg: Discord.Message, args?: string) => void;
-    response: undefined;
+    response?: undefined;
 } | {
     response?: ((args?: string) => void) | string;
-    fnc: undefined;
+    fnc?: undefined;
 }))[];
 export declare function addTrigger(...triggers_: typeof triggers): void;

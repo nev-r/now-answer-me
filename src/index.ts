@@ -122,10 +122,13 @@ function startActivityUpkeep() {
 const commands: ({
   command: string | string[];
 } & (
-  | { fnc?: (msg: Discord.Message, args?: string) => void; response: undefined }
+  | {
+      fnc?: (msg: Discord.Message, args?: string) => void;
+      response?: undefined;
+    }
   | {
       response?: ((args?: string) => void) | string;
-      fnc: undefined;
+      fnc?: undefined;
     }
 ))[] = [];
 export function addCommand(...commands_: typeof commands) {
@@ -135,10 +138,13 @@ export function addCommand(...commands_: typeof commands) {
 const triggers: ({
   trigger: RegExp;
 } & (
-  | { fnc?: (msg: Discord.Message, args?: string) => void; response: undefined }
+  | {
+      fnc?: (msg: Discord.Message, args?: string) => void;
+      response?: undefined;
+    }
   | {
       response?: ((args?: string) => void) | string;
-      fnc: undefined;
+      fnc?: undefined;
     }
 ))[] = [];
 export function addTrigger(...triggers_: typeof triggers) {
