@@ -162,16 +162,9 @@ async function routeCommand(
         ? r.command === command
         : r.command.includes(command)
     ) ?? {};
-  if (fnc || response) {
-    (
-      fnc ??
-      (async (msg: Discord.Message, args?: string) => {
-        msg.channel.send(
-          typeof response === "string" ? response : await response!(args)
-        );
-      })
-    )(msg, args);
-  }
+
+    if (response) makeResponseFunction(response)(msg, args);
+    if (fnc) fnc(msg, args);
 }
 
 async function routeTrigger(msg: Discord.Message) {
@@ -180,16 +173,16 @@ async function routeTrigger(msg: Discord.Message) {
   const { fnc, response } =
     triggers.find((t) => t.trigger.test(msg.content)) ?? {};
 
-  if (fnc || response) {
-    (
-      fnc ??
-      (async (msg: Discord.Message) => {
-        msg.channel.send(
-          typeof response === "string" ? response : await response!(msg.content)
-        );
-      })
-    )(msg);
-  }
+  if (response) makeResponseFunction(response)(msg, msg.content);
+  if (fnc) fnc(msg, msg.content);
+}
+
+function makeResponseFunction(response: any) {
+  return async (msg: Discord.Message, args?: string) => {
+    const msgContent =
+      typeof response === "function" ? await response(args) : response;
+    msg.channel.send(msgContent);
+  };
 }
 
 // via MDN
