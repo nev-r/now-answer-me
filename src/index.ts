@@ -28,7 +28,8 @@ export function setEnv(env_: typeof env | boolean) {
 let commandRegex: RegExp;
 export function setupCommandRegex() {
   commandRegex = new RegExp(
-    escapeRegExp(env === "production" ? prefix : testPrefix) +
+    "^" +
+      escapeRegExp(env === "production" ? prefix : testPrefix) +
       "(?<command>[\\w?]+)(?: (?<args>.+))?$"
   );
 }
