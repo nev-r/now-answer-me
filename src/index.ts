@@ -167,7 +167,11 @@ async function routeCommand(
   else if (response) {
     if (typeof response === "function")
       response = await response(msg, msg.content);
-    msg.channel.send(response);
+    try {
+      msg.channel.send(response);
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
 
@@ -179,7 +183,11 @@ async function routeTrigger(msg: Discord.Message) {
   else if (response) {
     if (typeof response === "function")
       response = await response(msg, msg.content);
-    msg.channel.send(response);
+    try {
+      msg.channel.send(response);
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
 
