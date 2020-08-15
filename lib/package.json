@@ -1,11 +1,11 @@
 {
   "name": "now-answer-me",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "dead simple discord bot",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run build&&node test.mjs",
     "build": "rm -rf ./lib && tsc && cp ./package.json ./lib && cp ./README.md ./lib",
     "pub": "cp ./package.json ./lib && npm publish lib"
   },

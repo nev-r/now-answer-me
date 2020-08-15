@@ -27,7 +27,7 @@ export async function sendRerollableEmbed<T>(
   remainingList: T[],
   renderer: (listItem: T) => Discord.MessageEmbed
 ) {
-  let rerollableMessage: Discord.Message | false = false;
+  let rerollableMessage: Discord.Message | undefined;
   while (remainingList.length) {
     const item = remainingList.pop()!;
     const embed = renderer(item);
@@ -112,7 +112,7 @@ export async function presentOptions(
       awaitOptions
     );
 
-    // we timed out instead of getting a reaction
+    // we timed out instead of getting a valid reaction
     if (!reactionGroups.size) {
       msg.reactions.removeAll();
       return undefined;
@@ -138,27 +138,14 @@ export async function presentOptions(
         msg.reactions.removeAll();
         break;
     }
-    // if (cleanupReactions) {
-    //   try {
-    //     await msg.reactions.removeAll();
-    //   } catch {
-    //     // msg.reactions.cache.mapValues
-    //     console.log("to-do: remove only own reactions");
-    //     // const myReactions: Promise<void | Discord.MessageReaction>[] = [];
-    //     // msg.reactions.cache.each((reaction) => {
-    //     //   if (reaction.me)
-    //     //     myReactions.push(
-    //     //       reaction.users.remove().catch(err("error removing own reaction"))
-    //     //     );
-    //     // });
-    //     // // testLog('deleting reactions to place new ones');
-    //     // await Promise.all(myReactions);
-    //   }
-    // } else {
-    //   // testLog('not deleting reactions');
-    // }
 
-    return reactionGroups.first()?.emoji.name;
+    const { name, id } = reactionGroups.first()?.emoji ?? {};
+    return name && options.includes(name)
+      ? name
+      : id && options.includes(id)
+      ? id
+      : undefined;
+
     // return awaitOptions.max===1 ? reactionGroups.first()?.emoji.name:;
   } catch (e) {
     // bothLog('awaitReactions failed, which is... weird\n');
@@ -272,25 +259,29 @@ function buildReactionFilter({
   notEmoji = notEmoji ? arrayify(notEmoji) : undefined;
 
   return (reaction: Discord.MessageReaction, user: Discord.User) => {
-    console.log({
-      // reaction,
-      // user,
-      users,
-      notUsers,
-      userid: user.id,
-      emoji,
-      notEmoji,
-      outcome:
-        (!users || users.includes(user.id)) &&
-        (!notUsers || !notUsers.includes(user.id)) &&
-        (!emoji || emoji.includes(reaction.emoji.name)) &&
-        (!notEmoji || !notEmoji.includes(reaction.emoji.name)),
-    });
+    // console.log({
+    //   // reaction,
+    //   // user,
+    //   users,
+    //   notUsers,
+    //   userid: user.id,
+    //   emoji,
+    //   notEmoji,
+    //   outcome:
+    //     (!users || users.includes(user.id)) &&
+    //     (!notUsers || !notUsers.includes(user.id)) &&
+    //     (!emoji || emoji.includes(reaction.emoji.name)) &&
+    //     (!notEmoji || !notEmoji.includes(reaction.emoji.name)),
+    // });
     return (
       (!users || users.includes(user.id)) &&
       (!notUsers || !notUsers.includes(user.id)) &&
-      (!emoji || emoji.includes(reaction.emoji.name)) &&
-      (!notEmoji || !notEmoji.includes(reaction.emoji.name))
+      (!emoji ||
+        emoji.includes(reaction.emoji.name) ||
+        emoji.includes(reaction.emoji.id ?? "")) &&
+      (!notEmoji ||
+        (!notEmoji.includes(reaction.emoji.name) &&
+          !notEmoji.includes(reaction.emoji.id ?? "")))
     );
   };
 }
