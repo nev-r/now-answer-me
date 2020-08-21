@@ -5,6 +5,12 @@ export const client = new Discord.Client();
 
 let hasConnectedBefore = false;
 
+let _clientReadyResolve: (value?: unknown) => void;
+export const clientReadyPromise = new Promise((resolve) => {
+  _clientReadyResolve = resolve;
+});
+export let clientReady = false;
+
 // bot functionality stuff
 export let prefix = "!";
 export function setPrefix(prefix_: string) {
@@ -97,10 +103,12 @@ export function init(token: string) {
       startActivityUpkeep();
       onConnect.forEach((fnc) => fnc(client));
 
-      // set `hasConnectedBefore` after 10s, so reconnect events don't fire the first time
+      // set `hasConnectedBefore` after 5s, so reconnect events don't fire the first time
       setTimeout(() => {
         hasConnectedBefore = true;
-      }, 10000);
+      }, 5000);
+      _clientReadyResolve(true);
+      clientReady = true;
     })
     .on("ready", () => {
       hasConnectedBefore && onReconnect.forEach((fnc) => fnc(client));
@@ -127,14 +135,14 @@ type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
 type Response =
   | ((args?: string) => string | Promise<ValidMessage>)
   | ValidMessage;
-/** an object with either a Fnc, or a Response */
+/** a Route needs either a Fnc, or a Response */
 type Route =
   | {
-      fnc?: Fnc;
+      fnc: Fnc;
       response?: undefined;
     }
   | {
-      response?: Response;
+      response: Response;
       fnc?: undefined;
     };
 

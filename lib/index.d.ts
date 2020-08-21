@@ -2,6 +2,8 @@ import Discord from "discord.js";
 export * from "./util.js";
 export declare const startupTimestamp: Date;
 export declare const client: Discord.Client;
+export declare const clientReadyPromise: Promise<unknown>;
+export declare let clientReady: boolean;
 export declare let prefix: string;
 export declare function setPrefix(prefix_: string): void;
 export declare let testPrefix: string;
@@ -48,12 +50,12 @@ declare type ValidMessage = Parameters<Discord.TextChannel["send"]>[number];
 declare type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
 /** ValidMessage, or a ValidMessage-generating function, to respond to a message with. accepts args if the command parsing generated any */
 declare type Response = ((args?: string) => string | Promise<ValidMessage>) | ValidMessage;
-/** an object with either a Fnc, or a Response */
+/** a Route needs either a Fnc, or a Response */
 declare type Route = {
-    fnc?: Fnc;
+    fnc: Fnc;
     response?: undefined;
 } | {
-    response?: Response;
+    response: Response;
     fnc?: undefined;
 };
 declare const commands: ({
