@@ -40,44 +40,48 @@ export function setupCommandRegex() {
   );
 }
 
-let activities: { name: string; options?: Discord.ActivityOptions }[] = [];
+let activities: Discord.ActivityOptions[] = [];
 /**
  * add discord presence statuses to cycle through
  */
-export function addActivity(...activities_: typeof activities) {
-  activities.push(...activities_);
+export function addActivity(
+  ...activities_: (string | Discord.ActivityOptions)[]
+) {
+  activities.push(
+    ...activities_.map((a) => (typeof a === "string" ? { name: a } : a))
+  );
 }
 /** completely replaces existing `activities` statuses. you may want `addActivity` */
-export function setActivity(activities_: typeof activities) {
+export function setActivities(activities_: typeof activities) {
   activities = activities_;
 }
 
-let onConnect: ((client_: Discord.Client) => void)[] = [];
+let onConnects: ((client_: Discord.Client) => void)[] = [];
 /**
  * add function(s) to run upon first logging into discord
  *
  * the discord client will be passed as an arg
  */
-export function addOnConnect(...onConnect_: typeof onConnect) {
-  onConnect.push(...onConnect_);
+export function addOnConnect(...onConnect_: typeof onConnects) {
+  onConnects.push(...onConnect_);
 }
 /** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
-export function setOnConnect(onConnect_: typeof onConnect) {
-  onConnect = onConnect_;
+export function setOnConnects(onConnects_: typeof onConnects) {
+  onConnects = onConnects_;
 }
 
-let onReconnect: ((client_: Discord.Client) => void)[] = [];
+let onReconnects: ((client_: Discord.Client) => void)[] = [];
 /**
  * add function(s) to run upon any reconnection to discord
  *
  * the discord client will be passed as an arg
  */
-export function addOnReconnect(...onReconnect_: typeof onReconnect) {
-  onReconnect.push(...onReconnect_);
+export function addOnReconnect(...onReconnect_: typeof onReconnects) {
+  onReconnects.push(...onReconnect_);
 }
 /** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
-export function setOnReconnect(onReconnect_: typeof onReconnect) {
-  onReconnect = onReconnect_;
+export function setOnReconnect(onReconnect_: typeof onReconnects) {
+  onReconnects = onReconnect_;
 }
 
 const noCommandMatch = { command: undefined, args: undefined };
@@ -101,7 +105,7 @@ export function init(token: string) {
     })
     .once("ready", () => {
       startActivityUpkeep();
-      onConnect.forEach((fnc) => fnc(client));
+      onConnects.forEach((fnc) => fnc(client));
 
       // set `hasConnectedBefore` after 5s, so reconnect events don't fire the first time
       setTimeout(() => {
@@ -111,7 +115,7 @@ export function init(token: string) {
       clientReady = true;
     })
     .on("ready", () => {
-      hasConnectedBefore && onReconnect.forEach((fnc) => fnc(client));
+      hasConnectedBefore && onReconnects.forEach((fnc) => fnc(client));
     })
     .login(token);
   return client;

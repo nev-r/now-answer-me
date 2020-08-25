@@ -15,34 +15,31 @@ export declare let env: "test" | "production";
  */
 export declare function setEnv(env_: typeof env | boolean): void;
 export declare function setupCommandRegex(): void;
-declare let activities: {
-    name: string;
-    options?: Discord.ActivityOptions;
-}[];
+declare let activities: Discord.ActivityOptions[];
 /**
  * add discord presence statuses to cycle through
  */
-export declare function addActivity(...activities_: typeof activities): void;
+export declare function addActivity(...activities_: (string | Discord.ActivityOptions)[]): void;
 /** completely replaces existing `activities` statuses. you may want `addActivity` */
-export declare function setActivity(activities_: typeof activities): void;
-declare let onConnect: ((client_: Discord.Client) => void)[];
+export declare function setActivities(activities_: typeof activities): void;
+declare let onConnects: ((client_: Discord.Client) => void)[];
 /**
  * add function(s) to run upon first logging into discord
  *
  * the discord client will be passed as an arg
  */
-export declare function addOnConnect(...onConnect_: typeof onConnect): void;
+export declare function addOnConnect(...onConnect_: typeof onConnects): void;
 /** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
-export declare function setOnConnect(onConnect_: typeof onConnect): void;
-declare let onReconnect: ((client_: Discord.Client) => void)[];
+export declare function setOnConnects(onConnects_: typeof onConnects): void;
+declare let onReconnects: ((client_: Discord.Client) => void)[];
 /**
  * add function(s) to run upon any reconnection to discord
  *
  * the discord client will be passed as an arg
  */
-export declare function addOnReconnect(...onReconnect_: typeof onReconnect): void;
+export declare function addOnReconnect(...onReconnect_: typeof onReconnects): void;
 /** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
-export declare function setOnReconnect(onReconnect_: typeof onReconnect): void;
+export declare function setOnReconnect(onReconnect_: typeof onReconnects): void;
 export declare function init(token: string): Discord.Client;
 /** anything that can be fed into discord.js's send function. strings, embeds, etc. */
 declare type ValidMessage = Parameters<Discord.TextChannel["send"]>[number];
