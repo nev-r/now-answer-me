@@ -1,6 +1,6 @@
 {
   "name": "now-answer-me",
-  "version": "1.4.5",
+  "version": "1.5.0",
   "description": "dead simple discord bot",
   "main": "index.js",
   "type": "module",
@@ -21,9 +21,9 @@
   "homepage": "https://github.com/nev-r/now-answer-me#readme",
   "devDependencies": {
     "@types/node": "^14.0.11",
-    "discord.js": "github:discordjs/discord.js"
+    "discord.js": "discord.js"
   },
   "peerDependencies": {
-    "discord.js": "github:discordjs/discord.js"
+    "discord.js": "discord.js"
   }
 }

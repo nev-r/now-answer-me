@@ -1,4 +1,5 @@
-import Discord from "discord.js";
+import Discord, { Channel, ChannelResolvable } from "discord.js";
+import { client, clientReadyPromise } from "./index.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
  *
@@ -169,7 +170,7 @@ export async function serialReactions(
 }
 export async function singleReaction(msg: Discord.Message, reaction: string) {
   // console.log(`!!applying this selectable: ${reaction[0]} to this message: ${msg}`);
-  await msg.react(reaction).catch(nbd(`${reaction[0]}≠>${msg}`));
+  await msg.react(reaction).catch(nodeLog(`${reaction[0]}≠>${msg}`));
   // console.log(`applied this selectable: ${reaction[0]} to this message: ${msg}`);
 }
 
@@ -286,11 +287,29 @@ function buildReactionFilter({
   };
 }
 
-export function arrayify<T>(arr: T | T[]): T[] {
+/**
+ * waits for client to be ready and then attempts to resolve a channel
+ *
+ * use this and refer to its results, to create a top level channel constant
+ * that doesn't need to be re-resolved every single time, i.e.
+ * ```
+ * const ANNOUNCEMENTS_CHANNEL = resolveChannel<TextChannel>("123456789012345678");
+ * // later, after client connects....
+ * (await ANNOUNCEMENTS_CHANNEL)?.send("announcement!");
+ * ```
+ */
+export async function resolveChannel<T extends Channel>(
+  channel: ChannelResolvable
+) {
+  await clientReadyPromise;
+  return client.channels.resolve(channel) as T | null;
+}
+
+function arrayify<T>(arr: T | T[]): T[] {
   return Array.isArray(arr) ? arr : [arr];
 }
 
-export function nbd(any = "nbd"): (_e: any) => void {
+function nodeLog(any): (_e: any) => void {
   return (_e) => {
     process.stdout.write(any);
   };

@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import Discord, { Channel, ChannelResolvable } from "discord.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
  *
@@ -31,5 +31,15 @@ export declare function serialReactions(msg: Discord.Message, reactions: string[
 export declare function singleReaction(msg: Discord.Message, reaction: string): Promise<void>;
 export declare type validSendContent = Parameters<Discord.TextChannel["send"]>[0];
 export declare function announceToChannels(client: Discord.Client, message: validSendContent, channelIds: string | string[]): (false | Promise<Discord.Message>)[];
-export declare function arrayify<T>(arr: T | T[]): T[];
-export declare function nbd(any?: string): (_e: any) => void;
+/**
+ * waits for client to be ready and then attempts to resolve a channel
+ *
+ * use this and refer to its results, to create a top level channel constant
+ * that doesn't need to be re-resolved every single time, i.e.
+ * ```
+ * const ANNOUNCEMENTS_CHANNEL = resolveChannel<TextChannel>("123456789012345678");
+ * // later, after client connects....
+ * (await ANNOUNCEMENTS_CHANNEL)?.send("announcement!");
+ * ```
+ */
+export declare function resolveChannel<T extends Channel>(channel: ChannelResolvable): Promise<T | null>;

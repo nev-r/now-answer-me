@@ -21,9 +21,9 @@
   "homepage": "https://github.com/nev-r/now-answer-me#readme",
   "devDependencies": {
     "@types/node": "^14.0.11",
-    "discord.js": "github:discordjs/discord.js"
+    "discord.js": "discord.js"
   },
   "peerDependencies": {
-    "discord.js": "github:discordjs/discord.js"
+    "discord.js": "discord.js"
   }
 }
