@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import Discord, { MessageAdditions, MessageOptions } from "discord.js";
 export * from "./util.js";
 export const startupTimestamp = new Date();
 export const client = new Discord.Client();
@@ -11,7 +11,10 @@ export const clientReadyPromise = new Promise((resolve) => {
 });
 export let clientReady = false;
 
+//
 // bot functionality stuff
+//
+
 export let prefix = "!";
 export function setPrefix(prefix_: string) {
   prefix = prefix_;
@@ -132,34 +135,50 @@ function startActivityUpkeep() {
   }, 30000);
 }
 /** anything that can be fed into discord.js's send function. strings, embeds, etc. */
-type ValidMessage = Parameters<Discord.TextChannel["send"]>[number];
-/** does something given a discord message and maybe, anything found after the command */
-type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
+export type ValidMessage =
+  | MessageOptions
+  | MessageAdditions
+  | string
+  | undefined
+  | void;
+
+/** a Command's response function is fed a single, destructurable argument */
+export type CommandParams = {
+  command: string;
+  args?: string;
+  msg: Discord.Message;
+  content: string;
+};
+/** a Trigger's response function is fed a single, destructurable argument */
+export type TriggerParams = {
+  msg: Discord.Message;
+  content: string;
+};
 /** ValidMessage, or a ValidMessage-generating function, to respond to a message with. accepts args if the command parsing generated any */
-type Response =
-  | ((args?: string) => string | Promise<ValidMessage>)
+export type CommandResponse =
+  | ((params: CommandParams) => ValidMessage | Promise<ValidMessage>)
+  | ValidMessage;
+export type TriggerResponse =
+  | ((params: TriggerParams) => ValidMessage | Promise<ValidMessage>)
   | ValidMessage;
 /** a Route needs either a Fnc, or a Response */
-type Route =
-  | {
-      fnc: Fnc;
-      response?: undefined;
-    }
-  | {
-      response: Response;
-      fnc?: undefined;
-    };
+// type Route = {
+//   response: Response;
+//   fnc?: undefined;
+// };
 
-const commands: ({
+const commands: {
   command: string | string[];
-} & Route)[] = [];
+  response: CommandResponse;
+}[] = [];
 export function addCommand(...commands_: typeof commands) {
   commands.push(...commands_);
 }
 
-const triggers: ({
+const triggers: {
   trigger: RegExp;
-} & Route)[] = [];
+  response: TriggerResponse;
+}[] = [];
 export function addTrigger(...triggers_: typeof triggers) {
   triggers.push(...triggers_);
 }
@@ -169,19 +188,19 @@ async function routeCommand(
   command: string,
   args?: string
 ) {
-  let { fnc, response } =
+  const { content } = msg;
+  let { response } =
     commands.find((r) =>
       typeof r.command === "string"
         ? r.command === command
         : r.command.includes(command)
     ) ?? {};
 
-  if (fnc) fnc(msg, args);
-  else if (response) {
+  if (response) {
     if (typeof response === "function")
-      response = await response(msg, msg.content);
+      response = await response({ msg, command, args, content });
     try {
-      msg.channel.send(response);
+      response && msg.channel.send(response);
     } catch (e) {
       console.log(e);
     }
@@ -189,15 +208,14 @@ async function routeCommand(
 }
 
 async function routeTrigger(msg: Discord.Message) {
-  let { fnc, response } =
-    triggers.find((t) => t.trigger.test(msg.content)) ?? {};
+  const { content } = msg;
+  let { response } = triggers.find((t) => t.trigger.test(msg.content)) ?? {};
 
-  if (fnc) fnc(msg, msg.content);
-  else if (response) {
+  if (response) {
     if (typeof response === "function")
-      response = await response(msg, msg.content);
+      response = await response({ msg, content });
     try {
-      msg.channel.send(response);
+      response && msg.channel.send(response);
     } catch (e) {
       console.log(e);
     }
@@ -208,3 +226,7 @@ async function routeTrigger(msg: Discord.Message) {
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
+
+// type ValidMessage = Parameters<Discord.TextChannel["send"]>[number];
+// /** does something given a discord message and maybe, anything found after the command */
+// type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;

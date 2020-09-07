@@ -2,11 +2,12 @@
   "name": "now-answer-me",
   "version": "1.6.1",
   "description": "dead simple discord bot",
-  "main": "index.js",
+  "main": "lib/index.js",
   "type": "module",
   "scripts": {
     "test": "npm run build&&node test.mjs",
-    "build": "rm -rf ./lib && tsc && cp ./package.json ./lib && cp ./README.md ./lib",
+    "build": "rm -rf ./lib && tsc",
+    "build_disabled": "rm -rf ./lib && tsc && cp ./package.json ./lib && cp ./README.md ./lib",
     "pub": "cp ./package.json ./lib && npm publish lib"
   },
   "repository": {

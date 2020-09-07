@@ -1,4 +1,6 @@
-import Discord, { Channel, ChannelResolvable } from "discord.js";
+/// <reference types="node" />
+import Discord, { Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
+import { ValidMessage } from "./index.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
  *
@@ -29,17 +31,17 @@ export declare function presentOptions(msg: Discord.Message, options: string | s
  */
 export declare function serialReactions(msg: Discord.Message, reactions: string[]): Promise<void>;
 export declare function singleReaction(msg: Discord.Message, reaction: string): Promise<void>;
-export declare type validSendContent = Parameters<Discord.TextChannel["send"]>[0];
-export declare function announceToChannels(client: Discord.Client, message: validSendContent, channelIds: string | string[]): (false | Promise<Discord.Message>)[];
+export declare function announceToChannels(client: Discord.Client, message: ValidMessage, channelIds: string | string[]): (false | Promise<Discord.Message>)[];
 /**
  * waits for client to be ready and then attempts to resolve a channel
- *
- * use this and refer to its results, to create a top level channel constant
- * that doesn't need to be re-resolved every single time, i.e.
- * ```
- * const ANNOUNCEMENTS_CHANNEL = resolveChannel<TextChannel>("123456789012345678");
- * // later, after client connects....
- * (await ANNOUNCEMENTS_CHANNEL)?.send("announcement!");
- * ```
  */
 export declare function resolveChannel<T extends Channel>(channel: ChannelResolvable): Promise<T | null>;
+/**
+ * waits for client to be ready and then attempts to resolve an emoji
+ */
+export declare function resolveEmoji(emoji: EmojiResolvable): Promise<Discord.GuildEmoji | null>;
+/**
+ * waits for client to be ready and then attempts to resolve a guild
+ */
+export declare function resolveGuild(guild: GuildResolvable): Promise<Discord.Guild | null>;
+export declare function buildEmojiDict(guilds: GuildResolvable[]): Promise<NodeJS.Dict<Discord.GuildEmoji>>;

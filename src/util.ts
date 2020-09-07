@@ -1,5 +1,11 @@
-import Discord, { Channel, ChannelResolvable } from "discord.js";
-import { client, clientReadyPromise } from "./index.js";
+import Discord, {
+  Channel,
+  ChannelResolvable,
+  EmojiResolvable,
+  GuildEmoji,
+  GuildResolvable,
+} from "discord.js";
+import { client, clientReadyPromise, ValidMessage } from "./index.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
  *
@@ -184,21 +190,9 @@ function reactionFilterLogger(reaction, user) {
   return true;
 }
 
-// export function channelToString(channel: Discord.Channel) {
-//   return (isDM(channel) && channel.toString()) || (isGuildChannel(channel) && channel);
-// }
-
-// function isGuildChannel(channel: Discord.Channel): channel is Discord.GuildChannel {
-//   return channel.type === 'text';
-// }
-// function isDM(channel: Discord.Channel): channel is Discord.DMChannel {
-//   return channel.type === 'dm';
-// }
-
-export type validSendContent = Parameters<Discord.TextChannel["send"]>[0];
 export function announceToChannels(
   client: Discord.Client,
-  message: validSendContent,
+  message: ValidMessage,
   channelIds: string | string[]
 ) {
   return arrayify(channelIds).map((channelId) => {
@@ -260,20 +254,6 @@ function buildReactionFilter({
   notEmoji = notEmoji ? arrayify(notEmoji) : undefined;
 
   return (reaction: Discord.MessageReaction, user: Discord.User) => {
-    // console.log({
-    //   // reaction,
-    //   // user,
-    //   users,
-    //   notUsers,
-    //   userid: user.id,
-    //   emoji,
-    //   notEmoji,
-    //   outcome:
-    //     (!users || users.includes(user.id)) &&
-    //     (!notUsers || !notUsers.includes(user.id)) &&
-    //     (!emoji || emoji.includes(reaction.emoji.name)) &&
-    //     (!notEmoji || !notEmoji.includes(reaction.emoji.name)),
-    // });
     return (
       (!users || users.includes(user.id)) &&
       (!notUsers || !notUsers.includes(user.id)) &&
@@ -289,20 +269,38 @@ function buildReactionFilter({
 
 /**
  * waits for client to be ready and then attempts to resolve a channel
- *
- * use this and refer to its results, to create a top level channel constant
- * that doesn't need to be re-resolved every single time, i.e.
- * ```
- * const ANNOUNCEMENTS_CHANNEL = resolveChannel<TextChannel>("123456789012345678");
- * // later, after client connects....
- * (await ANNOUNCEMENTS_CHANNEL)?.send("announcement!");
- * ```
  */
 export async function resolveChannel<T extends Channel>(
   channel: ChannelResolvable
 ) {
   await clientReadyPromise;
   return client.channels.resolve(channel) as T | null;
+}
+
+/**
+ * waits for client to be ready and then attempts to resolve an emoji
+ */
+export async function resolveEmoji(emoji: EmojiResolvable) {
+  await clientReadyPromise;
+  return client.emojis.resolve(emoji);
+}
+
+/**
+ * waits for client to be ready and then attempts to resolve a guild
+ */
+export async function resolveGuild(guild: GuildResolvable) {
+  await clientReadyPromise;
+  return client.guilds.resolve(guild);
+}
+
+export async function buildEmojiDict(guilds: GuildResolvable[]) {
+  const results: NodeJS.Dict<GuildEmoji> = {};
+  await clientReadyPromise;
+  for (const guild of guilds) {
+    const emojis = client.guilds.resolve(guild)?.emojis.cache;
+    emojis?.forEach((emoji) => (results[emoji.name] = emoji));
+  }
+  return results;
 }
 
 function arrayify<T>(arr: T | T[]): T[] {

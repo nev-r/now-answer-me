@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import Discord, { MessageAdditions, MessageOptions } from "discord.js";
 export * from "./util.js";
 export declare const startupTimestamp: Date;
 export declare const client: Discord.Client;
@@ -42,24 +42,30 @@ export declare function addOnReconnect(...onReconnect_: typeof onReconnects): vo
 export declare function setOnReconnect(onReconnect_: typeof onReconnects): void;
 export declare function init(token: string): Discord.Client;
 /** anything that can be fed into discord.js's send function. strings, embeds, etc. */
-declare type ValidMessage = Parameters<Discord.TextChannel["send"]>[number];
-/** does something given a discord message and maybe, anything found after the command */
-declare type Fnc = (msg: Discord.Message, args?: string) => void | Promise<void>;
-/** ValidMessage, or a ValidMessage-generating function, to respond to a message with. accepts args if the command parsing generated any */
-declare type Response = ((args?: string) => string | Promise<ValidMessage>) | ValidMessage;
-/** a Route needs either a Fnc, or a Response */
-declare type Route = {
-    fnc: Fnc;
-    response?: undefined;
-} | {
-    response: Response;
-    fnc?: undefined;
+export declare type ValidMessage = MessageOptions | MessageAdditions | string | undefined | void;
+/** a Command's response function is fed a single, destructurable argument */
+export declare type CommandParams = {
+    command: string;
+    args?: string;
+    msg: Discord.Message;
+    content: string;
 };
-declare const commands: ({
+/** a Trigger's response function is fed a single, destructurable argument */
+export declare type TriggerParams = {
+    msg: Discord.Message;
+    content: string;
+};
+/** ValidMessage, or a ValidMessage-generating function, to respond to a message with. accepts args if the command parsing generated any */
+export declare type CommandResponse = ((params: CommandParams) => ValidMessage | Promise<ValidMessage>) | ValidMessage;
+export declare type TriggerResponse = ((params: TriggerParams) => ValidMessage | Promise<ValidMessage>) | ValidMessage;
+/** a Route needs either a Fnc, or a Response */
+declare const commands: {
     command: string | string[];
-} & Route)[];
+    response: CommandResponse;
+}[];
 export declare function addCommand(...commands_: typeof commands): void;
-declare const triggers: ({
+declare const triggers: {
     trigger: RegExp;
-} & Route)[];
+    response: TriggerResponse;
+}[];
 export declare function addTrigger(...triggers_: typeof triggers): void;
