@@ -1,4 +1,4 @@
-# now-answer-me
+# this readme is wrong at this point
 the goal is to make a simple discord bot possible in about as much time as it takes to type `npm install now-answer-me`
 
 ```js
