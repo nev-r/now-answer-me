@@ -13,5 +13,9 @@
     "jsx": "react",
     "module": "es2015",
     "target": "es2017"
-  }
+  },
+  "typedocOptions": {
+    "mode": "modules",
+    "out": "docs"
+}
 }

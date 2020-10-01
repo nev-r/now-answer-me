@@ -1,5 +1,6 @@
 import Discord, { MessageAdditions, MessageOptions } from "discord.js";
 export * from "./util.js";
+export * from "./static.js";
 export const startupTimestamp = new Date();
 export const client = new Discord.Client();
 
@@ -136,11 +137,9 @@ function startActivityUpkeep() {
 }
 /** anything that can be fed into discord.js's send function. strings, embeds, etc. */
 export type ValidMessage =
-  | MessageOptions
+  | (MessageOptions & { split?: false | undefined })
   | MessageAdditions
-  | string
-  | undefined
-  | void;
+  | string;
 
 /** a Command's response function is fed a single, destructurable argument */
 export type CommandParams = {

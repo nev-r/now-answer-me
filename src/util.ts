@@ -6,6 +6,7 @@ import Discord, {
   GuildResolvable,
 } from "discord.js";
 import { client, clientReadyPromise, ValidMessage } from "./index.js";
+
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
  *
@@ -202,6 +203,7 @@ export function announceToChannels(
       (channel as Discord.TextChannel).send(message)
     );
   });
+
   // export function announceToChannels<T extends string | string[]>(
   //   client: Discord.Client,
   //   message: validSendContent,
