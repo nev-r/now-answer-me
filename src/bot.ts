@@ -32,7 +32,7 @@ export function setPrefix(prefix: string | RegExp) {
     `^(${newPrefix})(?<command>[\\w?]+)(?: (?<args>.+))?$`
   );
 }
-setPrefix('!');
+setPrefix("!");
 
 // list of statuses for the bot to cycle through
 let activities: Discord.ActivityOptions[] = [];
@@ -181,7 +181,9 @@ export interface TriggerParams {
  * if it's a function, it's passed the CommandParams object
  */
 export type CommandResponse =
-  | ((params: CommandParams) => ValidMessage | Promise<ValidMessage>)
+  | ((
+      params: CommandParams
+    ) => ValidMessage | undefined | Promise<ValidMessage | undefined>)
   | ValidMessage;
 
 /**
@@ -189,7 +191,9 @@ export type CommandResponse =
  * if it's a function, it's passed the TriggerParams object
  */
 export type TriggerResponse =
-  | ((params: TriggerParams) => ValidMessage | Promise<ValidMessage>)
+  | ((
+      params: TriggerParams
+    ) => ValidMessage | undefined | Promise<ValidMessage | undefined>)
   | ValidMessage;
 
 const commands: {
