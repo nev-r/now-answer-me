@@ -183,7 +183,11 @@ export interface TriggerParams {
 export type CommandResponse =
   | ((
       params: CommandParams
-    ) => ValidMessage | undefined | Promise<ValidMessage | undefined>)
+    ) =>
+      | ValidMessage
+      | undefined
+      | void
+      | Promise<ValidMessage | undefined | void>)
   | ValidMessage;
 
 /**
@@ -193,7 +197,11 @@ export type CommandResponse =
 export type TriggerResponse =
   | ((
       params: TriggerParams
-    ) => ValidMessage | undefined | Promise<ValidMessage | undefined>)
+    ) =>
+      | ValidMessage
+      | undefined
+      | void
+      | Promise<ValidMessage | undefined | void>)
   | ValidMessage;
 
 const commands: {
@@ -237,7 +245,9 @@ async function routeCommand(
 
   if (response) {
     if (typeof response === "function")
-      response = await response({ msg, command, args, content: msg.content });
+      response =
+        (await response({ msg, command, args, content: msg.content })) ||
+        undefined;
     try {
       response && msg.channel.send(response);
     } catch (e) {
@@ -252,7 +262,7 @@ async function routeTrigger(msg: Discord.Message) {
 
   if (response) {
     if (typeof response === "function")
-      response = await response({ msg, content: msg.content });
+      response = (await response({ msg, content: msg.content })) || undefined;
     try {
       response && msg.channel.send(response);
     } catch (e) {
