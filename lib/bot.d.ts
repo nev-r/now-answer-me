@@ -75,12 +75,12 @@ export interface TriggerParams {
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the CommandParams object
  */
-export declare type CommandResponse = ((params: CommandParams) => ValidMessage | Promise<ValidMessage>) | ValidMessage;
+export declare type CommandResponse = ((params: CommandParams) => ValidMessage | undefined | Promise<ValidMessage | undefined>) | ValidMessage;
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the TriggerParams object
  */
-export declare type TriggerResponse = ((params: TriggerParams) => ValidMessage | Promise<ValidMessage>) | ValidMessage;
+export declare type TriggerResponse = ((params: TriggerParams) => ValidMessage | undefined | Promise<ValidMessage | undefined>) | ValidMessage;
 declare const commands: {
     command: string | string[];
     response: CommandResponse;
