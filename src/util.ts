@@ -5,7 +5,7 @@ import Discord, {
   GuildEmoji,
   GuildResolvable,
 } from "discord.js";
-import { client, clientReadyPromise, ValidMessage } from "./index.js";
+import { client, clientReadyPromise, ValidMessage } from "./bot.js";
 
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`

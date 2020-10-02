@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import Discord, { Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
-import { ValidMessage } from "./index.js";
+import { ValidMessage } from "./bot.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
  *

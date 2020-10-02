@@ -1,12 +1,13 @@
 # this readme is wrong at this point
-the goal is to make a simple discord bot possible in about as much time as it takes to type `npm install now-answer-me`
+the goal is to make a simple discord bot possible in about  
+as much time as it takes to type `npm install nev-r/now-answer-me`
 
 ```js
 import { addCommand, init } from "now-answer-me";
 
 addCommand({ command: "hello", response: 'hi!' });
 
-init("smIcXn83zPK.1FEzAIM0GzMINbgJ1zeM1cNWzANOLT6NDVzZ50I9eY.l85E");
+init("smIcXn83zPK.MY.DISCORD.API.TOKEN.l898HA5E");
 ```
 
 ![image](https://user-images.githubusercontent.com/68782081/90107344-81c17f80-dcfd-11ea-947e-d1c8d6f19d20.png)
@@ -14,11 +15,11 @@ init("smIcXn83zPK.1FEzAIM0GzMINbgJ1zeM1cNWzANOLT6NDVzZ50I9eY.l85E");
 <hr/>
 
 instead of a string, `command` can be multiple strings which will activate the same command  
-instead of a string, `response` can be a function which returns text to respond with
+instead of a string, `response` can be a function which returns a response
 ```js
 addCommand({ command: ["echo", "echothis"], response: echoSomething });
 
-function echoSomething(args) {
+function echoSomething({args}) {
   if (args) return args;
   else return "you didn't give me anything to repeat!";
 }
@@ -28,13 +29,13 @@ function echoSomething(args) {
 
 <hr/>
 
-for the power user, instead of a `response`, a command can have a `fnc`,  
-and just deal with the discord.js `Message` object directly
+a `response` function receives data about the trigger. for the power user, instead of returning a value,
+and the code can just deal with the discord.js `Message` object directly
 ```js
-addCommand({ command: "tattle", fnc: tattleOnUser });
+addCommand({ command: "tattle", response: tattleOnUser });
 
-function tattleOnUser(msg, args, command) {
-  const text = `i was sent ${args} by ${msg.author}!`;
+function tattleOnUser({msg, args, command, content}) {
+  const text = `i was sent "${args}" by ${msg.author}!`;
   msg.channel.send(text);
 }
 ```
@@ -43,7 +44,7 @@ function tattleOnUser(msg, args, command) {
 
 <hr/>
 
-set your command prefix, and a status message
+set your command prefix, and a set up status message
 ```js
 import { setPrefix } from "now-answer-me";
 

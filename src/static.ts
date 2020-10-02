@@ -5,7 +5,6 @@ import Discord, {
   MessageResolvable,
   TextChannel,
 } from "discord.js";
-import { client } from "./index.js";
 
 /**
  * logs into discord, sends a message to a specific channel, and logs out.
@@ -35,7 +34,7 @@ export async function sendSingleMessage(
         );
       const sentMessage = await resolvedChannel.send(content);
       if (publish) await sentMessage.crosspost();
-      client.destroy();
+      tempClient.destroy();
       resolve(sentMessage);
     });
   });
@@ -74,7 +73,7 @@ export async function publishSingleMessage(
           `couldn't find message ${message} in channel ${channel}`
         );
       await messageToPublish.crosspost();
-      client.destroy();
+      tempClient.destroy();
       resolve(messageToPublish);
     });
   });
@@ -92,11 +91,11 @@ export async function publishSingleMessage(
 export async function editSingleMessage(
   apiToken: string,
   channel: ChannelResolvable,
-  message: MessageResolvable,
+  messageId: string,
   content: string | MessageEmbed
 ) {
   const tempClient = new Discord.Client();
-  const doneSending = new Promise((resolve) => {
+  const doneEditing = new Promise((resolve) => {
     tempClient.on("ready", async () => {
       const resolvedChannel = tempClient.channels.resolve(channel);
       if (!resolvedChannel)
@@ -105,17 +104,17 @@ export async function editSingleMessage(
         );
       if (!resolvedChannel.isText())
         throw new Error(`channel ${channel} is not a text channel`);
-      const messageToEdit = resolvedChannel.messages.resolve(message);
+      const messageToEdit = await resolvedChannel.messages.fetch(messageId);
       if (!messageToEdit)
         throw new Error(
-          `couldn't find message ${message} in channel ${channel}`
+          `couldn't find message ${messageId} in channel ${resolvedChannel}`
         );
       await messageToEdit.edit(content);
-      client.destroy();
+      tempClient.destroy();
       resolve(messageToEdit);
     });
   });
 
   tempClient.login(apiToken);
-  return doneSending;
+  return doneEditing;
 }

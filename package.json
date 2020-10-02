@@ -1,11 +1,11 @@
 {
   "name": "now-answer-me",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "dead simple discord bot",
-  "main": "lib/index.js",
+  "main": "lib/bot.js",
   "type": "module",
   "scripts": {
-    "test": "npm run build&&node test.mjs",
+    "test": "rm -rf ./lib && tsc && node test.mjs",
     "build": "rm -rf ./lib && tsc",
     "build_disabled": "rm -rf ./lib && tsc && cp ./package.json ./lib && cp ./README.md ./lib",
     "pub": "cp ./package.json ./lib && npm publish lib"
@@ -22,10 +22,14 @@
   "homepage": "https://github.com/nev-r/now-answer-me#readme",
   "devDependencies": {
     "@types/node": "^14.11.2",
+    "discord.js": "github:discordjs/discord.js",
+    "eledoc": "^0.2.1",
     "typedoc": "^0.19.2",
+    "typedoc-plugin-markdown": "^3.0.4",
     "typescript": "^4.0.3"
   },
   "peerDependencies": {
     "discord.js": "github:discordjs/discord.js"
-  }
+  },
+  "dependencies": {}
 }
