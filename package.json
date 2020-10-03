@@ -1,13 +1,21 @@
 {
   "name": "now-answer-me",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "dead simple discord bot",
-  "main": "lib/bot.js",
+  "main": "./bot.js",
+  "types": "./bot.d.ts",
   "exports": {
-    "./bot": "./lib/static.js",
-    "./static": "./lib/static.js",
+    ".": "./lib/bot.js",
     "./util": "./lib/util.js",
-    "./package.json": "./package.json"
+    "./bot": "./lib/bot.js",
+    "./static": "./lib/static.js"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./lib/*"
+      ]
+    }
   },
   "type": "module",
   "scripts": {
