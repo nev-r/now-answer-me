@@ -1,8 +1,8 @@
 import Discord, { MessageAdditions, MessageOptions } from "discord.js";
 export declare const startupTimestamp: Date;
 export declare const client: Discord.Client;
-/** undefined when the client isn't started, resolves when the client has connected */
-export declare let clientReadyPromise: Promise<Discord.Client> | undefined;
+/** resolves when the client has connected */
+export declare let clientReadyPromise: Promise<Discord.Client>;
 /** check if the client has done its first connection */
 export declare let clientReady: boolean;
 /**
