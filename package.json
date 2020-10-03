@@ -3,6 +3,12 @@
   "version": "1.7.1",
   "description": "dead simple discord bot",
   "main": "lib/bot.js",
+  "exports": {
+    "./bot": "./lib/static.js",
+    "./static": "./lib/static.js",
+    "./util": "./lib/util.js",
+    "./package.json": "./package.json"
+  },
   "type": "module",
   "scripts": {
     "test": "rm -rf ./lib && tsc && node test.mjs",

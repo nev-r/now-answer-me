@@ -2,8 +2,16 @@ import Discord, { MessageAdditions, MessageOptions } from "discord.js";
 export const startupTimestamp = new Date();
 export const client = new Discord.Client();
 
-/** undefined when the client isn't started, resolves when the client has connected */
-export let clientReadyPromise: Promise<Discord.Client> | undefined = undefined;
+let _clientReadyResolve: (
+  value: Discord.Client | PromiseLike<Discord.Client>
+) => void;
+
+/** resolves when the client has connected */
+export let clientReadyPromise: Promise<Discord.Client> = new Promise(
+  (resolve) => {
+    _clientReadyResolve = resolve;
+  }
+);
 
 /** check if the client has done its first connection */
 export let clientReady = false;
@@ -94,13 +102,6 @@ type commandMatch = { command: string | undefined; args: string | undefined };
 
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token: string) {
-  let _clientReadyResolve: (
-    value: Discord.Client | PromiseLike<Discord.Client>
-  ) => void;
-  clientReadyPromise = new Promise<Discord.Client>((resolve) => {
-    _clientReadyResolve = resolve;
-  });
-
   client
     .on("message", (msg: Discord.Message) => {
       // quit if this is the bot's own message
