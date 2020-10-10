@@ -11,8 +11,8 @@ import {
   publishMessageUsingClient,
   sendMessageUsingClient,
   uploadEmojiListUsingClient,
-} from "./raw-utils";
-import { doSomethingUsingTempClient } from "./temp-client";
+} from "./raw-utils.js";
+import { doSomethingUsingTempClient } from "./temp-client.js";
 
 /**
  * logs into discord, sends a message to a specific channel, and logs out.

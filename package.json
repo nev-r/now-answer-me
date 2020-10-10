@@ -1,6 +1,6 @@
 {
   "name": "now-answer-me",
-  "version": "1.7.4",
+  "version": "1.7.6",
   "description": "dead simple discord bot",
   "main": "./bot.js",
   "types": "./bot.d.ts",
@@ -45,5 +45,10 @@
   "peerDependencies": {
     "discord.js": "github:discordjs/discord.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.4.0",
+    "@typescript-eslint/parser": "^4.4.0",
+    "eslint": "^7.11.0",
+    "eslint-plugin-import": "^2.22.1"
+  }
 }
