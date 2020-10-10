@@ -312,7 +312,7 @@ export async function uploadEmojiList(
   emoteList: { attachment: BufferResolvable; name: string }[]
 ) {
   await clientReadyPromise;
-  uploadEmojiListUsingClient(client, guild, emoteList);
+  return uploadEmojiListUsingClient(client, guild, emoteList);
 }
 
 function arrayify<T>(arr: T | T[]): T[] {

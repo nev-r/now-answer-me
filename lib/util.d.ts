@@ -51,4 +51,4 @@ export declare function buildEmojiDict(guilds: GuildResolvable[]): Promise<NodeJ
 export declare function uploadEmojiList(guild: GuildResolvable, emoteList: {
     attachment: BufferResolvable;
     name: string;
-}[]): Promise<void>;
+}[]): Promise<Record<string, Discord.GuildEmoji>>;
