@@ -44,4 +44,7 @@ export declare function resolveEmoji(emoji: EmojiResolvable): Promise<Discord.Gu
  * waits for client to be ready and then attempts to resolve a guild
  */
 export declare function resolveGuild(guild: GuildResolvable): Promise<Discord.Guild | null>;
+/**
+ * waits for client to be ready and then builds an emoji dict from a server or array of servers
+ */
 export declare function buildEmojiDict(guilds: GuildResolvable[]): Promise<NodeJS.Dict<Discord.GuildEmoji>>;

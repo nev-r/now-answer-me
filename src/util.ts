@@ -6,6 +6,7 @@ import Discord, {
   GuildResolvable,
 } from "discord.js";
 import { client, clientReadyPromise, ValidMessage } from "./bot.js";
+import { buildEmojiDictUsingClient } from "./raw-utils.js";
 
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
@@ -295,14 +296,12 @@ export async function resolveGuild(guild: GuildResolvable) {
   return client.guilds.resolve(guild);
 }
 
+/**
+ * waits for client to be ready and then builds an emoji dict from a server or array of servers
+ */
 export async function buildEmojiDict(guilds: GuildResolvable[]) {
-  const results: NodeJS.Dict<GuildEmoji> = {};
   await clientReadyPromise;
-  for (const guild of guilds) {
-    const emojis = client.guilds.resolve(guild)?.emojis.cache;
-    emojis?.forEach((emoji) => (results[emoji.name] = emoji));
-  }
-  return results;
+  return buildEmojiDictUsingClient(client,guilds);
 }
 
 function arrayify<T>(arr: T | T[]): T[] {
