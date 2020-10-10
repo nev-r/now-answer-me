@@ -1,6 +1,6 @@
 {
   "name": "now-answer-me",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "description": "dead simple discord bot",
   "main": "./bot.js",
   "types": "./bot.d.ts",

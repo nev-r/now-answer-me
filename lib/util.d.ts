@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import Discord, { Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
+import Discord, { BufferResolvable, Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
 import { ValidMessage } from "./bot.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
@@ -48,3 +48,7 @@ export declare function resolveGuild(guild: GuildResolvable): Promise<Discord.Gu
  * waits for client to be ready and then builds an emoji dict from a server or array of servers
  */
 export declare function buildEmojiDict(guilds: GuildResolvable[]): Promise<NodeJS.Dict<Discord.GuildEmoji>>;
+export declare function uploadEmojiList(guild: GuildResolvable, emoteList: {
+    attachment: BufferResolvable;
+    name: string;
+}[]): Promise<void>;

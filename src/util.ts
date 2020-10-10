@@ -1,4 +1,5 @@
 import Discord, {
+  BufferResolvable,
   Channel,
   ChannelResolvable,
   EmojiResolvable,
@@ -6,7 +7,10 @@ import Discord, {
   GuildResolvable,
 } from "discord.js";
 import { client, clientReadyPromise, ValidMessage } from "./bot.js";
-import { buildEmojiDictUsingClient } from "./raw-utils.js";
+import {
+  buildEmojiDictUsingClient,
+  uploadEmojiListUsingClient,
+} from "./raw-utils.js";
 
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
@@ -301,7 +305,14 @@ export async function resolveGuild(guild: GuildResolvable) {
  */
 export async function buildEmojiDict(guilds: GuildResolvable[]) {
   await clientReadyPromise;
-  return buildEmojiDictUsingClient(client,guilds);
+  return buildEmojiDictUsingClient(client, guilds);
+}
+export async function uploadEmojiList(
+  guild: GuildResolvable,
+  emoteList: { attachment: BufferResolvable; name: string }[]
+) {
+  await clientReadyPromise;
+  uploadEmojiListUsingClient(client, guild, emoteList);
 }
 
 function arrayify<T>(arr: T | T[]): T[] {
