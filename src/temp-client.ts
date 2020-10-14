@@ -13,7 +13,7 @@ export async function doSomethingUsingTempClient<T>(
     });
 
     tempClient.login(apiToken);
-    return resolvesAfterClientDestroyed;
+    return await resolvesAfterClientDestroyed;
   } finally {
     tempClient.destroy();
   }
