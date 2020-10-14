@@ -5,14 +5,16 @@ export async function doSomethingUsingTempClient<T>(
   something: (client: Client) => Promise<T> | T
 ) {
   const tempClient = new Client();
-  const resolvesAfterClientDestroyed = new Promise<T>((resolve) => {
-    tempClient.on("ready", async () => {
-      const resolution = await something(tempClient);
-      tempClient.destroy();
-      resolve(resolution);
+  try {
+    const resolvesAfterClientDestroyed = new Promise<T>((resolve) => {
+      tempClient.on("ready", async () => {
+        resolve(await something(tempClient));
+      });
     });
-  });
 
-  tempClient.login(apiToken);
-  return resolvesAfterClientDestroyed;
+    tempClient.login(apiToken);
+    return resolvesAfterClientDestroyed;
+  } finally {
+    tempClient.destroy();
+  }
 }
