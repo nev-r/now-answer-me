@@ -6,7 +6,9 @@ import type {
   MessageEmbed,
   MessageResolvable,
   BufferResolvable,
+  UserResolvable,
 } from "discord.js";
+import { sleep } from "one-stone/promise";
 
 export async function buildEmojiDictUsingClient(
   client: Client,
@@ -27,7 +29,7 @@ export async function sendMessageUsingClient(
   content: string | MessageEmbed,
   publish?: boolean
 ) {
-  const resolvedChannel = client.channels.resolve(channel);
+  const resolvedChannel = await client.channels.fetch(normalizeID(channel));
   if (!resolvedChannel)
     throw new Error(
       `${channel} could not be resolved to a channel this account has access to`
@@ -44,22 +46,33 @@ export async function sendMessageUsingClient(
   return sentMessage;
 }
 
+export async function getDMChannelUsingClient(
+  client: Client,
+  user: UserResolvable
+) {
+  const resolvedUser = await client.users.fetch(normalizeID(user));
+  if (!resolvedUser)
+    throw new Error(`${resolvedUser} could not be resolved to a user`);
+
+  return await resolvedUser.createDM();
+}
+
 export async function editMessageUsingClient(
   client: Client,
   channel: ChannelResolvable,
   message: MessageResolvable,
   content: string | MessageEmbed
 ) {
-  message = typeof message === "string" ? message : message.id;
-
-  const resolvedChannel = client.channels.resolve(channel);
+  const resolvedChannel = await client.channels.fetch(normalizeID(channel));
   if (!resolvedChannel)
     throw new Error(
       `${channel} could not be resolved to a channel this account has access to`
     );
   if (!resolvedChannel.isText())
     throw new Error(`channel ${channel} is not a text channel`);
-  const messageToEdit = await resolvedChannel.messages.fetch(message);
+  const messageToEdit = await resolvedChannel.messages.fetch(
+    normalizeID(message)
+  );
   if (!messageToEdit)
     throw new Error(
       `couldn't find message ${message} in channel ${resolvedChannel}`
@@ -73,9 +86,7 @@ export async function publishMessageUsingClient(
   channel: ChannelResolvable,
   message: MessageResolvable
 ) {
-  message = typeof message === "string" ? message : message.id;
-
-  const resolvedChannel = client.channels.resolve(channel);
+  const resolvedChannel = await client.channels.fetch(normalizeID(channel));
   if (!resolvedChannel)
     throw new Error(
       `${channel} could not be resolved to a channel this account has access to`
@@ -89,7 +100,9 @@ export async function publishMessageUsingClient(
       `cannot publish. channel ${channel} is not a news/announcement channel`
     );
 
-  const messageToPublish = await resolvedChannel.messages.fetch(message);
+  const messageToPublish = await resolvedChannel.messages.fetch(
+    normalizeID(message)
+  );
   if (!messageToPublish)
     throw new Error(`couldn't find message ${message} in channel ${channel}`);
 
@@ -136,13 +149,14 @@ export async function uploadEmojiListUsingClient(
   }
 }
 
-export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export async function sleepUntil(date: number | Date) {
-  if (typeof date === "number") date = new Date(date);
-  const waitTime = date.getTime() - Date.now();
-  if (waitTime < 0) throw new Error(`${date.toLocaleString} is in the past!`);
-  await sleep(waitTime);
+function normalizeID(
+  resolvable:
+    | UserResolvable
+    | ChannelResolvable
+    | MessageResolvable
+    | GuildResolvable
+) {
+  return typeof resolvable === "string"
+    ? resolvable
+    : ((resolvable as any).id as string);
 }
