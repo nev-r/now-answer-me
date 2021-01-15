@@ -279,7 +279,7 @@ async function routeCommand(
     let { response } = foundCommand;
     if (!meetsConstraints(msg, foundCommand)) {
       console.log(
-        `constraints suppressed a response to ${msg.author} requesting ${command}`
+        `constraints suppressed a response to ${msg.author.username} requesting ${command}`
       );
       return;
     }
@@ -374,11 +374,20 @@ function meetsConstraints(
 
 // given a message, see if it matches a trigger, then run the corresponding function
 async function routeTrigger(msg: Discord.Message) {
-  let { response } = triggers.find((t) => t.trigger.test(msg.content)) ?? {};
+  let foundTrigger = triggers.find((t) => t.trigger.test(msg.content));
 
-  if (response) {
+  if (foundTrigger) {
+    let { response } = foundTrigger;
+
+    if (!meetsConstraints(msg, foundTrigger)) {
+      console.log(
+        `constraints suppressed a response to ${msg.author.username} requesting ${foundTrigger.trigger.source}`
+      );
+      return;
+    }
+
     if (typeof response === "function")
-      response = (await response({ msg, content: msg.content })) || undefined;
+      response = (await response({ msg, content: msg.content })) || "";
     try {
       response && msg.channel.send(response);
     } catch (e) {
