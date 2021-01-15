@@ -6,10 +6,14 @@ export declare let clientReadyPromise: Promise<Discord.Client>;
 /** check if the client has done its first connection */
 export declare let clientReady: boolean;
 /**
- * set the command prefix (i.e. `!` or `?` or whatever)
+ * set the command prefix (i.e. "!"" or "?"" or whatever)
  *
  * @param prefix a string will be used literally. a regex can be used instead,
- * like `!|?` but it shouldn't capture the command word or the line beginning
+ * but it needs to be carefully formatted, including (likely) a `^`, and needs
+ * named `(<command>` and `(<args>` subpatterns
+ *
+ * ideally, use a string prefix because it's going to be a lot faster to check
+ * startsWith, instead of executing a regex on every message that goes by
  */
 export declare function setPrefix(prefix: string | RegExp): void;
 declare let activities: Discord.ActivityOptions[];
@@ -29,7 +33,7 @@ declare let onConnects: ((client_: Discord.Client) => void)[];
  */
 export declare function addOnConnect(...onConnect_: typeof onConnects): void;
 /** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
-export declare function setOnConnects(onConnects_: typeof onConnects): void;
+export declare function setOnConnect(onConnects_: typeof onConnects): void;
 declare let onReconnects: ((client_: Discord.Client) => void)[];
 /**
  * add function(s) to run upon any reconnection to discord
@@ -81,19 +85,29 @@ export declare type CommandResponse = ((params: CommandParams) => ValidMessage |
  * if it's a function, it's passed the TriggerParams object
  */
 export declare type TriggerResponse = ((params: TriggerParams) => ValidMessage | undefined | void | Promise<ValidMessage | undefined | void>) | ValidMessage;
-declare const commands: {
+interface Constraints {
+    user?: string | string[];
+    channel?: string | string[];
+    guild?: string | string[];
+}
+interface ConstraintCategories {
+    allowOnly?: Constraints;
+    block?: Constraints;
+    allow?: Constraints;
+}
+declare const commands: ({
     command: string | string[];
     response: CommandResponse;
-}[];
+} & ConstraintCategories)[];
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the TriggerParams object
  */
 export declare function addCommand(...commands_: typeof commands): void;
-declare const triggers: {
+declare const triggers: ({
     trigger: RegExp;
     response: TriggerResponse;
-}[];
+} & ConstraintCategories)[];
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the TriggerParams object

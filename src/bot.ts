@@ -20,25 +20,33 @@ export let clientReady = false;
 // bot functionality stuff
 //
 
-// let prefixRegex: RegExp;
-let commandRegex: RegExp;
+// let prefixString: string|undefined;
+// let prefixRegex: RegExp|undefined;
+let prefixCheck: (s: string) => ReturnType<string["match"]>;
+// let commandRegex: RegExp;
 
 /**
- * set the command prefix (i.e. `!` or `?` or whatever)
+ * set the command prefix (i.e. "!"" or "?"" or whatever)
  *
  * @param prefix a string will be used literally. a regex can be used instead,
- * like `!|?` but it shouldn't capture the command word or the line beginning
+ * but it needs to be carefully formatted, including (likely) a `^`, and needs
+ * named `(<command>` and `(<args>` subpatterns
+ *
+ * ideally, use a string prefix because it's going to be a lot faster to check
+ * startsWith, instead of executing a regex on every message that goes by
  */
 export function setPrefix(prefix: string | RegExp) {
-  const newPrefix = (typeof prefix === "string"
-    ? escapeRegExp(prefix)
-    : prefix.source
-  ).replace(/^\^+/, "");
-
-  // prefixRegex = new RegExp(`^(${newPrefix})`);
-  commandRegex = new RegExp(
-    `^(${newPrefix})(?<command>[\\w?]+)(?: (?<args>.+))?$`
-  );
+  if (typeof prefix === "string") {
+    const newRegex = new RegExp(
+      `^(${escapeRegExp(prefix).replace(
+        /^\^+/,
+        ""
+      )})(?<command>\\S*)(?: (?<args>.+))?$`
+    );
+    prefixCheck = (s) => (s.startsWith(prefix) ? s.match(newRegex) : null);
+  } else {
+    prefixCheck = (s) => s.match(prefix);
+  }
 }
 setPrefix("!");
 
@@ -76,7 +84,7 @@ export function addOnConnect(...onConnect_: typeof onConnects) {
 }
 
 /** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
-export function setOnConnects(onConnects_: typeof onConnects) {
+export function setOnConnect(onConnects_: typeof onConnects) {
   onConnects = onConnects_;
 }
 
@@ -106,12 +114,10 @@ export function init(token: string) {
     .on("message", (msg: Discord.Message) => {
       // quit if this is the bot's own message
       if (msg.author === client.user) return;
-
-      // match command name and args
-      const { command, args } =
-        msg.content.match(commandRegex)?.groups ?? ({} as commandMatch);
-
-      if (command) routeCommand(msg, command, args);
+      // match command
+      const isCommand = prefixCheck(msg.content);
+      if (isCommand)
+        routeCommand(msg, isCommand.groups!.command, isCommand.groups!.args);
       else routeTrigger(msg);
     })
     .once("ready", () => {
@@ -205,29 +211,49 @@ export type TriggerResponse =
       | Promise<ValidMessage | undefined | void>)
   | ValidMessage;
 
-const commands: {
+interface Constraints {
+  user?: string | string[];
+  channel?: string | string[];
+  guild?: string | string[];
+}
+
+interface ConstraintCategories {
+  allowOnly?: Constraints;
+  block?: Constraints;
+  allow?: Constraints;
+}
+
+const commands: ({
   command: string | string[];
   response: CommandResponse;
-}[] = [];
+} & ConstraintCategories)[] = [];
 
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the TriggerParams object
  */
 export function addCommand(...commands_: typeof commands) {
+  commands_.forEach((c) => {
+    enforceWellStructuredCommand(c.command);
+    enforceWellStructuredResponse(c.response);
+  });
   commands.push(...commands_);
 }
 
-const triggers: {
+const triggers: ({
   trigger: RegExp;
   response: TriggerResponse;
-}[] = [];
+} & ConstraintCategories)[] = [];
 
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the TriggerParams object
  */
 export function addTrigger(...triggers_: typeof triggers) {
+  triggers_.forEach((t) => {
+    enforceWellStructuredTrigger(t.trigger);
+    enforceWellStructuredResponse(t.response);
+  });
   triggers.push(...triggers_);
 }
 
@@ -237,24 +263,103 @@ async function routeCommand(
   command: string,
   args?: string
 ) {
-  let { response } =
-    commands.find((r) =>
-      typeof r.command === "string"
-        ? r.command === command
-        : r.command.includes(command)
-    ) ?? {};
+  let foundCommand = commands.find(
+    (r) => r.command === command || r.command.includes(command)
+  );
 
-  if (response) {
+  if (foundCommand) {
+    let { response } = foundCommand;
+    if (!meetsConstraints(msg, foundCommand)) {
+      console.log(
+        `constraints suppressed a response to ${msg.author} requesting ${command}`
+      );
+      return;
+    }
     if (typeof response === "function")
       response =
-        (await response({ msg, command, args, content: msg.content })) ||
-        undefined;
+        (await response({ msg, command, args, content: msg.content })) || "";
     try {
-      response && msg.channel.send(response);
+      response && (await msg.channel.send(response));
     } catch (e) {
       console.log(e);
     }
   }
+}
+
+function meetsConstraints(
+  msg: Discord.Message,
+  { allowOnly, allow, block }: ConstraintCategories
+) {
+  const {
+    author: { id: authorId },
+    channel: { id: channelId },
+    guild,
+  } = msg;
+  const guildId = guild?.id;
+
+  // if an allow constraint exists, and it's met, allow
+  if (allow) {
+    const { user, channel, guild } = allow;
+    if (
+      (channel &&
+        (typeof channel === "string"
+          ? channel === channelId
+          : channel.includes(channelId))) ||
+      (user &&
+        (typeof user === "string"
+          ? user === authorId
+          : user.includes(authorId))) ||
+      (guild &&
+        guildId &&
+        (typeof guild === "string"
+          ? guild === guildId
+          : guild.includes(guildId)))
+    )
+      return true;
+  }
+
+  // if an allowOnly constraint exists, and it's not met, block
+  if (allowOnly) {
+    const { user, channel, guild } = allowOnly;
+    if (
+      (channel &&
+        !(typeof channel === "string"
+          ? channel === channelId
+          : channel.includes(channelId))) ||
+      (user &&
+        !(typeof user === "string"
+          ? user === authorId
+          : user.includes(authorId))) ||
+      (guild &&
+        guildId &&
+        !(typeof guild === "string"
+          ? guild === guildId
+          : guild.includes(guildId)))
+    )
+      return false;
+  }
+
+  // if a block constraint exists, and it's met, block
+  if (block) {
+    const { user, channel, guild } = block;
+    if (
+      (channel &&
+        (typeof channel === "string"
+          ? channel === channelId
+          : channel.includes(channelId))) ||
+      (user &&
+        (typeof user === "string"
+          ? user === authorId
+          : user.includes(authorId))) ||
+      (guild &&
+        guildId &&
+        (typeof guild === "string"
+          ? guild === guildId
+          : guild.includes(guildId)))
+    )
+      return false;
+  }
+  return true;
 }
 
 // given a message, see if it matches a trigger, then run the corresponding function
@@ -275,4 +380,23 @@ async function routeTrigger(msg: Discord.Message) {
 // via MDN
 function escapeRegExp(string: string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&");
+}
+
+function enforceWellStructuredCommand(command: any) {
+  if (
+    typeof command === "string" ||
+    (Array.isArray(command) && command.every((s) => typeof s === "string"))
+  )
+    return;
+  throw new Error(`bad command submitted:\n${command}`);
+}
+
+function enforceWellStructuredResponse(response: any) {
+  if (typeof response !== "undefined") return;
+  throw new Error(`bad response submitted:\n${response}`);
+}
+
+function enforceWellStructuredTrigger(trigger: any) {
+  if (trigger instanceof RegExp) return;
+  throw new Error(`bad trigger submitted:\n${trigger}`);
 }

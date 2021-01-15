@@ -60,6 +60,7 @@ export async function sendRerollableEmbed<T>(
   }
 }
 
+const adjustDirections: NodeJS.Dict<number> = { "⬅️": -1, "➡️": 1 };
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid `MessageEmbed`
  */
@@ -96,7 +97,6 @@ export async function sendPaginatedEmbed<T>(
     if (currentPage < 0) currentPage = contentList.length - 1;
   }
 }
-const adjustDirections = { "⬅️": -1, "➡️": 1 };
 
 /**
  * posts 1 or more options (emoji) to a message,
@@ -191,10 +191,10 @@ export async function singleReaction(msg: Discord.Message, reaction: string) {
 //   global['clock'] = new Date().getTime();
 // }
 
-function reactionFilterLogger(reaction, user) {
-  // testLog(`filtering ${reaction.emoji.name} sent by ${user.id}`);
-  return true;
-}
+// function reactionFilterLogger(reaction, user) {
+//   // testLog(`filtering ${reaction.emoji.name} sent by ${user.id}`);
+//   return true;
+// }
 
 export function announceToChannels(
   client: Discord.Client,
@@ -319,7 +319,9 @@ function arrayify<T>(arr: T | T[]): T[] {
   return Array.isArray(arr) ? arr : [arr];
 }
 
-function nodeLog(any): (_e: any) => void {
+function nodeLog(
+  any: Parameters<typeof process.stdout.write>[0]
+): (_e: any) => void {
   return (_e) => {
     process.stdout.write(any);
   };

@@ -12,10 +12,11 @@
     "strictNullChecks": true,
     "jsx": "react",
     "module": "es2015",
-    "target": "es2017"
+    "target": "es2017",
+    "strict": true
   },
   "typedocOptions": {
     "mode": "modules",
     "out": "docs"
-}
+  }
 }
