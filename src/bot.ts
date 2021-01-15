@@ -271,9 +271,7 @@ async function routeCommand(
   command: string,
   args?: string
 ) {
-  let foundCommand = commands.find(
-    (r) => r.command === command || r.command.includes(command)
-  );
+  let foundCommand = commands.find((r) => mixedIncludes(r.command, command));
 
   if (foundCommand) {
     let { response } = foundCommand;
