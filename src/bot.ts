@@ -311,19 +311,9 @@ function meetsConstraints(
   if (allow) {
     const { user, channel, guild } = allow;
     if (
-      (channel &&
-        (typeof channel === "string"
-          ? channel === channelId
-          : channel.includes(channelId))) ||
-      (user &&
-        (typeof user === "string"
-          ? user === authorId
-          : user.includes(authorId))) ||
-      (guild &&
-        guildId &&
-        (typeof guild === "string"
-          ? guild === guildId
-          : guild.includes(guildId)))
+      (channel && mixedIncludes(channel, channelId)) ||
+      (user && mixedIncludes(user, authorId)) ||
+      (guild && guildId && mixedIncludes(guild, guildId))
     )
       return true;
   }
@@ -332,19 +322,9 @@ function meetsConstraints(
   if (allowOnly) {
     const { user, channel, guild } = allowOnly;
     if (
-      (channel &&
-        !(typeof channel === "string"
-          ? channel === channelId
-          : channel.includes(channelId))) ||
-      (user &&
-        !(typeof user === "string"
-          ? user === authorId
-          : user.includes(authorId))) ||
-      (guild &&
-        guildId &&
-        !(typeof guild === "string"
-          ? guild === guildId
-          : guild.includes(guildId)))
+      (channel && !mixedIncludes(channel, channelId)) ||
+      (user && !mixedIncludes(user, authorId)) ||
+      (guild && (!guildId || !mixedIncludes(guild, guildId)))
     )
       return false;
   }
@@ -353,19 +333,9 @@ function meetsConstraints(
   if (block) {
     const { user, channel, guild } = block;
     if (
-      (channel &&
-        (typeof channel === "string"
-          ? channel === channelId
-          : channel.includes(channelId))) ||
-      (user &&
-        (typeof user === "string"
-          ? user === authorId
-          : user.includes(authorId))) ||
-      (guild &&
-        guildId &&
-        (typeof guild === "string"
-          ? guild === guildId
-          : guild.includes(guildId)))
+      (channel && mixedIncludes(channel, channelId)) ||
+      (user && mixedIncludes(user, authorId)) ||
+      (guild && guildId && mixedIncludes(guild, guildId))
     )
       return false;
   }
@@ -418,4 +388,10 @@ function enforceWellStructuredResponse(response: any) {
 function enforceWellStructuredTrigger(trigger: any) {
   if (trigger instanceof RegExp) return;
   throw new Error(`bad trigger submitted:\n${trigger}`);
+}
+
+function mixedIncludes(haystack: string | string[], needle: string) {
+  return typeof haystack === "string"
+    ? haystack === needle
+    : haystack.includes(needle);
 }
