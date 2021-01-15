@@ -111,14 +111,22 @@ type commandMatch = { command: string | undefined; args: string | undefined };
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token: string) {
   client
-    .on("message", (msg: Discord.Message) => {
+    .on("message", async (msg: Discord.Message) => {
       // quit if this is the bot's own message
       if (msg.author === client.user) return;
       // match command
       const isCommand = prefixCheck(msg.content);
-      if (isCommand)
-        routeCommand(msg, isCommand.groups!.command, isCommand.groups!.args);
-      else routeTrigger(msg);
+      if (isCommand) {
+        const routed = await routeCommand(
+          msg,
+          isCommand.groups!.command,
+          isCommand.groups!.args
+        );
+        if (routed) return;
+        // done if routed successfully.
+      }
+      // otherwise, check for a trigger
+      routeTrigger(msg);
     })
     .once("ready", () => {
       startActivityUpkeep();
@@ -283,6 +291,8 @@ async function routeCommand(
     } catch (e) {
       console.log(e);
     }
+    // let upstream know we successfully found a route
+    return true;
   }
 }
 
