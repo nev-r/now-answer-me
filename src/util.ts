@@ -169,7 +169,7 @@ export async function sendPaginatedSelector<T>({
       // wait to see if something is clicked or a choice is made
       let userInput = await Promise.race([
         ...(numPages > 1
-          ? [presentOptions(paginatedMessage, options, "others")]
+          ? [presentOptions(paginatedMessage, options, "all")]
           : []),
         (async () => {
           const thisLoop = currentLoop;
@@ -259,20 +259,21 @@ export async function presentOptions(
       }
 
       default:
-        msg.reactions.removeAll();
+        await msg.reactions.removeAll();
+        await sleep(800);
         break;
     }
 
     const { name, id } = reactionCollection.first()?.emoji ?? {};
-    console.log(
-      `returning a selected option: ${
-        name && options.includes(name)
-          ? name
-          : id && options.includes(id)
-          ? id
-          : undefined
-      }`
-    );
+    // console.log(
+    //   `returning a selected option: ${
+    //     name && options.includes(name)
+    //       ? name
+    //       : id && options.includes(id)
+    //       ? id
+    //       : undefined
+    //   }`
+    // );
     return name && options.includes(name)
       ? name
       : id && options.includes(id)
