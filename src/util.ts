@@ -157,9 +157,13 @@ export async function sendPaginatedSelector<T>(
       presentOptions(paginatedMessage, options, "others"),
       (async () => {
         const matchingMessage = await channel.awaitMessages(
-          (a, b, c, d) => {
-            console.log({ a, b, c, d });
-            return true;
+          (m: Discord.Message) => {
+            return (
+              m.author.id === user.id &&
+              /^\d+$/.test(m.content) &&
+              Number(m.content) > -1 &&
+              Number(m.content) < contentList.length - 1
+            );
           },
           { maxProcessed: 1 }
         );
