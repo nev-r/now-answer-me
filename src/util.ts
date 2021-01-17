@@ -269,17 +269,17 @@ export async function serialReactions(
   // console.log(`got this collection: ${reactions.map(r=>r[0]).join()}\nto apply to this message: ${msg}`);
   for (const reaction of reactions) {
     await singleReaction(msg, reaction);
-    await sleep(800); // apparently discord rate limited this
   }
 }
 export async function singleReaction(msg: Discord.Message, reaction: string) {
   try {
-    console.log(msg.reactions.cache);
+    // console.log(msg.reactions.cache);
     if (!msg.reactions.cache.get(reaction)?.me) {
       console.log(
         `!!applying this selectable: ${reaction[0]} to this message: ${msg}`
       );
       await msg.react(reaction);
+      await sleep(800); // apparently discord rate limited this
     }
   } catch (e) {
     nodeLog(`${reaction[0]}≠>${msg}`);
