@@ -5,6 +5,7 @@ import Discord, {
   EmojiResolvable,
   GuildEmoji,
   GuildResolvable,
+  MessageEmbed,
 } from "discord.js";
 import { client, clientReadyPromise, ValidMessage } from "./bot.js";
 import {
@@ -69,6 +70,7 @@ export async function sendRerollableEmbed<T>(
 }
 
 const adjustDirections: NodeJS.Dict<number> = { "⬅️": -1, "➡️": 1 };
+
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid `MessageEmbed`
  */
@@ -103,6 +105,78 @@ export async function sendPaginatedEmbed<T>(
     currentPage += adjustDirections[adjustReact ?? "done"] ?? 0;
     if (currentPage + 1 > contentList.length) currentPage = 0;
     if (currentPage < 0) currentPage = contentList.length - 1;
+  }
+}
+
+/**
+ * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
+ */
+export async function sendPaginatedSelector<T>(
+  user: Discord.User,
+  channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel,
+  contentList: T[],
+  optionRenderer: (listItem: T) => Discord.EmbedField,
+  resultRenderer: (listItem: T) => Discord.MessageEmbed,
+  itemsPerPage = 25
+) {
+  const numPages = Math.ceil(contentList.length / itemsPerPage);
+  let currentPage = 0;
+  let paginatedMessage: Discord.Message | undefined;
+
+  let done = false;
+  let finalSelection: number | undefined = undefined;
+
+  const options = Object.keys(adjustDirections);
+
+  while (true) {
+    // either send, or update, the embed
+    let embed: Discord.MessageEmbed;
+    if (finalSelection !== undefined && done) {
+      embed = resultRenderer(contentList[finalSelection]);
+    } else {
+      embed = new MessageEmbed();
+      embed.fields = contentList
+        .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+        .map(optionRenderer);
+      embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+    }
+
+    if (paginatedMessage === undefined) {
+      paginatedMessage = await channel.send(embed);
+      makeTrashable(paginatedMessage);
+    } else await paginatedMessage.edit(embed);
+
+    // final edit completed
+    if (done) return;
+
+    // wait to see if something is clicked or a choice is made
+    let userInput = await Promise.any([
+      presentOptions(paginatedMessage, options, "others"),
+      (async () => {
+        const matchingMessage = await channel.awaitMessages(
+          (a, b, c, d) => {
+            console.log({ a, b, c, d });
+            return true;
+          },
+          { maxProcessed: 1 }
+        );
+        return matchingMessage.first()?.content;
+      })(),
+    ]);
+
+    // we're done if there was no response
+    if (userInput === undefined) done = true;
+    else {
+      if (userInput in adjustDirections) {
+        // otherwise, adjust the page accordingly and loop again to update embed
+        currentPage += adjustDirections[userInput] ?? 0;
+        if (currentPage + 1 > contentList.length) currentPage = 0;
+        if (currentPage < 0) currentPage = contentList.length - 1;
+      } else {
+        finalSelection = Number(userInput);
+        done = true;
+      }
+    }
   }
 }
 

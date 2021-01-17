@@ -18,6 +18,10 @@ export declare function sendRerollableEmbed<T>(channel: Discord.TextChannel | Di
  */
 export declare function sendPaginatedEmbed<T>(channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, contentList: T[], renderer: (listItem: T) => Discord.MessageEmbed): Promise<void>;
 /**
+ * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
+ */
+export declare function sendPaginatedSelector<T>(user: Discord.User, channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, contentList: T[], optionRenderer: (listItem: T) => Discord.EmbedField, resultRenderer: (listItem: T) => Discord.MessageEmbed, itemsPerPage?: number): Promise<void>;
+/**
  * posts 1 or more options (emoji) to a message,
  * and awaits a selection (someone clicking one, thereby increasing the count)
  *
