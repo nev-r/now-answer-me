@@ -272,7 +272,11 @@ export async function serialReactions(
 }
 export async function singleReaction(msg: Discord.Message, reaction: string) {
   // console.log(`!!applying this selectable: ${reaction[0]} to this message: ${msg}`);
-  await msg.react(reaction).catch(nodeLog(`${reaction[0]}≠>${msg}`));
+  try {
+    await msg.react(reaction);
+  } catch (e) {
+    nodeLog(`${reaction[0]}≠>${msg}`);
+  }
   // console.log(`applied this selectable: ${reaction[0]} to this message: ${msg}`);
 }
 
