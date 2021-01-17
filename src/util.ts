@@ -231,8 +231,8 @@ export async function presentOptions(
             console.log(
               `removing [${reactionBundle.emoji.identifier}][${reactionBundle.emoji.name}] from [${reactingUser.username}]`
             );
-            await sleep(800);
             await reactionBundle.users.remove(reactingUser);
+            await sleep(800);
           }
         }
         break;
@@ -273,9 +273,14 @@ export async function serialReactions(
   }
 }
 export async function singleReaction(msg: Discord.Message, reaction: string) {
-  // console.log(`!!applying this selectable: ${reaction[0]} to this message: ${msg}`);
   try {
-    await msg.react(reaction);
+    console.log(msg.reactions.cache);
+    if (!msg.reactions.cache.get(reaction)?.me) {
+      console.log(
+        `!!applying this selectable: ${reaction[0]} to this message: ${msg}`
+      );
+      await msg.react(reaction);
+    }
   } catch (e) {
     nodeLog(`${reaction[0]}≠>${msg}`);
   }
