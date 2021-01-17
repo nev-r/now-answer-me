@@ -112,14 +112,21 @@ export async function sendPaginatedEmbed<T>(
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
  */
-export async function sendPaginatedSelector<T>(
-  user: Discord.User,
-  channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel,
-  contentList: T[],
-  optionRenderer: (listItem: T) => Discord.EmbedFieldData,
-  resultRenderer: (listItem: T) => Discord.MessageEmbed,
-  itemsPerPage = 25
-) {
+export async function sendPaginatedSelector<T>({
+  user,
+  channel,
+  contentList,
+  optionRenderer = (l, i) => ({ name: i, value: `${l}`, inline: true }),
+  resultRenderer = (l) => new MessageEmbed({ description: `${l}` }),
+  itemsPerPage = 25,
+}: {
+  user: Discord.User;
+  channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel;
+  contentList: T[];
+  optionRenderer: (listItem: T, index: number) => Discord.EmbedFieldData;
+  resultRenderer: (listItem: T) => Discord.MessageEmbed;
+  itemsPerPage: number;
+}) {
   const numPages = Math.ceil(contentList.length / itemsPerPage);
   let currentPage = 0;
   let paginatedMessage: Discord.Message | undefined;
@@ -162,12 +169,10 @@ export async function sendPaginatedSelector<T>(
         (async () => {
           const matchingMessage = await channel.awaitMessages(
             (m: Discord.Message) => {
-              return (
-                m.author.id === user.id &&
-                /^\d+$/.test(m.content) &&
-                Number(m.content) > -1 &&
-                Number(m.content) < contentList.length - 1
-              );
+              if (m.author.id !== user.id || /^\d+$/.test(m.content))
+                return false;
+              const index = Number(m.content);
+              return index > -1 && index < contentList.length - 1;
             },
             { maxProcessed: 1, time: 60000 }
           );
@@ -184,7 +189,7 @@ export async function sendPaginatedSelector<T>(
           if (currentPage + 1 > numPages) currentPage = 0;
           if (currentPage < 0) currentPage = numPages - 1;
         } else {
-          finalSelection = Number(userInput);
+          finalSelection = Number(userInput) - 1;
           done = true;
         }
       }

@@ -20,7 +20,14 @@ export declare function sendPaginatedEmbed<T>(channel: Discord.TextChannel | Dis
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
  */
-export declare function sendPaginatedSelector<T>(user: Discord.User, channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, contentList: T[], optionRenderer: (listItem: T) => Discord.EmbedFieldData, resultRenderer: (listItem: T) => Discord.MessageEmbed, itemsPerPage?: number): Promise<void>;
+export declare function sendPaginatedSelector<T>({ user, channel, contentList, optionRenderer, resultRenderer, itemsPerPage, }: {
+    user: Discord.User;
+    channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel;
+    contentList: T[];
+    optionRenderer: (listItem: T, index: number) => Discord.EmbedFieldData;
+    resultRenderer: (listItem: T) => Discord.MessageEmbed;
+    itemsPerPage: number;
+}): Promise<void>;
 /**
  * posts 1 or more options (emoji) to a message,
  * and awaits a selection (someone clicking one, thereby increasing the count)
