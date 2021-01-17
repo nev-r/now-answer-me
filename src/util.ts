@@ -118,6 +118,7 @@ export async function sendPaginatedSelector<T>({
   contentList,
   optionRenderer = (l, i) => ({ name: i, value: `${l}`, inline: true }),
   resultRenderer = (l) => new MessageEmbed({ description: `${l}` }),
+  prompt = "respond with a number",
   itemsPerPage = 25,
 }: {
   user: Discord.User;
@@ -125,7 +126,8 @@ export async function sendPaginatedSelector<T>({
   contentList: T[];
   optionRenderer: (listItem: T, index: number) => Discord.EmbedFieldData;
   resultRenderer: (listItem: T) => Discord.MessageEmbed;
-  itemsPerPage: number;
+  prompt?: string;
+  itemsPerPage?: number;
 }) {
   const numPages = Math.ceil(contentList.length / itemsPerPage);
   let currentPage = 0;
