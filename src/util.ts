@@ -7,6 +7,7 @@ import Discord, {
   GuildResolvable,
   MessageEmbed,
 } from "discord.js";
+import { sleep } from "one-stone/promise";
 import { client, clientReadyPromise, ValidMessage } from "./bot.js";
 import {
   buildEmojiDictUsingClient,
@@ -262,6 +263,7 @@ export async function serialReactions(
   // console.log(`got this collection: ${reactions.map(r=>r[0]).join()}\nto apply to this message: ${msg}`);
   for (const reaction of reactions) {
     await singleReaction(msg, reaction);
+    await sleep(500); // apparently discord rate limited this
   }
 }
 export async function singleReaction(msg: Discord.Message, reaction: string) {
