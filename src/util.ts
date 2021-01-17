@@ -148,7 +148,9 @@ export async function sendPaginatedSelector<T>({
         embed = new MessageEmbed().addFields(
           ...contentList
             .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
-            .map(optionRenderer)
+            .map((t, i) =>
+              optionRenderer(t, currentPage * itemsPerPage + i + 1)
+            )
         );
         if (numPages > 1) {
           embed.setFooter(`${currentPage + 1} / ${numPages}`);
@@ -171,12 +173,12 @@ export async function sendPaginatedSelector<T>({
         (async () => {
           const matchingMessage = await channel.awaitMessages(
             (m: Discord.Message) => {
-              if (m.author.id !== user.id || /^\d+$/.test(m.content))
+              if (m.author.id !== user.id || !/^\d+$/.test(m.content))
                 return false;
               const index = Number(m.content);
               return index > -1 && index < contentList.length - 1;
             },
-            { maxProcessed: 1, time: 60000 }
+            { max: 1, time: 60000 }
           );
           return matchingMessage.first()?.content;
         })(),
