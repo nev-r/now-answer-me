@@ -153,7 +153,7 @@ export async function sendPaginatedSelector<T>(
     if (done) return;
 
     // wait to see if something is clicked or a choice is made
-    let userInput = await Promise.any([
+    let userInput = await Promise.race([
       presentOptions(paginatedMessage, options, "others"),
       (async () => {
         const matchingMessage = await channel.awaitMessages(
@@ -231,8 +231,8 @@ export async function presentOptions(
             console.log(
               `removing [${reactionBundle.emoji.identifier}][${reactionBundle.emoji.name}] from [${reactingUser.username}]`
             );
-            await reactionBundle.users.remove(reactingUser);
             await sleep(800);
+            await reactionBundle.users.remove(reactingUser);
           }
         }
         break;
