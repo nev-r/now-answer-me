@@ -115,19 +115,20 @@ export function init(token: string) {
     .on("message", async (msg: Discord.Message) => {
       // quit if this is the bot's own message
       if (msg.author === client.user) return;
+      routeMessage(msg);
       // match command
-      const isCommand = prefixCheck(msg.content);
-      if (isCommand) {
-        const routed = await routeCommand(
-          msg,
-          isCommand.groups!.command,
-          isCommand.groups!.args
-        );
-        if (routed) return;
-        // done if routed successfully.
-      }
+      // const isCommand = prefixCheck(msg.content);
+      // // if (isCommand) {
+      //   const routed = await routeMessage(
+      //     msg,
+      //     isCommand.groups!.command,
+      //     isCommand.groups!.args
+      //   );
+      // if (routed) return;
+      // done if routed successfully.
+      // }
       // otherwise, check for a trigger
-      routeTrigger(msg);
+      // routeTrigger(msg);
     })
     .once("ready", () => {
       startActivityUpkeep();
@@ -279,25 +280,75 @@ export function addTrigger(...triggers_: typeof triggers) {
   triggers.push(...triggers_);
 }
 
-// given a command string, find and run the appropriate function
-async function routeCommand(
-  msg: Discord.Message,
-  command: string,
-  args?: string
-) {
-  let foundCommand = commands.find((r) => mixedIncludes(r.command, command));
+// // given a command string, find and run the appropriate function
+// async function routeCommand(
+//   msg: Discord.Message,
+//   command: string,
+//   args?: string
+// ) {
+//   let foundCommand = commands.find((r) => mixedIncludes(r.command, command));
 
-  if (foundCommand) {
-    let { response, trashable } = foundCommand;
-    if (!meetsConstraints(msg, foundCommand)) {
+//   if (foundCommand) {
+//     let { response, trashable } = foundCommand;
+//     if (!meetsConstraints(msg, foundCommand)) {
+//       console.log(
+//         `constraints suppressed a response to ${msg.author.username} requesting ${command}`
+//       );
+//       return;
+//     }
+//     if (typeof response === "function")
+//       response =
+//         (await response({ msg, command, args, content: msg.content })) || "";
+//     try {
+//       if (response) {
+//         const sentMessage = await msg.channel.send(response);
+//         if (trashable)
+//           makeTrashable(
+//             sentMessage,
+//             trashable === "requestor" ? msg.author.id : undefined
+//           );
+//       }
+//     } catch (e) {
+//       console.log(e);
+//     }
+//     // let upstream know we successfully found a route
+//     return true;
+//   }
+// }
+// given a command string, find and run the appropriate function
+async function routeMessage(
+  msg: Discord.Message
+  // command: string,
+  // args?: string
+) {
+  const commandMatch = prefixCheck(msg.content);
+  let foundRoute =
+    (commandMatch &&
+      commands.find((r) =>
+        mixedIncludes(r.command, commandMatch.groups!.command)
+      )) ||
+    triggers.find((t) => t.trigger.test(msg.content));
+
+  if (foundRoute) {
+    let { response, trashable } = foundRoute;
+    if (!meetsConstraints(msg, foundRoute)) {
       console.log(
-        `constraints suppressed a response to ${msg.author.username} requesting ${command}`
+        `constraints suppressed a response to ${
+          msg.author.username
+        } requesting ${
+          (foundRoute as any).command ?? (foundRoute as any).trigger.source
+        }`
       );
       return;
     }
     if (typeof response === "function")
       response =
-        (await response({ msg, command, args, content: msg.content })) || "";
+        (await response({
+          msg,
+          command: commandMatch?.groups?.command ?? "",
+          args: commandMatch?.groups?.args ?? "",
+          content: msg.content,
+        })) || "";
     try {
       if (response) {
         const sentMessage = await msg.channel.send(response);
@@ -310,8 +361,8 @@ async function routeCommand(
     } catch (e) {
       console.log(e);
     }
-    // let upstream know we successfully found a route
-    return true;
+    // // let upstream know we successfully found a route
+    // return true;
   }
 }
 function meetsConstraints(
@@ -410,28 +461,28 @@ function meetsConstraints(
 // }
 
 // given a message, see if it matches a trigger, then run the corresponding function
-async function routeTrigger(msg: Discord.Message) {
-  let foundTrigger = triggers.find((t) => t.trigger.test(msg.content));
+// async function routeTrigger(msg: Discord.Message) {
+//   let foundTrigger = triggers.find((t) => t.trigger.test(msg.content));
 
-  if (foundTrigger) {
-    let { response } = foundTrigger;
+//   if (foundTrigger) {
+//     let { response } = foundTrigger;
 
-    if (!meetsConstraints(msg, foundTrigger)) {
-      console.log(
-        `constraints suppressed a response to ${msg.author.username} requesting ${foundTrigger.trigger.source}`
-      );
-      return;
-    }
+//     if (!meetsConstraints(msg, foundTrigger)) {
+//       console.log(
+//         `constraints suppressed a response to ${msg.author.username} requesting ${foundTrigger.trigger.source}`
+//       );
+//       return;
+//     }
 
-    if (typeof response === "function")
-      response = (await response({ msg, content: msg.content })) || "";
-    try {
-      response && msg.channel.send(response);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-}
+//     if (typeof response === "function")
+//       response = (await response({ msg, content: msg.content })) || "";
+//     try {
+//       response && msg.channel.send(response);
+//     } catch (e) {
+//       console.log(e);
+//     }
+//   }
+// }
 
 // via MDN
 function escapeRegExp(string: string) {
