@@ -1,4 +1,5 @@
 import Discord, { MessageAdditions, MessageOptions } from "discord.js";
+import { makeTrashable } from "./util.js";
 export const startupTimestamp = new Date();
 export const client = new Discord.Client();
 
@@ -219,22 +220,34 @@ export type TriggerResponse =
       | Promise<ValidMessage | undefined | void>)
   | ValidMessage;
 
-interface Constraints {
-  user?: string | string[];
-  channel?: string | string[];
-  guild?: string | string[];
-}
+type ConstraintTypes = `${"require" | "block" | "allow"}${
+  | "User"
+  | "Channel"
+  | "Guild"}`;
 
-interface ConstraintCategories {
-  allowOnly?: Constraints;
-  block?: Constraints;
-  allow?: Constraints;
+type Constraints = Partial<Record<ConstraintTypes, string | string[]>>;
+
+interface Extras {
+  trashable?: "requestor" | "everyone";
 }
+// interface Constraints {
+//   [constraintType: ConstraintTypes]:string | string[];
+//   // user?: string | string[];
+//   // channel?: string | string[];
+//   // guild?: string | string[];
+// }
+
+// interface ConstraintCategories {
+//   require?: Constraints;
+//   block?: Constraints;
+//   allow?: Constraints;
+// }
 
 const commands: ({
   command: string | string[];
   response: CommandResponse;
-} & ConstraintCategories)[] = [];
+} & Constraints &
+  Extras)[] = [];
 
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
@@ -251,7 +264,8 @@ export function addCommand(...commands_: typeof commands) {
 const triggers: ({
   trigger: RegExp;
   response: TriggerResponse;
-} & ConstraintCategories)[] = [];
+} & Constraints &
+  Extras)[] = [];
 
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
@@ -274,7 +288,7 @@ async function routeCommand(
   let foundCommand = commands.find((r) => mixedIncludes(r.command, command));
 
   if (foundCommand) {
-    let { response } = foundCommand;
+    let { response, trashable } = foundCommand;
     if (!meetsConstraints(msg, foundCommand)) {
       console.log(
         `constraints suppressed a response to ${msg.author.username} requesting ${command}`
@@ -285,7 +299,14 @@ async function routeCommand(
       response =
         (await response({ msg, command, args, content: msg.content })) || "";
     try {
-      response && (await msg.channel.send(response));
+      if (response) {
+        const sentMessage = await msg.channel.send(response);
+        if (trashable)
+          makeTrashable(
+            sentMessage,
+            trashable === "requestor" ? msg.author.id : undefined
+          );
+      }
     } catch (e) {
       console.log(e);
     }
@@ -293,52 +314,100 @@ async function routeCommand(
     return true;
   }
 }
-
 function meetsConstraints(
   msg: Discord.Message,
-  { allowOnly, allow, block }: ConstraintCategories
+  {
+    allowChannel,
+    allowGuild,
+    allowUser,
+    blockChannel,
+    blockGuild,
+    blockUser,
+    requireChannel,
+    requireGuild,
+    requireUser,
+  }: Constraints
 ) {
   const {
     author: { id: authorId },
     channel: { id: channelId },
-    guild,
+    guild: msgGuild,
   } = msg;
-  const guildId = guild?.id;
+  const guildId = msgGuild?.id;
 
   // if an allow constraint exists, and it's met, allow
-  if (allow) {
-    const { user, channel, guild } = allow;
-    if (
-      (channel && mixedIncludes(channel, channelId)) ||
-      (user && mixedIncludes(user, authorId)) ||
-      (guild && guildId && mixedIncludes(guild, guildId))
-    )
-      return true;
-  }
-
-  // if an allowOnly constraint exists, and it's not met, block
-  if (allowOnly) {
-    const { user, channel, guild } = allowOnly;
-    if (
-      (channel && !mixedIncludes(channel, channelId)) ||
-      (user && !mixedIncludes(user, authorId)) ||
-      (guild && (!guildId || !mixedIncludes(guild, guildId)))
-    )
-      return false;
-  }
+  if (
+    (allowChannel && mixedIncludes(allowChannel, channelId)) ||
+    (allowUser && mixedIncludes(allowUser, authorId)) ||
+    (allowGuild && guildId && mixedIncludes(allowGuild, guildId))
+  )
+    return true;
 
   // if a block constraint exists, and it's met, block
-  if (block) {
-    const { user, channel, guild } = block;
-    if (
-      (channel && mixedIncludes(channel, channelId)) ||
-      (user && mixedIncludes(user, authorId)) ||
-      (guild && guildId && mixedIncludes(guild, guildId))
-    )
-      return false;
-  }
+  if (
+    (blockChannel && mixedIncludes(blockChannel, channelId)) ||
+    (blockUser && mixedIncludes(blockUser, authorId)) ||
+    (blockGuild && guildId && mixedIncludes(blockGuild, guildId))
+  )
+    return false;
+
+  // if a require constraint exists, and it's not met, block
+  if (
+    (requireChannel && !mixedIncludes(requireChannel, channelId)) ||
+    (requireUser && !mixedIncludes(requireUser, authorId)) ||
+    (requireGuild && (!guildId || !mixedIncludes(requireGuild, guildId)))
+  )
+    return false;
+
   return true;
 }
+
+// function meetsConstraints(
+//   msg: Discord.Message,
+//   { require, allow, block }: ConstraintCategories
+// ) {
+//   const {
+//     author: { id: authorId },
+//     channel: { id: channelId },
+//     guild,
+//   } = msg;
+//   const guildId = guild?.id;
+
+//   // if an allow constraint exists, and it's met, allow
+//   if (allow) {
+//     const { user, channel, guild } = allow;
+//     if (
+//       (channel && mixedIncludes(channel, channelId)) ||
+//       (user && mixedIncludes(user, authorId)) ||
+//       (guild && guildId && mixedIncludes(guild, guildId))
+//     )
+//       return true;
+//   }
+
+//   // if a block constraint exists, and it's met, block
+//   if (block) {
+//     const { user, channel, guild } = block;
+//     if (
+//       (channel && mixedIncludes(channel, channelId)) ||
+//       (user && mixedIncludes(user, authorId)) ||
+//       (guild && guildId && mixedIncludes(guild, guildId))
+//     )
+//       return false;
+//   }
+
+//   // if an require constraint exists, and it's not met, block
+//   if (require) {
+//     const { user, channel, guild } = require;
+//     if (
+//       (channel && !mixedIncludes(channel, channelId)) ||
+//       (user && !mixedIncludes(user, authorId)) ||
+//       (guild && (!guildId || !mixedIncludes(guild, guildId)))
+//     )
+//       return false;
+//   }
+
+//   return true;
+// }
 
 // given a message, see if it matches a trigger, then run the corresponding function
 async function routeTrigger(msg: Discord.Message) {

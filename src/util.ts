@@ -18,14 +18,22 @@ import {
  * deletes message if someone reacts with wastebasket `🗑`, litter `🚮`, or cancel `🚫`
  */
 export async function makeTrashable(
-  msg: Discord.Message | void | Promise<Discord.Message | void>
+  msg: Discord.Message | void | Promise<Discord.Message | void>,
+  whoCanDelete?: string | string[]
 ) {
   msg = await Promise.resolve(msg);
   if (!msg) return;
-  const userReactions = await msg.awaitReactions(
-    (reaction) => trashEmojis.includes(reaction.emoji.name),
-    { max: 1, time: 300000 }
-  );
+  let reactionFilter: ReactionFilter = (reaction) =>
+    trashEmojis.includes(reaction.emoji.name);
+  if (whoCanDelete) {
+    const peopleList = arrayify(whoCanDelete);
+    reactionFilter = (reaction, user) =>
+      trashEmojis.includes(reaction.emoji.name) && peopleList.includes(user.id);
+  }
+  const userReactions = await msg.awaitReactions(reactionFilter, {
+    max: 1,
+    time: 300000,
+  });
   if (userReactions.size) msg.delete();
 }
 const trashEmojis = ["🚮", "🗑️", "🚫"];
@@ -243,6 +251,11 @@ type Switched<T extends number | string> = T extends string ? number : string;
 //   const result = "";
 //   return result;
 // }
+
+type ReactionFilter = (
+  reaction: Discord.MessageReaction,
+  user: Discord.User
+) => boolean;
 
 function buildReactionFilter({
   users,

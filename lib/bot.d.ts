@@ -85,20 +85,15 @@ export declare type CommandResponse = ((params: CommandParams) => ValidMessage |
  * if it's a function, it's passed the TriggerParams object
  */
 export declare type TriggerResponse = ((params: TriggerParams) => ValidMessage | undefined | void | Promise<ValidMessage | undefined | void>) | ValidMessage;
-interface Constraints {
-    user?: string | string[];
-    channel?: string | string[];
-    guild?: string | string[];
-}
-interface ConstraintCategories {
-    allowOnly?: Constraints;
-    block?: Constraints;
-    allow?: Constraints;
+declare type ConstraintTypes = `${"require" | "block" | "allow"}${"User" | "Channel" | "Guild"}`;
+declare type Constraints = Partial<Record<ConstraintTypes, string | string[]>>;
+interface Extras {
+    trashable?: "requestor" | "everyone";
 }
 declare const commands: ({
     command: string | string[];
     response: CommandResponse;
-} & ConstraintCategories)[];
+} & Constraints & Extras)[];
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the TriggerParams object
@@ -107,7 +102,7 @@ export declare function addCommand(...commands_: typeof commands): void;
 declare const triggers: ({
     trigger: RegExp;
     response: TriggerResponse;
-} & ConstraintCategories)[];
+} & Constraints & Extras)[];
 /**
  * either a ValidMessage, or a function that generates a ValidMessage.
  * if it's a function, it's passed the TriggerParams object

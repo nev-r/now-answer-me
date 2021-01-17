@@ -6,7 +6,7 @@ import { ValidMessage } from "./bot.js";
  *
  * deletes message if someone reacts with wastebasket `🗑`, litter `🚮`, or cancel `🚫`
  */
-export declare function makeTrashable(msg: Discord.Message | void | Promise<Discord.Message | void>): Promise<void>;
+export declare function makeTrashable(msg: Discord.Message | void | Promise<Discord.Message | void>, whoCanDelete?: string | string[]): Promise<void>;
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid `MessageEmbed`
  *
