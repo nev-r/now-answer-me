@@ -129,61 +129,70 @@ export async function sendPaginatedSelector<T>(
 
   const options = Object.keys(adjustDirections);
 
-  while (true) {
-    // either send, or update, the embed
-    let embed: Discord.MessageEmbed;
-    if (finalSelection !== undefined && done) {
-      embed = resultRenderer(contentList[finalSelection]);
-    } else {
-      embed = new MessageEmbed()
-        .addFields(
-          ...contentList
-            .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
-            .map(optionRenderer)
-        )
-        .setFooter(`${currentPage + 1} / ${numPages}`);
-    }
-
-    if (paginatedMessage === undefined) {
-      paginatedMessage = await channel.send(embed);
-      makeTrashable(paginatedMessage);
-    } else await paginatedMessage.edit(embed);
-
-    // final edit completed
-    if (done) return;
-
-    // wait to see if something is clicked or a choice is made
-    let userInput = await Promise.race([
-      presentOptions(paginatedMessage, options, "others"),
-      (async () => {
-        const matchingMessage = await channel.awaitMessages(
-          (m: Discord.Message) => {
-            return (
-              m.author.id === user.id &&
-              /^\d+$/.test(m.content) &&
-              Number(m.content) > -1 &&
-              Number(m.content) < contentList.length - 1
-            );
-          },
-          { maxProcessed: 1 }
-        );
-        return matchingMessage.first()?.content;
-      })(),
-    ]);
-
-    // we're done if there was no response
-    if (userInput === undefined) done = true;
-    else {
-      if (userInput in adjustDirections) {
-        // otherwise, adjust the page accordingly and loop again to update embed
-        currentPage += adjustDirections[userInput] ?? 0;
-        if (currentPage + 1 > numPages) currentPage = 0;
-        if (currentPage < 0) currentPage = numPages - 1;
+  try {
+    while (true) {
+      // either send, or update, the embed
+      let embed: Discord.MessageEmbed;
+      if (finalSelection !== undefined && done) {
+        embed = resultRenderer(contentList[finalSelection]);
       } else {
-        finalSelection = Number(userInput);
-        done = true;
+        embed = new MessageEmbed()
+          .addFields(
+            ...contentList
+              .slice(
+                currentPage * itemsPerPage,
+                (currentPage + 1) * itemsPerPage
+              )
+              .map(optionRenderer)
+          )
+          .setFooter(numPages > 1 ? `${currentPage + 1} / ${numPages}` : null);
+      }
+
+      if (paginatedMessage === undefined) {
+        paginatedMessage = await channel.send(embed);
+        makeTrashable(paginatedMessage);
+      } else await paginatedMessage.edit(embed);
+
+      // final edit completed
+      if (done) return;
+
+      // wait to see if something is clicked or a choice is made
+      let userInput = await Promise.race([
+        ...(numPages > 1
+          ? [presentOptions(paginatedMessage, options, "others")]
+          : []),
+        (async () => {
+          const matchingMessage = await channel.awaitMessages(
+            (m: Discord.Message) => {
+              return (
+                m.author.id === user.id &&
+                /^\d+$/.test(m.content) &&
+                Number(m.content) > -1 &&
+                Number(m.content) < contentList.length - 1
+              );
+            },
+            { maxProcessed: 1, time: 60000 }
+          );
+          return matchingMessage.first()?.content;
+        })(),
+      ]);
+
+      // we're done if there was no response
+      if (userInput === undefined) done = true;
+      else {
+        if (userInput in adjustDirections) {
+          // otherwise, adjust the page accordingly and loop again to update embed
+          currentPage += adjustDirections[userInput] ?? 0;
+          if (currentPage + 1 > numPages) currentPage = 0;
+          if (currentPage < 0) currentPage = numPages - 1;
+        } else {
+          finalSelection = Number(userInput);
+          done = true;
+        }
       }
     }
+  } catch {
+    paginatedMessage?.delete();
   }
 }
 
