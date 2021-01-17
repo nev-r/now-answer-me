@@ -209,39 +209,41 @@ export async function presentOptions(
       notUsers: msg.client.user?.id,
       emoji: options_,
     });
-    const reactionGroups = await msg.awaitReactions(
+    const reactionCollection = await msg.awaitReactions(
       reactionFilter,
       awaitOptions
     );
 
     // we timed out instead of getting a valid reaction
-    if (!reactionGroups.size) {
+    if (!reactionCollection.size) {
       msg.reactions.removeAll();
       return undefined;
     }
 
     switch (cleanupReactions) {
-      case "others":
-        Promise.all(
-          [...reactionGroups.values()].flatMap((reactionGroup) =>
-            [...reactionGroup.users.cache.values()]
-              .filter((user) => user.id !== msg.client.user?.id)
-              .map((user) => {
-                console.log(
-                  `removing [${reactionGroup.emoji.identifier}][${reactionGroup.emoji.name}] from [${user.username}]`
-                );
-                return reactionGroup.users.remove(user);
-              })
-          )
-        );
+      case "others": {
+        const reactionBundles = [...reactionCollection.values()];
+        for (const reactionBundle of reactionBundles) {
+          const reactingUsers = [...reactionBundle.users.cache.values()].filter(
+            (user) => user.id !== msg.client.user?.id
+          );
+          for (const reactingUser of reactingUsers) {
+            console.log(
+              `removing [${reactionBundle.emoji.identifier}][${reactionBundle.emoji.name}] from [${reactingUser.username}]`
+            );
+            await reactionBundle.users.remove(reactingUser);
+            await sleep(800);
+          }
+        }
         break;
+      }
 
       default:
         msg.reactions.removeAll();
         break;
     }
 
-    const { name, id } = reactionGroups.first()?.emoji ?? {};
+    const { name, id } = reactionCollection.first()?.emoji ?? {};
     return name && options.includes(name)
       ? name
       : id && options.includes(id)
