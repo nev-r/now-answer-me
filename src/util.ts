@@ -137,9 +137,10 @@ export async function sendPaginatedSelector<T>({
   let finalSelection: number | undefined = undefined;
 
   const options = Object.keys(adjustDirections);
-
+  let currentLoop = 0;
   try {
     while (true) {
+      console.log(`currentLoop ${currentLoop}`);
       // either send, or update, the embed
       let embed: Discord.MessageEmbed;
       if (finalSelection !== undefined && done) {
@@ -171,15 +172,17 @@ export async function sendPaginatedSelector<T>({
           ? [presentOptions(paginatedMessage, options, "others")]
           : []),
         (async () => {
+          const thisLoop = currentLoop;
           const matchingMessage = await channel.awaitMessages(
             (m: Discord.Message) => {
               if (m.author.id !== user.id || !/^\d+$/.test(m.content))
                 return false;
               const index = Number(m.content);
-              return index > -1 && index < contentList.length - 1;
+              return index > 0 && index <= contentList.length;
             },
             { max: 1, time: 60000 }
           );
+          console.log(`returning a message for ${thisLoop}`);
           return matchingMessage.first()?.content;
         })(),
       ]);
@@ -197,6 +200,7 @@ export async function sendPaginatedSelector<T>({
           done = true;
         }
       }
+      currentLoop++;
     }
   } catch {
     paginatedMessage?.delete();
@@ -260,6 +264,15 @@ export async function presentOptions(
     }
 
     const { name, id } = reactionCollection.first()?.emoji ?? {};
+    console.log(
+      `returning a selected option: ${
+        name && options.includes(name)
+          ? name
+          : id && options.includes(id)
+          ? id
+          : undefined
+      }`
+    );
     return name && options.includes(name)
       ? name
       : id && options.includes(id)
