@@ -136,16 +136,14 @@ export async function sendPaginatedSelector<T>(
       if (finalSelection !== undefined && done) {
         embed = resultRenderer(contentList[finalSelection]);
       } else {
-        embed = new MessageEmbed()
-          .addFields(
-            ...contentList
-              .slice(
-                currentPage * itemsPerPage,
-                (currentPage + 1) * itemsPerPage
-              )
-              .map(optionRenderer)
-          )
-          .setFooter(numPages > 1 ? `${currentPage + 1} / ${numPages}` : null);
+        embed = new MessageEmbed().addFields(
+          ...contentList
+            .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+            .map(optionRenderer)
+        );
+        if (numPages > 1) {
+          embed.setFooter(`${currentPage + 1} / ${numPages}`);
+        }
       }
 
       if (paginatedMessage === undefined) {
