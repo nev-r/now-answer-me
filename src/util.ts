@@ -115,7 +115,7 @@ export async function sendPaginatedSelector<T>(
   user: Discord.User,
   channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel,
   contentList: T[],
-  optionRenderer: (listItem: T) => Discord.EmbedField,
+  optionRenderer: (listItem: T) => Discord.EmbedFieldData,
   resultRenderer: (listItem: T) => Discord.MessageEmbed,
   itemsPerPage = 25
 ) {
@@ -134,11 +134,13 @@ export async function sendPaginatedSelector<T>(
     if (finalSelection !== undefined && done) {
       embed = resultRenderer(contentList[finalSelection]);
     } else {
-      embed = new MessageEmbed();
-      embed.fields = contentList
-        .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
-        .map(optionRenderer);
-      embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+      embed = new MessageEmbed()
+        .addFields(
+          ...contentList
+            .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+            .map(optionRenderer)
+        )
+        .setFooter(`${currentPage + 1} / ${contentList.length}`);
     }
 
     if (paginatedMessage === undefined) {
