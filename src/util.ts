@@ -141,7 +141,7 @@ export async function sendPaginatedSelector<T>(
             .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
             .map(optionRenderer)
         )
-        .setFooter(`${currentPage + 1} / ${contentList.length}`);
+        .setFooter(`${currentPage + 1} / ${numPages}`);
     }
 
     if (paginatedMessage === undefined) {
@@ -173,8 +173,8 @@ export async function sendPaginatedSelector<T>(
       if (userInput in adjustDirections) {
         // otherwise, adjust the page accordingly and loop again to update embed
         currentPage += adjustDirections[userInput] ?? 0;
-        if (currentPage + 1 > contentList.length) currentPage = 0;
-        if (currentPage < 0) currentPage = contentList.length - 1;
+        if (currentPage + 1 > numPages) currentPage = 0;
+        if (currentPage < 0) currentPage = numPages - 1;
       } else {
         finalSelection = Number(userInput);
         done = true;
@@ -263,7 +263,7 @@ export async function serialReactions(
   // console.log(`got this collection: ${reactions.map(r=>r[0]).join()}\nto apply to this message: ${msg}`);
   for (const reaction of reactions) {
     await singleReaction(msg, reaction);
-    await sleep(500); // apparently discord rate limited this
+    await sleep(800); // apparently discord rate limited this
   }
 }
 export async function singleReaction(msg: Discord.Message, reaction: string) {
