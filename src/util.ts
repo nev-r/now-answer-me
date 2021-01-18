@@ -70,7 +70,7 @@ export async function sendRerollableEmbed<T>(
   }
 }
 
-const adjustDirections: NodeJS.Dict<number> = { "⬅️": -1, "➡️": 1 };
+const adjustDirections = { "⬅️": -1, "➡️": 1 };
 
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid `MessageEmbed`
@@ -83,11 +83,14 @@ export async function sendPaginatedEmbed<T>(
   let currentPage = 0;
   let paginatedMessage: Discord.Message | undefined;
   let done = false;
-  const options = Object.keys(adjustDirections);
+  const options = Object.keys(
+    adjustDirections
+  ) as (keyof typeof adjustDirections)[];
   while (true) {
     // either send, or update, the embed
     const embed = renderer(contentList[currentPage]);
-    !done && embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+    if (!done && contentList.length > 1)
+      embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
     if (!paginatedMessage) {
       paginatedMessage = await channel.send(embed);
       makeTrashable(paginatedMessage);
@@ -97,13 +100,16 @@ export async function sendPaginatedEmbed<T>(
     if (done) return;
 
     // wait to see if something is clicked
-    let adjustReact = await presentOptions(paginatedMessage, options, "others");
+    let adjustReact =
+      contentList.length > 1
+        ? await presentOptions(paginatedMessage, options, "others")
+        : undefined;
 
     // we're done if there was no response
     if (!adjustReact) done = true;
 
     // otherwise, adjust the page accordingly and loop again to update embed
-    currentPage += adjustDirections[adjustReact ?? "done"] ?? 0;
+    currentPage += adjustReact ? adjustDirections[adjustReact] : 0;
     if (currentPage + 1 > contentList.length) currentPage = 0;
     if (currentPage < 0) currentPage = contentList.length - 1;
   }
@@ -136,11 +142,13 @@ export async function sendPaginatedSelector<T>({
   let done = false;
   let finalSelection: number | undefined = undefined;
 
-  const options = Object.keys(adjustDirections);
-  let currentLoop = 0;
+  const options = Object.keys(
+    adjustDirections
+  ) as (keyof typeof adjustDirections)[];
+  // let currentLoop = 0;
   try {
     while (true) {
-      console.log(`currentLoop ${currentLoop}`);
+      // console.log(`currentLoop ${currentLoop}`);
       // either send, or update, the embed
       let embed: Discord.MessageEmbed;
       if (finalSelection !== undefined && done) {
@@ -172,7 +180,7 @@ export async function sendPaginatedSelector<T>({
           ? [presentOptions(paginatedMessage, options, "all")]
           : []),
         (async () => {
-          const thisLoop = currentLoop;
+          // const thisLoop = currentLoop;
           const matchingMessage = await channel.awaitMessages(
             (m: Discord.Message) => {
               if (m.author.id !== user.id || !/^\d+$/.test(m.content))
@@ -182,7 +190,7 @@ export async function sendPaginatedSelector<T>({
             },
             { max: 1, time: 60000 }
           );
-          console.log(`returning a message for ${thisLoop}`);
+          // console.log(`returning a message for ${thisLoop}`);
           return matchingMessage.first()?.content;
         })(),
       ]);
@@ -192,7 +200,8 @@ export async function sendPaginatedSelector<T>({
       else {
         if (userInput in adjustDirections) {
           // otherwise, adjust the page accordingly and loop again to update embed
-          currentPage += adjustDirections[userInput] ?? 0;
+          currentPage +=
+            adjustDirections[userInput as keyof typeof adjustDirections] ?? 0;
           if (currentPage + 1 > numPages) currentPage = 0;
           if (currentPage < 0) currentPage = numPages - 1;
         } else {
@@ -200,7 +209,7 @@ export async function sendPaginatedSelector<T>({
           done = true;
         }
       }
-      currentLoop++;
+      // currentLoop++;
     }
   } catch {
     paginatedMessage?.delete();
@@ -215,12 +224,12 @@ export async function sendPaginatedSelector<T>({
  *
  * cleanupReactions controls whose reactions to clean up after a choice is made
  */
-export async function presentOptions(
+export async function presentOptions<T extends string>(
   msg: Discord.Message,
-  options: string | string[],
+  options: T | T[],
   cleanupReactions: "all" | "others" = "all",
   awaitOptions: Discord.AwaitReactionsOptions = { max: 1, time: 60000 }
-): Promise<string | undefined> {
+): Promise<T | undefined> {
   const options_ = arrayify(options);
   await serialReactions(msg, options_);
   // let reactionGroups: Discord.Collection<string, Discord.MessageReaction>;
@@ -274,10 +283,10 @@ export async function presentOptions(
     //       : undefined
     //   }`
     // );
-    return name && options.includes(name)
-      ? name
-      : id && options.includes(id)
-      ? id
+    return name && options.includes(name as T)
+      ? (name as T)
+      : id && options.includes(id as T)
+      ? (id as T)
       : undefined;
 
     // return awaitOptions.max===1 ? reactionGroups.first()?.emoji.name:;
@@ -305,9 +314,9 @@ export async function singleReaction(msg: Discord.Message, reaction: string) {
   try {
     // console.log(msg.reactions.cache);
     if (!msg.reactions.cache.get(reaction)?.me) {
-      console.log(
-        `!!applying this selectable: ${reaction[0]} to this message: ${msg}`
-      );
+      // console.log(
+      //   `!!applying this selectable: ${reaction[0]} to this message: ${msg}`
+      // );
       await msg.react(reaction);
       await sleep(800); // apparently discord rate limited this
     }

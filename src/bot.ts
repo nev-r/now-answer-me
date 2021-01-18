@@ -353,7 +353,7 @@ async function routeMessage(
             content: msg.content,
           })) || "";
       if (reportViaReaction) {
-        await msg.react("☑");
+        await msg.react(response === false ? "🚫" : "☑");
         return;
       }
       if (response) {
@@ -366,7 +366,7 @@ async function routeMessage(
       }
     } catch (e) {
       if (reportViaReaction) {
-        await msg.react("🚫");
+        await msg.react("⚠");
       }
       console.log(e);
     }

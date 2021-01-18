@@ -37,7 +37,7 @@ export declare function sendPaginatedSelector<T>({ user, channel, contentList, o
  *
  * cleanupReactions controls whose reactions to clean up after a choice is made
  */
-export declare function presentOptions(msg: Discord.Message, options: string | string[], cleanupReactions?: "all" | "others", awaitOptions?: Discord.AwaitReactionsOptions): Promise<string | undefined>;
+export declare function presentOptions<T extends string>(msg: Discord.Message, options: T | T[], cleanupReactions?: "all" | "others", awaitOptions?: Discord.AwaitReactionsOptions): Promise<T | undefined>;
 /**
  * simple function to apply `reactions` to `msg` in a set order
  */
