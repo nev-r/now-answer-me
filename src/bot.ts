@@ -230,6 +230,7 @@ type Constraints = Partial<Record<ConstraintTypes, string | string[]>>;
 
 interface Extras {
   trashable?: "requestor" | "everyone";
+  reportViaReaction?: boolean;
 }
 // interface Constraints {
 //   [constraintType: ConstraintTypes]:string | string[];
@@ -330,7 +331,7 @@ async function routeMessage(
     triggers.find((t) => t.trigger.test(msg.content));
 
   if (foundRoute) {
-    let { response, trashable } = foundRoute;
+    let { response, trashable, reportViaReaction } = foundRoute;
     if (!meetsConstraints(msg, foundRoute)) {
       console.log(
         `constraints suppressed a response to ${
@@ -341,15 +342,20 @@ async function routeMessage(
       );
       return;
     }
-    if (typeof response === "function")
-      response =
-        (await response({
-          msg,
-          command: commandMatch?.groups?.command ?? "",
-          args: commandMatch?.groups?.args ?? "",
-          content: msg.content,
-        })) || "";
+
     try {
+      if (typeof response === "function")
+        response =
+          (await response({
+            msg,
+            command: commandMatch?.groups?.command ?? "",
+            args: commandMatch?.groups?.args ?? "",
+            content: msg.content,
+          })) || "";
+      if (reportViaReaction) {
+        await msg.react("☑");
+        return;
+      }
       if (response) {
         const sentMessage = await msg.channel.send(response);
         if (trashable)
@@ -359,6 +365,9 @@ async function routeMessage(
           );
       }
     } catch (e) {
+      if (reportViaReaction) {
+        await msg.react("🚫");
+      }
       console.log(e);
     }
     // // let upstream know we successfully found a route

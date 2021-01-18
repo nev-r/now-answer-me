@@ -89,6 +89,7 @@ declare type ConstraintTypes = `${"require" | "block" | "allow"}${"User" | "Chan
 declare type Constraints = Partial<Record<ConstraintTypes, string | string[]>>;
 interface Extras {
     trashable?: "requestor" | "everyone";
+    reportViaReaction?: boolean;
 }
 declare const commands: ({
     command: string | string[];
