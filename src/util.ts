@@ -152,7 +152,7 @@ export async function sendPaginatedSelector<T>({
       .map((t, i) => optionRenderer(t, currentPage * itemsPerPage + i + 1)),
   });
 
-  if (contentList.length > 1) {
+  if (numPages > 1) {
     embed.setFooter(`${currentPage + 1} / ${numPages}`);
   }
 
@@ -183,7 +183,7 @@ export async function sendPaginatedSelector<T>({
     while (
       (userInput = await Promise.race([
         // if there's pages to switch between,
-        ...(contentList.length > 1
+        ...(numPages > 1
           ? // include a page selector
             [presentOptions(paginatedMessage, directions, "all")]
           : []),
@@ -210,7 +210,7 @@ export async function sendPaginatedSelector<T>({
         // and then just continue waiting for a new pagination input
       } else {
         // a message with a valid number was detected
-        embed = resultRenderer(contentList[userInput-1]);
+        embed = resultRenderer(contentList[userInput - 1]);
         await paginatedMessage.edit(embed);
         // completely escape the loop, and the "timed out" loop cleanup
         return;
