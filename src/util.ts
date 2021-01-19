@@ -210,7 +210,7 @@ export async function sendPaginatedSelector<T>({
         // and then just continue waiting for a new pagination input
       } else {
         // a message with a valid number was detected
-        embed = resultRenderer(contentList[userInput]);
+        embed = resultRenderer(contentList[userInput-1]);
         await paginatedMessage.edit(embed);
         // completely escape the loop, and the "timed out" loop cleanup
         return;
