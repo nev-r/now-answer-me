@@ -153,7 +153,7 @@ export async function sendPaginatedSelector<T>({
   });
 
   if (contentList.length > 1) {
-    embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+    embed.setFooter(`${currentPage + 1} / ${numPages}`);
   }
 
   // always send the initial embed and always make it trashable
@@ -205,7 +205,7 @@ export async function sendPaginatedSelector<T>({
               optionRenderer(t, currentPage * itemsPerPage + i + 1)
             ),
         });
-        embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+        embed.setFooter(`${currentPage + 1} / ${numPages}`);
         await paginatedMessage.edit(embed);
         // and then just continue waiting for a new pagination input
       } else {
