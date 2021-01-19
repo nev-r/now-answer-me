@@ -219,8 +219,9 @@ export async function sendPaginatedSelector<T>({
     // loop breaks when there's no more input
     // (someone stopped paginating, or didn't make a choice)
 
-    // we'll give up i guess, and delete the selector message
-    await paginatedMessage.delete();
+    // we'll give up i guess. throwing will cause the cleanup
+    // wrapper to delete the pagination message
+    throw new Error("timed out waiting for pagination or selection");
   });
 }
 
@@ -282,25 +283,12 @@ export async function presentOptions<T extends string>(
     }
 
     const { name, id } = reactionCollection.first()?.emoji ?? {};
-    // console.log(
-    //   `returning a selected option: ${
-    //     name && options.includes(name)
-    //       ? name
-    //       : id && options.includes(id)
-    //       ? id
-    //       : undefined
-    //   }`
-    // );
     return name && options.includes(name as T)
       ? (name as T)
       : id && options.includes(id as T)
       ? (id as T)
       : undefined;
-
-    // return awaitOptions.max===1 ? reactionGroups.first()?.emoji.name:;
   } catch (e) {
-    // bothLog('awaitReactions failed, which is... weird\n');
-    // bothLog(e);
     return undefined;
   }
 }
