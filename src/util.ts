@@ -71,6 +71,9 @@ export async function sendRerollableEmbed<T>(
 }
 
 const adjustDirections = { "⬅️": -1, "➡️": 1 };
+const directions = Object.keys(
+  adjustDirections
+) as (keyof typeof adjustDirections)[];
 
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid `MessageEmbed`
@@ -81,38 +84,42 @@ export async function sendPaginatedEmbed<T>(
   renderer: (listItem: T) => Discord.MessageEmbed
 ) {
   let currentPage = 0;
-  let paginatedMessage: Discord.Message | undefined;
-  let done = false;
-  const options = Object.keys(
-    adjustDirections
-  ) as (keyof typeof adjustDirections)[];
-  while (true) {
-    // either send, or update, the embed
-    const embed = renderer(contentList[currentPage]);
-    if (!done && contentList.length > 1)
-      embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
-    if (!paginatedMessage) {
-      paginatedMessage = await channel.send(embed);
-      makeTrashable(paginatedMessage);
-    } else await paginatedMessage.edit(embed);
 
-    // final edit completed
-    if (done) return;
-
-    // wait to see if something is clicked
-    let adjustReact =
-      contentList.length > 1
-        ? await presentOptions(paginatedMessage, options, "others")
-        : undefined;
-
-    // we're done if there was no response
-    if (!adjustReact) done = true;
-
-    // otherwise, adjust the page accordingly and loop again to update embed
-    currentPage += adjustReact ? adjustDirections[adjustReact] : 0;
-    if (currentPage + 1 > contentList.length) currentPage = 0;
-    if (currentPage < 0) currentPage = contentList.length - 1;
+  // death to the counterintuitive loop
+  let embed = renderer(contentList[currentPage]);
+  if (contentList.length > 1) {
+    embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
   }
+  // always send the initial embed and always make it trashable
+  const paginatedMessage = await channel.send(embed);
+  makeTrashable(paginatedMessage);
+
+  bugOut(paginatedMessage, async () => {
+    // if there's pages to switch between, enter a loop of listening for input
+    if (contentList.length > 1) {
+      let userInput: typeof directions[number] | undefined;
+
+      // wait to see if something is clicked
+      while (
+        (userInput = await presentOptions(paginatedMessage, directions, "all"))
+      ) {
+        // adjust the page accordingly
+        currentPage += adjustDirections[userInput];
+        if (currentPage + 1 > contentList.length) currentPage = 0;
+        if (currentPage < 0) currentPage = contentList.length - 1;
+
+        // and update the message with the new embed
+        embed = renderer(contentList[currentPage]);
+        embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+
+        await paginatedMessage.edit(embed);
+      }
+      // loop breaks when there's no more input.
+      // let's remove the pagination footer and do one last edit
+      embed.footer = null;
+      await paginatedMessage.edit(embed);
+    }
+  });
 }
 
 /**
@@ -137,83 +144,84 @@ export async function sendPaginatedSelector<T>({
 }) {
   const numPages = Math.ceil(contentList.length / itemsPerPage);
   let currentPage = 0;
-  let paginatedMessage: Discord.Message | undefined;
 
-  let done = false;
-  let finalSelection: number | undefined = undefined;
+  // death to the counterintuitive loop!
+  let embed = new MessageEmbed({
+    fields: contentList
+      .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+      .map((t, i) => optionRenderer(t, currentPage * itemsPerPage + i + 1)),
+  });
 
-  const options = Object.keys(
-    adjustDirections
-  ) as (keyof typeof adjustDirections)[];
-  // let currentLoop = 0;
-  try {
-    while (true) {
-      // console.log(`currentLoop ${currentLoop}`);
-      // either send, or update, the embed
-      let embed: Discord.MessageEmbed;
-      if (finalSelection !== undefined && done) {
-        embed = resultRenderer(contentList[finalSelection]);
-      } else {
-        embed = new MessageEmbed().addFields(
-          ...contentList
+  if (contentList.length > 1) {
+    embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+  }
+
+  // always send the initial embed and always make it trashable
+  const paginatedMessage = await channel.send(embed);
+  makeTrashable(paginatedMessage);
+
+  bugOut(paginatedMessage, async () => {
+    // this continually listens for a numeric choice
+    const choiceDetector = (async () => {
+      const choice = (
+        await channel.awaitMessages(
+          (m: Discord.Message) => {
+            if (m.author.id !== user.id || !/^\d+$/.test(m.content))
+              return false;
+            const index = Number(m.content);
+            return index > 0 && index <= contentList.length;
+          },
+          { max: 1, time: 60000 }
+        )
+      ).first()?.content;
+      if (choice) return Number(choice);
+    })();
+
+    let userInput: typeof directions[number] | number | undefined;
+
+    // wait to see if something is clicked
+    while (
+      (userInput = await Promise.race([
+        // if there's pages to switch between,
+        ...(contentList.length > 1
+          ? // include a page selector
+            [presentOptions(paginatedMessage, directions, "all")]
+          : []),
+        choiceDetector,
+      ]))
+    ) {
+      if (typeof userInput === "string") {
+        // adjust the page accordingly
+        currentPage +=
+          adjustDirections[userInput as keyof typeof adjustDirections] ?? 0;
+        if (currentPage + 1 > numPages) currentPage = 0;
+        if (currentPage < 0) currentPage = numPages - 1;
+
+        // and update the message with the new embed
+        embed = new MessageEmbed({
+          fields: contentList
             .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
             .map((t, i) =>
               optionRenderer(t, currentPage * itemsPerPage + i + 1)
-            )
-        );
-        if (numPages > 1) {
-          embed.setFooter(`${currentPage + 1} / ${numPages}`);
-        }
+            ),
+        });
+        embed.setFooter(`${currentPage + 1} / ${contentList.length}`);
+        await paginatedMessage.edit(embed);
+        // and then just continue waiting for a new pagination input
+      } else {
+        // a message with a valid number was detected
+        embed = resultRenderer(contentList[userInput]);
+        await paginatedMessage.edit(embed);
+        // completely escape the loop, and the "timed out" loop cleanup
+        return;
       }
-
-      if (paginatedMessage === undefined) {
-        paginatedMessage = await channel.send(embed);
-        makeTrashable(paginatedMessage);
-      } else await paginatedMessage.edit(embed);
-
-      // final edit completed
-      if (done) return;
-
-      // wait to see if something is clicked or a choice is made
-      let userInput = await Promise.race([
-        ...(numPages > 1
-          ? [presentOptions(paginatedMessage, options, "all")]
-          : []),
-        (async () => {
-          // const thisLoop = currentLoop;
-          const matchingMessage = await channel.awaitMessages(
-            (m: Discord.Message) => {
-              if (m.author.id !== user.id || !/^\d+$/.test(m.content))
-                return false;
-              const index = Number(m.content);
-              return index > 0 && index <= contentList.length;
-            },
-            { max: 1, time: 60000 }
-          );
-          // console.log(`returning a message for ${thisLoop}`);
-          return matchingMessage.first()?.content;
-        })(),
-      ]);
-
-      // we're done if there was no response
-      if (userInput === undefined) done = true;
-      else {
-        if (userInput in adjustDirections) {
-          // otherwise, adjust the page accordingly and loop again to update embed
-          currentPage +=
-            adjustDirections[userInput as keyof typeof adjustDirections] ?? 0;
-          if (currentPage + 1 > numPages) currentPage = 0;
-          if (currentPage < 0) currentPage = numPages - 1;
-        } else {
-          finalSelection = Number(userInput) - 1;
-          done = true;
-        }
-      }
-      // currentLoop++;
     }
-  } catch {
-    paginatedMessage?.delete();
-  }
+    // loop breaks when there's no more input
+    // (someone stopped paginating, or didn't make a choice)
+
+    // we'll give up i guess, and delete the selector message
+    await paginatedMessage.delete();
+  });
 }
 
 /**
@@ -470,4 +478,26 @@ function nodeLog(
   return (_e) => {
     process.stdout.write(any);
   };
+}
+
+/**
+ * `Awaited<Promise<string>>`
+ *
+ * ↓↓↓↓
+ *
+ * `string`
+ */
+export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
+
+// try to do whatever func wants to do, but delete msg if there's an error
+async function bugOut<T extends any>(
+  msg: Discord.Message,
+  func: (() => T) | (() => Promise<T>)
+) {
+  try {
+    return await func();
+  } catch (e) {
+    await msg.delete();
+    throw e;
+  }
 }

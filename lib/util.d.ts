@@ -64,3 +64,11 @@ export declare function uploadEmojiList(guild: GuildResolvable, emoteList: {
     attachment: BufferResolvable;
     name: string;
 }[]): Promise<Record<string, Discord.GuildEmoji>>;
+/**
+ * `Awaited<Promise<string>>`
+ *
+ * ↓↓↓↓
+ *
+ * `string`
+ */
+export declare type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
