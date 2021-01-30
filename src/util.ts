@@ -196,11 +196,11 @@ export async function sendPaginatedSelector<T>({
             [presentOptions(paginatedMessage, directions, "all")]
           : []),
 
-        // if there's only 1 option,
-        ...(contentList.length > 1
-          ? // short circuit to it already being chosen
-            [Promise.resolve(0)]
-          : []),
+        // // if there's only 1 option,
+        // ...(contentList.length === 1
+        //   ? // short circuit to it already being chosen
+        //     [Promise.resolve(0)]
+        //   : []),
 
         choiceDetector,
       ]))
