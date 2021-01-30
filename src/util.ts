@@ -131,7 +131,7 @@ export async function sendPaginatedSelector<T>({
   contentList,
   optionRenderer = (l, i) => ({ name: i, value: `${l}`, inline: true }),
   resultRenderer = (l) => new MessageEmbed({ description: `${l}` }),
-  prompt = "respond with a number",
+  prompt = "choose by responding with a number:",
   itemsPerPage = 25,
 }: {
   user: Discord.User;
@@ -151,6 +151,7 @@ export async function sendPaginatedSelector<T>({
       .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
       .map((t, i) => optionRenderer(t, currentPage * itemsPerPage + i + 1)),
   });
+  prompt && embed.setDescription(prompt);
 
   if (numPages > 1) {
     embed.setFooter(`${currentPage + 1} / ${numPages}`);
@@ -194,6 +195,13 @@ export async function sendPaginatedSelector<T>({
           ? // include a page selector
             [presentOptions(paginatedMessage, directions, "all")]
           : []),
+
+        // if there's only 1 option,
+        ...(contentList.length > 1
+          ? // short circuit to it already being chosen
+            [Promise.resolve(0)]
+          : []),
+
         choiceDetector,
       ]))
     ) {
@@ -284,7 +292,7 @@ export async function presentOptions<T extends string>(
       }
 
       default:
-        await msg.reactions.removeAll();
+        if (!msg.deleted) await msg.reactions.removeAll();
         await sleep(800);
         break;
     }
