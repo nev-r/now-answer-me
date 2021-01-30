@@ -51,7 +51,7 @@ import { setPrefix } from "now-answer-me";
 setPrefix('&&&&&');
 
 addActivity(
-	{ name: 'in the fall leaves 🍃', options: { type: 'PLAYING' } }
+	{ name: 'in the fall leaves 🍃', type: 'PLAYING' }
 );
 ```
 

@@ -147,16 +147,26 @@ export function init(token: string) {
   return clientReadyPromise;
 }
 
-let activitiesIndex = 0;
+let currentActivityIndex = -1;
+let currentlySetActivity = activities[currentActivityIndex];
 
 function startActivityUpkeep() {
   setInterval(() => {
-    activitiesIndex++;
-    if (!activities[activitiesIndex]) activitiesIndex = 0;
-    activities.length &&
-      activities[activitiesIndex] &&
-      client.user?.setActivity(activities[activitiesIndex]);
-  }, 30000);
+    // no need to do anything this loop, if there's no activities
+    if (!activities.length) return;
+
+    // increment and fix overrun
+    currentActivityIndex++;
+    if (!activities[currentActivityIndex]) currentActivityIndex = 0;
+
+    const newActivity = activities[currentActivityIndex];
+    // if it hasn't effectively changed, nothing to do
+    if (currentlySetActivity === newActivity) return;
+
+    // do an update
+    currentlySetActivity = newActivity;
+    client.user?.setActivity(activities[currentActivityIndex]);
+  }, 90000);
 }
 
 /**

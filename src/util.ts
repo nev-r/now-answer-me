@@ -163,7 +163,7 @@ export async function sendPaginatedSelector<T>({
   bugOut(paginatedMessage, async () => {
     // this continually listens for a numeric choice
     const choiceDetector = (async () => {
-      const choice = (
+      const choiceMessage = (
         await channel.awaitMessages(
           (m: Discord.Message) => {
             if (m.author.id !== user.id || !/^\d+$/.test(m.content))
@@ -171,10 +171,17 @@ export async function sendPaginatedSelector<T>({
             const index = Number(m.content);
             return index > 0 && index <= contentList.length;
           },
-          { max: 1, time: 60000 }
+          { max: 1, time: 120000 }
         )
-      ).first()?.content;
-      if (choice) return Number(choice);
+      ).first();
+      if (choiceMessage) {
+        try {
+          await choiceMessage.delete();
+        } catch {
+          console.log(`could not delete someone's numeric response`);
+        }
+        return Number(choiceMessage.content);
+      }
     })();
 
     let userInput: typeof directions[number] | number | undefined;
@@ -212,7 +219,7 @@ export async function sendPaginatedSelector<T>({
         // a message with a valid number was detected
         embed = resultRenderer(contentList[userInput - 1]);
         await paginatedMessage.edit(embed);
-        // completely escape the loop, and the "timed out" loop cleanup
+        // completely escape the loop, and avoid throwing the "timed out" error
         return;
       }
     }
@@ -254,7 +261,7 @@ export async function presentOptions<T extends string>(
 
     // we timed out instead of getting a valid reaction
     if (!reactionCollection.size) {
-      msg.reactions.removeAll();
+      if (!msg.deleted) await msg.reactions.removeAll();
       return undefined;
     }
 
