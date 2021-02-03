@@ -6,8 +6,11 @@ import Discord, {
   GuildEmoji,
   GuildResolvable,
   MessageEmbed,
+  MessageResolvable,
+  UserResolvable,
 } from "discord.js";
 import { sleep } from "one-stone/promise";
+import { s } from "one-stone/string";
 import { client, clientReadyPromise, ValidMessage } from "./bot.js";
 import {
   buildEmojiDictUsingClient,
@@ -238,6 +241,51 @@ export async function sendPaginatedSelector<T>({
     // wrapper to delete the pagination message
     throw new Error("timed out waiting for pagination or selection");
   });
+}
+
+/** wip */
+export async function promptForText({
+  channel,
+  options,
+  user,
+  swallowResponse = true,
+  awaitOptions = { max: 1, time: 120000 },
+}: {
+  channel: Discord.TextChannel;
+  options: RegExp | string[];
+  user?: UserResolvable | UserResolvable[];
+  swallowResponse?: boolean;
+  awaitOptions?: Discord.AwaitReactionsOptions;
+}) {
+  const users = user ? arrayify(user).map((u) => normalizeID(u)) : undefined;
+  const optionFilter: (s: string) => boolean = Array.isArray(options)
+    ? (s) => options.includes(s)
+    : (s) => options.test(s);
+  const optionOutput: (s: string) => string = Array.isArray(options)
+    ? (s) => s
+    : (s) => options.exec(s)![0];
+
+  const choiceMessage = (
+    await channel.awaitMessages((m: Discord.Message) => {
+      if (users && users.includes(m.author.id)) return false;
+      return optionFilter(m.content);
+    }, awaitOptions)
+  ).first();
+
+  if (choiceMessage) {
+    (async () => {
+      try {
+        if (swallowResponse) await choiceMessage.delete();
+      } catch {
+        console.log(`could not delete someone's numeric response`);
+      }
+    })();
+
+    return {
+      text: optionOutput(choiceMessage.content),
+      message: choiceMessage,
+    };
+  }
 }
 
 /**
@@ -503,4 +551,16 @@ async function bugOut<T extends any>(
     await msg.delete();
     throw e;
   }
+}
+
+export function normalizeID(
+  resolvable:
+    | UserResolvable
+    | ChannelResolvable
+    | MessageResolvable
+    | GuildResolvable
+) {
+  return typeof resolvable === "string"
+    ? resolvable
+    : ((resolvable as any).id as string);
 }

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import Discord, { BufferResolvable, Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
+import Discord, { BufferResolvable, Channel, ChannelResolvable, EmojiResolvable, GuildResolvable, MessageResolvable, UserResolvable } from "discord.js";
 import { ValidMessage } from "./bot.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
@@ -29,6 +29,17 @@ export declare function sendPaginatedSelector<T>({ user, channel, contentList, o
     prompt?: string;
     itemsPerPage?: number;
 }): Promise<void>;
+/** wip */
+export declare function promptForText({ channel, options, user, swallowResponse, awaitOptions, }: {
+    channel: Discord.TextChannel;
+    options: RegExp | string[];
+    user?: UserResolvable | UserResolvable[];
+    swallowResponse?: boolean;
+    awaitOptions?: Discord.AwaitReactionsOptions;
+}): Promise<{
+    text: string;
+    message: Discord.Message;
+} | undefined>;
 /**
  * posts 1 or more options (emoji) to a message,
  * and awaits a selection (someone clicking one, thereby increasing the count)
@@ -72,3 +83,4 @@ export declare function uploadEmojiList(guild: GuildResolvable, emoteList: {
  * `string`
  */
 export declare type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
+export declare function normalizeID(resolvable: UserResolvable | ChannelResolvable | MessageResolvable | GuildResolvable): string;

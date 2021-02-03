@@ -9,6 +9,7 @@ import type {
   UserResolvable,
 } from "discord.js";
 import { sleep } from "one-stone/promise";
+import { normalizeID } from "./util.js";
 
 export async function buildEmojiDictUsingClient(
   client: Client,
@@ -147,16 +148,4 @@ export async function uploadEmojiListUsingClient(
       throw new Error("failed repeatedly to upload emojis");
     }
   }
-}
-
-function normalizeID(
-  resolvable:
-    | UserResolvable
-    | ChannelResolvable
-    | MessageResolvable
-    | GuildResolvable
-) {
-  return typeof resolvable === "string"
-    ? resolvable
-    : ((resolvable as any).id as string);
 }
