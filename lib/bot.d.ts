@@ -56,11 +56,7 @@ export declare type Sendable = (MessageOptions & {
 /**
  * describes the message that triggered a CommandResponse
  */
-export interface CommandParams {
-    /** the message that triggered this command */
-    msg: Discord.Message;
-    /** the text content of the message that triggered this command */
-    content: string;
+export interface CommandParams extends TriggerParams {
     /** the matched command name */
     command: string;
     /** any string content after the matched command name */
@@ -74,6 +70,12 @@ export interface TriggerParams {
     msg: Discord.Message;
     /** the text content of the message that triggered this command */
     content: string;
+    /** the channel where this command was triggered */
+    channel: Discord.Message["channel"];
+    /** the guild where this command was triggered */
+    guild: Discord.Message["guild"];
+    /** the user who triggered this command */
+    user: Discord.Message["author"];
 }
 /**
  * either a Sendable, or a function that generates a Sendable.
