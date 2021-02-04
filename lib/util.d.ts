@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import Discord, { BufferResolvable, Channel, ChannelResolvable, EmojiResolvable, GuildResolvable, MessageResolvable, UserResolvable } from "discord.js";
-import { ValidMessage } from "./bot.js";
+import { Sendable } from "./bot.js";
 /**
  * accepts the results of a `channel.send`, `await channel.send` or wraps a `channel.send`
  *
@@ -30,12 +30,13 @@ export declare function sendPaginatedSelector<T>({ user, channel, contentList, o
     itemsPerPage?: number;
 }): Promise<void>;
 /** wip */
-export declare function promptForText({ channel, options, user, swallowResponse, awaitOptions, }: {
-    channel: Discord.TextChannel;
+export declare function promptForText({ channel, options, user, swallowResponse, awaitOptions, promptContent, }: {
+    channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel;
     options: RegExp | string[];
     user?: UserResolvable | UserResolvable[];
     swallowResponse?: boolean;
     awaitOptions?: Discord.AwaitReactionsOptions;
+    promptContent?: Sendable;
 }): Promise<{
     text: string;
     message: Discord.Message;
@@ -54,7 +55,7 @@ export declare function presentOptions<T extends string>(msg: Discord.Message, o
  */
 export declare function serialReactions(msg: Discord.Message, reactions: string[]): Promise<void>;
 export declare function singleReaction(msg: Discord.Message, reaction: string): Promise<void>;
-export declare function announceToChannels(client: Discord.Client, message: ValidMessage, channelIds: string | string[]): (false | Promise<Discord.Message>)[];
+export declare function announceToChannels(client: Discord.Client, message: Sendable, channelIds: string | string[]): (false | Promise<Discord.Message>)[];
 /**
  * waits for client to be ready and then attempts to resolve a channel
  */

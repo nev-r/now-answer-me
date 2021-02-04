@@ -11,7 +11,7 @@ import Discord, {
 } from "discord.js";
 import { sleep } from "one-stone/promise";
 import { s } from "one-stone/string";
-import { client, clientReadyPromise, ValidMessage } from "./bot.js";
+import { client, clientReadyPromise, Sendable } from "./bot.js";
 import {
   buildEmojiDictUsingClient,
   uploadEmojiListUsingClient,
@@ -97,7 +97,7 @@ export async function sendPaginatedEmbed<T>(
   const paginatedMessage = await channel.send(embed);
   makeTrashable(paginatedMessage);
 
-  bugOut(paginatedMessage, async () => {
+  await bugOut(paginatedMessage, async () => {
     // if there's pages to switch between, enter a loop of listening for input
     if (contentList.length > 1) {
       let userInput: typeof directions[number] | undefined;
@@ -164,7 +164,7 @@ export async function sendPaginatedSelector<T>({
   const paginatedMessage = await channel.send(embed);
   makeTrashable(paginatedMessage);
 
-  bugOut(paginatedMessage, async () => {
+  await bugOut(paginatedMessage, async () => {
     // this continually listens for a numeric choice
     const choiceDetector = (async () => {
       const choiceMessage = (
@@ -250,41 +250,54 @@ export async function promptForText({
   user,
   swallowResponse = true,
   awaitOptions = { max: 1, time: 120000 },
+  promptContent,
 }: {
-  channel: Discord.TextChannel;
+  channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel;
   options: RegExp | string[];
   user?: UserResolvable | UserResolvable[];
   swallowResponse?: boolean;
   awaitOptions?: Discord.AwaitReactionsOptions;
+  promptContent?: Sendable;
 }) {
+  // if users exists, force it to be an array of IDs
   const users = user ? arrayify(user).map((u) => normalizeID(u)) : undefined;
+
   const optionFilter: (s: string) => boolean = Array.isArray(options)
     ? (s) => options.includes(s)
     : (s) => options.test(s);
+
   const optionOutput: (s: string) => string = Array.isArray(options)
-    ? (s) => s
-    : (s) => options.exec(s)![0];
+    ? // a string was determined to be an exact match, so return it as-is
+      (s) => s
+    : // we can assume exec succeeds because options.test found a match in optionFilter
+      (s) => options.exec(s)![0];
 
-  const choiceMessage = (
-    await channel.awaitMessages((m: Discord.Message) => {
-      if (users && users.includes(m.author.id)) return false;
-      return optionFilter(m.content);
-    }, awaitOptions)
-  ).first();
+  let promptMessage: Discord.Message | undefined;
+  if (promptContent) {
+    if (typeof promptContent === "string")
+      promptContent = new MessageEmbed({ description: promptContent });
+    promptMessage = await channel.send(promptContent);
+  }
 
-  if (choiceMessage) {
-    (async () => {
-      try {
-        if (swallowResponse) await choiceMessage.delete();
-      } catch {
-        console.log(`could not delete someone's numeric response`);
-      }
-    })();
+  try {
+    const choiceMessage = (
+      await channel.awaitMessages((m: Discord.Message) => {
+        if (users && users.includes(m.author.id)) return false;
+        return optionFilter(m.content);
+      }, awaitOptions)
+    ).first();
 
-    return {
-      text: optionOutput(choiceMessage.content),
-      message: choiceMessage,
-    };
+    if (choiceMessage) {
+      swallowResponse &&
+        choiceMessage.delete().catch(() => console.log("dysphagia"));
+      return {
+        text: optionOutput(choiceMessage.content),
+        message: choiceMessage,
+      };
+    }
+  } finally {
+    // always cleanup the prompt if one was sent and it isn't deleted
+    promptMessage?.deleted || promptMessage?.delete().catch();
   }
 }
 
@@ -397,7 +410,7 @@ export async function singleReaction(msg: Discord.Message, reaction: string) {
 
 export function announceToChannels(
   client: Discord.Client,
-  message: ValidMessage,
+  message: Sendable,
   channelIds: string | string[]
 ) {
   return arrayify(channelIds).map((channelId) => {
@@ -540,15 +553,15 @@ function nodeLog(
  */
 export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 
-// try to do whatever func wants to do, but delete msg if there's an error
+/** try to do whatever func wants to do, but delete msg if there's an error */
 async function bugOut<T extends any>(
-  msg: Discord.Message,
+  msg: Discord.Message | undefined,
   func: (() => T) | (() => Promise<T>)
 ) {
   try {
     return await func();
   } catch (e) {
-    await msg.delete();
+    msg?.deleted || (await msg?.delete().catch());
     throw e;
   }
 }

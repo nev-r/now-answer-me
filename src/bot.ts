@@ -170,11 +170,11 @@ function startActivityUpkeep() {
 }
 
 /**
- * a ValidMessage is anything that can be fed into discord.js's send function:
+ * a Sendable is anything that can be fed into discord.js's send function:
  *
  * strings, MessageOptions, embeds, attachments, arrays of the aforementioned, etc.
  */
-export type ValidMessage =
+export type Sendable =
   | (MessageOptions & { split?: false | undefined })
   | MessageAdditions
   | string;
@@ -204,32 +204,24 @@ export interface TriggerParams {
 }
 
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the CommandParams object
  */
 export type CommandResponse =
   | ((
       params: CommandParams
-    ) =>
-      | ValidMessage
-      | undefined
-      | void
-      | Promise<ValidMessage | undefined | void>)
-  | ValidMessage;
+    ) => Sendable | undefined | void | Promise<Sendable | undefined | void>)
+  | Sendable;
 
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
  */
 export type TriggerResponse =
   | ((
       params: TriggerParams
-    ) =>
-      | ValidMessage
-      | undefined
-      | void
-      | Promise<ValidMessage | undefined | void>)
-  | ValidMessage;
+    ) => Sendable | undefined | void | Promise<Sendable | undefined | void>)
+  | Sendable;
 
 type ConstraintTypes = `${"require" | "block" | "allow"}${
   | "User"
@@ -262,7 +254,7 @@ const commands: ({
   Extras)[] = [];
 
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
  */
 export function addCommand(...commands_: typeof commands) {
@@ -280,7 +272,7 @@ const triggers: ({
   Extras)[] = [];
 
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
  */
 export function addTrigger(...triggers_: typeof triggers) {
@@ -431,77 +423,6 @@ function meetsConstraints(
 
   return true;
 }
-
-// function meetsConstraints(
-//   msg: Discord.Message,
-//   { require, allow, block }: ConstraintCategories
-// ) {
-//   const {
-//     author: { id: authorId },
-//     channel: { id: channelId },
-//     guild,
-//   } = msg;
-//   const guildId = guild?.id;
-
-//   // if an allow constraint exists, and it's met, allow
-//   if (allow) {
-//     const { user, channel, guild } = allow;
-//     if (
-//       (channel && mixedIncludes(channel, channelId)) ||
-//       (user && mixedIncludes(user, authorId)) ||
-//       (guild && guildId && mixedIncludes(guild, guildId))
-//     )
-//       return true;
-//   }
-
-//   // if a block constraint exists, and it's met, block
-//   if (block) {
-//     const { user, channel, guild } = block;
-//     if (
-//       (channel && mixedIncludes(channel, channelId)) ||
-//       (user && mixedIncludes(user, authorId)) ||
-//       (guild && guildId && mixedIncludes(guild, guildId))
-//     )
-//       return false;
-//   }
-
-//   // if an require constraint exists, and it's not met, block
-//   if (require) {
-//     const { user, channel, guild } = require;
-//     if (
-//       (channel && !mixedIncludes(channel, channelId)) ||
-//       (user && !mixedIncludes(user, authorId)) ||
-//       (guild && (!guildId || !mixedIncludes(guild, guildId)))
-//     )
-//       return false;
-//   }
-
-//   return true;
-// }
-
-// given a message, see if it matches a trigger, then run the corresponding function
-// async function routeTrigger(msg: Discord.Message) {
-//   let foundTrigger = triggers.find((t) => t.trigger.test(msg.content));
-
-//   if (foundTrigger) {
-//     let { response } = foundTrigger;
-
-//     if (!meetsConstraints(msg, foundTrigger)) {
-//       console.log(
-//         `constraints suppressed a response to ${msg.author.username} requesting ${foundTrigger.trigger.source}`
-//       );
-//       return;
-//     }
-
-//     if (typeof response === "function")
-//       response = (await response({ msg, content: msg.content })) || "";
-//     try {
-//       response && msg.channel.send(response);
-//     } catch (e) {
-//       console.log(e);
-//     }
-//   }
-// }
 
 // via MDN
 function escapeRegExp(string: string) {

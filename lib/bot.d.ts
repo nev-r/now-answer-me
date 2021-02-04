@@ -46,11 +46,11 @@ export declare function setOnReconnect(onReconnect_: typeof onReconnects): void;
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export declare function init(token: string): Promise<Discord.Client>;
 /**
- * a ValidMessage is anything that can be fed into discord.js's send function:
+ * a Sendable is anything that can be fed into discord.js's send function:
  *
  * strings, MessageOptions, embeds, attachments, arrays of the aforementioned, etc.
  */
-export declare type ValidMessage = (MessageOptions & {
+export declare type Sendable = (MessageOptions & {
     split?: false | undefined;
 }) | MessageAdditions | string;
 /**
@@ -76,15 +76,15 @@ export interface TriggerParams {
     content: string;
 }
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the CommandParams object
  */
-export declare type CommandResponse = ((params: CommandParams) => ValidMessage | undefined | void | Promise<ValidMessage | undefined | void>) | ValidMessage;
+export declare type CommandResponse = ((params: CommandParams) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
  */
-export declare type TriggerResponse = ((params: TriggerParams) => ValidMessage | undefined | void | Promise<ValidMessage | undefined | void>) | ValidMessage;
+export declare type TriggerResponse = ((params: TriggerParams) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
 declare type ConstraintTypes = `${"require" | "block" | "allow"}${"User" | "Channel" | "Guild"}`;
 declare type Constraints = Partial<Record<ConstraintTypes, string | string[]>>;
 interface Extras {
@@ -96,7 +96,7 @@ declare const commands: ({
     response: CommandResponse;
 } & Constraints & Extras)[];
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
  */
 export declare function addCommand(...commands_: typeof commands): void;
@@ -105,7 +105,7 @@ declare const triggers: ({
     response: TriggerResponse;
 } & Constraints & Extras)[];
 /**
- * either a ValidMessage, or a function that generates a ValidMessage.
+ * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
  */
 export declare function addTrigger(...triggers_: typeof triggers): void;
