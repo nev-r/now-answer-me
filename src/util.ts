@@ -282,7 +282,7 @@ export async function promptForText({
   try {
     const choiceMessage = (
       await channel.awaitMessages((m: Discord.Message) => {
-        if (users && users.includes(m.author.id)) return false;
+        if (users && !users.includes(m.author.id)) return false;
         return optionFilter(m.content);
       }, awaitOptions)
     ).first();
@@ -316,12 +316,21 @@ export async function presentOptions<T extends string>(
   awaitOptions: Discord.AwaitReactionsOptions = { max: 1, time: 60000 }
 ): Promise<T | undefined> {
   const options_ = arrayify(options);
+
+  const optionsMeta = options_.map((o) => {
+    const resolved = msg.client.emojis.resolve(o);
+    if (resolved) return { option: o, name: resolved.name, id: resolved.id };
+    const matched = o.match(/^<a?:(\w+):(\d+)>$/);
+    if (matched) return { option: o, name: matched[0], id: matched[1] };
+    return { option: o, name: o };
+  });
+
   await serialReactions(msg, options_);
-  // let reactionGroups: Discord.Collection<string, Discord.MessageReaction>;
+
   try {
     const reactionFilter = buildReactionFilter({
       notUsers: msg.client.user?.id,
-      emoji: options_,
+      emoji: optionsMeta.flatMap((o) => [o.id!, o.name]).filter(Boolean),
     });
     const reactionCollection = await msg.awaitReactions(
       reactionFilter,
@@ -358,12 +367,11 @@ export async function presentOptions<T extends string>(
         break;
     }
 
-    const { name, id } = reactionCollection.first()?.emoji ?? {};
-    return name && options.includes(name as T)
-      ? (name as T)
-      : id && options.includes(id as T)
-      ? (id as T)
-      : undefined;
+    const result = reactionCollection.first()?.emoji;
+    if (!result) return;
+    return optionsMeta.find(
+      (o) => o.name === result.name || (result.id && o.id && result.id === o.id)
+    )?.option;
   } catch (e) {
     return undefined;
   }
