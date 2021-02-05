@@ -321,7 +321,7 @@ export async function presentOptions<T extends string>(
     const resolved = msg.client.emojis.resolve(o);
     if (resolved) return { option: o, name: resolved.name, id: resolved.id };
     const matched = o.match(/^<a?:(\w+):(\d+)>$/);
-    if (matched) return { option: o, name: matched[0], id: matched[1] };
+    if (matched) return { option: o, name: matched[1], id: matched[2] };
     return { option: o, name: o };
   });
 
