@@ -1,5 +1,5 @@
-import "./bot.ts";
-import "./features.ts";
-import "./static.ts";
-import "./types.ts";
-import "./utils.ts";
+import "./bot.js";
+import "./features.js";
+import "./static.js";
+import "./types.js";
+import "./utils.js";
