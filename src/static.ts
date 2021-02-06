@@ -81,7 +81,7 @@ export async function staticBuildEmojiDict(
  *
  * returns the emoji dict
  */
-export async function uploadEmojiList(
+export async function uploadEmojis(
   apiToken: string,
   guild: GuildResolvable,
   emojis: { attachment: BufferResolvable; name: string }[]
