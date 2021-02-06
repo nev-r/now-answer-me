@@ -1,10 +1,10 @@
-import Discord, { MessageAdditions, MessageOptions } from "discord.js";
+import { Client } from "discord.js";
+import type { ActivityOptions } from "discord.js";
+import type { CommandResponse, Constraints, Extras, TriggerResponse } from "./types/types-bot.js";
 export declare const startupTimestamp: Date;
-export declare const client: Discord.Client;
+export declare const client: Client;
 /** resolves when the client has connected */
-export declare let clientReadyPromise: Promise<Discord.Client>;
-/** check if the client has done its first connection */
-export declare let clientReady: boolean;
+export declare let clientReady: Promise<Client>;
 /**
  * set the command prefix (i.e. "!"" or "?"" or whatever)
  *
@@ -16,16 +16,16 @@ export declare let clientReady: boolean;
  * startsWith, instead of executing a regex on every message that goes by
  */
 export declare function setPrefix(prefix: string | RegExp): void;
-declare let activities: Discord.ActivityOptions[];
+declare let activities: ActivityOptions[];
 /**
  * add 1 or more discord presence statuses to cycle through
  */
-export declare function addActivity(...activities_: (string | Discord.ActivityOptions)[]): void;
+export declare function addActivity(...activities_: (string | ActivityOptions)[]): void;
 /**
- * completely replaces existing `activities` statuses. you may want `addActivity` instead
+ * completely replaces existing `activities` statuses. you probably want `addActivity` instead
  */
 export declare function setActivities(activities_: typeof activities): void;
-declare let onConnects: ((client_: Discord.Client) => void)[];
+declare let onConnects: ((client_: Client) => void)[];
 /**
  * add function(s) to run upon first logging into discord
  *
@@ -34,7 +34,7 @@ declare let onConnects: ((client_: Discord.Client) => void)[];
 export declare function addOnConnect(...onConnect_: typeof onConnects): void;
 /** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
 export declare function setOnConnect(onConnects_: typeof onConnects): void;
-declare let onReconnects: ((client_: Discord.Client) => void)[];
+declare let onReconnects: ((client_: Client) => void)[];
 /**
  * add function(s) to run upon any reconnection to discord
  *
@@ -44,55 +44,7 @@ export declare function addOnReconnect(...onReconnect_: typeof onReconnects): vo
 /** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
 export declare function setOnReconnect(onReconnect_: typeof onReconnects): void;
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
-export declare function init(token: string): Promise<Discord.Client>;
-/**
- * a Sendable is anything that can be fed into discord.js's send function:
- *
- * strings, MessageOptions, embeds, attachments, arrays of the aforementioned, etc.
- */
-export declare type Sendable = (MessageOptions & {
-    split?: false | undefined;
-}) | MessageAdditions | string;
-/**
- * describes the message that triggered a CommandResponse
- */
-export interface CommandParams extends TriggerParams {
-    /** the matched command name */
-    command: string;
-    /** any string content after the matched command name */
-    args?: string;
-}
-/**
- * describes the message that triggered a TriggerResponse
- */
-export interface TriggerParams {
-    /** the message that triggered this command */
-    msg: Discord.Message;
-    /** the text content of the message that triggered this command */
-    content: string;
-    /** the channel where this command was triggered */
-    channel: Discord.Message["channel"];
-    /** the guild where this command was triggered */
-    guild: Discord.Message["guild"];
-    /** the user who triggered this command */
-    user: Discord.Message["author"];
-}
-/**
- * either a Sendable, or a function that generates a Sendable.
- * if it's a function, it's passed the CommandParams object
- */
-export declare type CommandResponse = ((params: CommandParams) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
-/**
- * either a Sendable, or a function that generates a Sendable.
- * if it's a function, it's passed the TriggerParams object
- */
-export declare type TriggerResponse = ((params: TriggerParams) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
-declare type ConstraintTypes = `${"require" | "block" | "allow"}${"User" | "Channel" | "Guild"}`;
-declare type Constraints = Partial<Record<ConstraintTypes, string | string[]>>;
-interface Extras {
-    trashable?: "requestor" | "everyone";
-    reportViaReaction?: boolean;
-}
+export declare function init(token: string): Promise<Client>;
 declare const commands: ({
     command: string | string[];
     response: CommandResponse;

@@ -10,9 +10,9 @@ import {
   editMessageUsingClient,
   publishMessageUsingClient,
   sendMessageUsingClient,
-  uploadEmojiListUsingClient,
-} from "./raw-utils.js";
-import { doSomethingUsingTempClient } from "./temp-client.js";
+  uploadEmojisUsingClient,
+} from "./_utils/raw-utils.js";
+import { doSomethingUsingTempClient } from "./_utils/temp-client.js";
 
 /**
  * logs into discord, sends a message to a specific channel, and logs out.
@@ -81,13 +81,13 @@ export async function staticBuildEmojiDict(
  *
  * returns the emoji dict
  */
-export async function uploadEmoteList(
+export async function uploadEmojiList(
   apiToken: string,
   guild: GuildResolvable,
-  emoteList: { attachment: BufferResolvable; name: string }[]
+  emojis: { attachment: BufferResolvable; name: string }[]
 ) {
   return doSomethingUsingTempClient(apiToken, (client) => {
-    return uploadEmojiListUsingClient(client, guild, emoteList);
+    return uploadEmojisUsingClient(client, guild, emojis);
   });
 }
 

@@ -30,7 +30,7 @@ export declare function staticBuildEmojiDict(apiToken: string, guilds: GuildReso
  *
  * returns the emoji dict
  */
-export declare function uploadEmoteList(apiToken: string, guild: GuildResolvable, emoteList: {
+export declare function uploadEmojiList(apiToken: string, guild: GuildResolvable, emojis: {
     attachment: BufferResolvable;
     name: string;
 }[]): Promise<Record<string, import("discord.js").GuildEmoji>>;
