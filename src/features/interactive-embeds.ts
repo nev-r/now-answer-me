@@ -127,6 +127,7 @@ async function _paginatedEmbedSender_<T>({
 	arrowButtons = true,
 	randomButton,
 	noReturn,
+	abortController,
 }: {
 	preexistingMessage?: Message;
 	channel?: TextChannel | DMChannel | NewsChannel;
@@ -135,6 +136,7 @@ async function _paginatedEmbedSender_<T>({
 	arrowButtons?: boolean;
 	randomButton?: boolean;
 	noReturn?: boolean;
+	abortController?: { aborted: boolean };
 }): Promise<{ message: Message }> {
 	if (!channel) throw new Error("no channel provided to send pagination to");
 
@@ -173,19 +175,21 @@ async function _paginatedEmbedSender_<T>({
 				? random
 				: undefined;
 		while (
+			!abortController?.aborted &&
 			// make sure the message is still there
-			(!paginatedMessage.deleted &&
+			((!paginatedMessage.deleted &&
 				// show pagination if there's pages to move between
 				pages.length > 1 &&
 				// keep looping as long as user is clicking in a timely fashion i guess
 				reactOptions &&
 				(userInput = await presentOptions(paginatedMessage, reactOptions, "all"))) ||
-			// if there's 1 page left and we're in noReturn mode
-			(pages.length === 1 &&
-				noReturn &&
-				// suggest deletion
-				(userInput = await presentOptions(paginatedMessage, trash, "all")))
+				// if there's 1 page left and we're in noReturn mode
+				(pages.length === 1 &&
+					noReturn &&
+					// suggest deletion
+					(userInput = await presentOptions(paginatedMessage, trash, "others"))))
 		) {
+			if (abortController?.aborted) return;
 			if (noReturn) {
 				pages.splice(currentPage, 1);
 				// removing current position effectively advances the page by 1, so undo it
@@ -257,7 +261,7 @@ export async function sendPaginatedSelector<T>({
 }) {
 	const numPages = Math.ceil(selectables.length / itemsPerPage);
 
-	const pages = Array(numPages).map((x, pageNum) => {
+	const pages = [...Array(numPages)].map((x, pageNum) => {
 		const pageEmbed = new MessageEmbed({
 			fields: selectables
 				.slice(pageNum * itemsPerPage, (pageNum + 1) * itemsPerPage)
@@ -272,7 +276,7 @@ export async function sendPaginatedSelector<T>({
 		await _paginatedEmbedSender_({
 			pages,
 			preexistingMessage,
-			channel
+			channel,
 		})
 	).message;
 

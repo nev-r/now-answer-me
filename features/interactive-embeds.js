@@ -20,7 +20,7 @@ export async function sendRerollableStackEmbed(_) {
     return (await _paginatedEmbedSender_(Object.assign(Object.assign({}, _), { randomButton: true, arrowButtons: false }))).message;
 }
 // /** accepts a channel to post to, and a collection of pages to let users switch between* if the pages aren't MessageEmbeds, they are page source data, for a renderer function which turns them into MessageEmbeds* this can be used to defer heavy or async page rendering, until that page is navigated to */
-async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, renderer = (t) => t, pages, arrowButtons = true, randomButton, noReturn, }) {
+async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, renderer = (t) => t, pages, arrowButtons = true, randomButton, noReturn, abortController, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     // we might modify this array, so copy it
@@ -50,19 +50,21 @@ async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistin
                 : randomButton
                     ? random
                     : undefined;
-        while (
-        // make sure the message is still there
-        (!paginatedMessage.deleted &&
-            // show pagination if there's pages to move between
-            pages.length > 1 &&
-            // keep looping as long as user is clicking in a timely fashion i guess
-            reactOptions &&
-            (userInput = await presentOptions(paginatedMessage, reactOptions, "all"))) ||
-            // if there's 1 page left and we're in noReturn mode
-            (pages.length === 1 &&
-                noReturn &&
-                // suggest deletion
-                (userInput = await presentOptions(paginatedMessage, trash, "all")))) {
+        while (!(abortController === null || abortController === void 0 ? void 0 : abortController.aborted) &&
+            // make sure the message is still there
+            ((!paginatedMessage.deleted &&
+                // show pagination if there's pages to move between
+                pages.length > 1 &&
+                // keep looping as long as user is clicking in a timely fashion i guess
+                reactOptions &&
+                (userInput = await presentOptions(paginatedMessage, reactOptions, "all"))) ||
+                // if there's 1 page left and we're in noReturn mode
+                (pages.length === 1 &&
+                    noReturn &&
+                    // suggest deletion
+                    (userInput = await presentOptions(paginatedMessage, trash, "others"))))) {
+            if (abortController === null || abortController === void 0 ? void 0 : abortController.aborted)
+                return;
             if (noReturn) {
                 pages.splice(currentPage, 1);
                 // removing current position effectively advances the page by 1, so undo it
@@ -109,7 +111,7 @@ export async function sendPaginatedSelector({ preexistingMessage, user, channel,
     await s.edit(await resultRenderer(c));
 }, prompt = "choose by responding with a number:", itemsPerPage = 25, }) {
     const numPages = Math.ceil(selectables.length / itemsPerPage);
-    const pages = Array(numPages).map((x, pageNum) => {
+    const pages = [...Array(numPages)].map((x, pageNum) => {
         const pageEmbed = new MessageEmbed({
             fields: selectables
                 .slice(pageNum * itemsPerPage, (pageNum + 1) * itemsPerPage)
@@ -122,7 +124,7 @@ export async function sendPaginatedSelector({ preexistingMessage, user, channel,
     const selectorMessage = (await _paginatedEmbedSender_({
         pages,
         preexistingMessage,
-        channel
+        channel,
     })).message;
     // not awaiting this bugOut dispatches it, to monitor the message
     // asynchronously while sendPaginatedSelector returns the selectorMessage
