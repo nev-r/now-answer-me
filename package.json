@@ -5,12 +5,12 @@
 	"main": "./index.js",
 	"types": "./index.d.ts",
 	"exports": {
-		".": "./lib/bot.js",
-		"./utils": "./lib/utils.js",
-		"./bot": "./lib/bot.js",
-		"./static": "./lib/static.js",
-		"./features": "./lib/features.js",
-		"./types": "./lib/types.js"
+		".": "./lib/index.js",
+		"./utils": "./lib/utils/index.js",
+		"./bot": "./lib/bot/index.js",
+		"./static": "./lib/static/index.js",
+		"./features": "./lib/features/index.js",
+		"./types": "./lib/types/index.js"
 	},
 	"typesVersions": {
 		"*": {

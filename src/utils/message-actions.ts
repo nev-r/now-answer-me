@@ -5,6 +5,7 @@
 import type { MessageReaction, Message, User } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
+import { delMsg } from "./misc.js";
 
 type ReactionFilter = (reaction: MessageReaction, user: User) => boolean;
 
@@ -30,7 +31,7 @@ export async function makeTrashable(
 		max: 1,
 		time: 300000,
 	});
-	if (userReactions.size) msg.delete();
+	if (userReactions.size) await delMsg(msg);
 }
 const trashEmojis = ["🚮", "🗑️", "🚫"];
 

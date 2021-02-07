@@ -3,7 +3,7 @@
 //
 
 import type { Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
-import { client, clientReady } from "../bot.js";
+import { client, clientReady } from "./index.js";
 
 /**
  * waits for client to be ready and then attempts to resolve a channel

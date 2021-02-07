@@ -48,7 +48,7 @@ export async function bugOut<T extends any>(
 	try {
 		return await func();
 	} catch (e) {
-		msg?.deleted || (await msg?.delete().catch());
+		await delMsg(msg);
 		throw e;
 	}
 }
@@ -57,4 +57,12 @@ export function normalizeID(
 	resolvable: UserResolvable | ChannelResolvable | MessageResolvable | GuildResolvable
 ) {
 	return typeof resolvable === "string" ? resolvable : ((resolvable as any).id as string);
+}
+export async function delMsg(msg?: Message) {
+	try {
+		msg?.deletable && !msg.deleted && (await msg.delete());
+	} catch (e) {
+		console.log(e);
+	}
+	return;
 }

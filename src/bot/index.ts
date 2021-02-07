@@ -1,7 +1,7 @@
 import { Client } from "discord.js";
 import type { Message, ActivityOptions } from "discord.js";
-import type { CommandResponse, Constraints, Extras, TriggerResponse } from "./types/types-bot.js";
-import { makeTrashable } from "./_utils/message-actions.js";
+import type { CommandResponse, Constraints, Extras, TriggerResponse } from "../types/types-bot.js";
+import { makeTrashable } from "../utils/message-actions.js";
 import {
 	enforceWellStructuredCommand,
 	enforceWellStructuredResponse,
@@ -9,7 +9,7 @@ import {
 	escapeRegExp,
 	mixedIncludes,
 	meetsConstraints,
-} from "./_bot/checkers.js";
+} from "./checkers.js";
 
 export const startupTimestamp = new Date();
 export const client = new Client();

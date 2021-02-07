@@ -3,8 +3,8 @@
 //
 
 import type { GuildResolvable } from "discord.js";
-import { client, clientReady } from "../bot.js";
-import { buildEmojiDictUsingClient, uploadEmojisUsingClient } from "../_utils/raw-utils.js";
+import { client, clientReady } from "./index.js";
+import { buildEmojiDictUsingClient, uploadEmojisUsingClient } from "../utils/raw-utils.js";
 
 /**
  * waits for client to be ready and then builds an emoji dict from a server or array of servers

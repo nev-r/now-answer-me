@@ -6,4 +6,4 @@ export {
 	TriggerResponse,
 	ConstraintTypes,
 	Constraints,
-} from "./types/types-bot.js";
+} from "./types-bot.js";
