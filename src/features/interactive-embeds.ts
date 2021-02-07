@@ -119,6 +119,9 @@ export async function sendRerollableStackEmbed<T>(_: {
 }
 
 // /** accepts a channel to post to, and a collection of pages to let users switch between* if the pages aren't MessageEmbeds, they are page source data, for a renderer function which turns them into MessageEmbeds* this can be used to defer heavy or async page rendering, until that page is navigated to */
+
+// aborting this prevents further pagination but does not clean up its reactions,
+// to prevent race conditions from deleting needed reactions
 async function _paginatedEmbedSender_<T>({
 	preexistingMessage,
 	channel = preexistingMessage?.channel,
@@ -127,7 +130,7 @@ async function _paginatedEmbedSender_<T>({
 	arrowButtons = true,
 	randomButton,
 	noReturn,
-	abortController,
+	abortController = { aborted: false },
 }: {
 	preexistingMessage?: Message;
 	channel?: TextChannel | DMChannel | NewsChannel;
@@ -137,7 +140,7 @@ async function _paginatedEmbedSender_<T>({
 	randomButton?: boolean;
 	noReturn?: boolean;
 	abortController?: { aborted: boolean };
-}): Promise<{ message: Message }> {
+}): Promise<{ message: Message; abortController: { aborted: boolean } }> {
 	if (!channel) throw new Error("no channel provided to send pagination to");
 
 	// we might modify this array, so copy it
@@ -230,7 +233,7 @@ async function _paginatedEmbedSender_<T>({
 		paginatedMessage.deleted || (await paginatedMessage.edit(embed));
 	});
 
-	return { message: paginatedMessage };
+	return { message: paginatedMessage, abortController };
 }
 
 /**
@@ -272,11 +275,14 @@ export async function sendPaginatedSelector<T>({
 		return pageEmbed;
 	});
 
+	const abortController = { aborted: false };
+
 	const selectorMessage = (
 		await _paginatedEmbedSender_({
 			pages,
 			preexistingMessage,
 			channel,
+			abortController,
 		})
 	).message;
 
@@ -303,6 +309,11 @@ export async function sendPaginatedSelector<T>({
 
 		const userInput = await choiceDetector;
 
-		if (userInput) resultAction(selectorMessage, selectables[userInput - 1]);
+		if (userInput) {
+			abortController.aborted = true;
+			await selectorMessage.reactions.removeAll();
+			await sleep(800);
+			resultAction(selectorMessage, selectables[userInput - 1]);
+		}
 	});
 }
