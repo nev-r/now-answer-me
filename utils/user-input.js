@@ -47,8 +47,10 @@ export async function promptForText({ channel, options, user, swallowResponse = 
  * returns which emoji was selected, or undefined if it timed out waiting
  *
  * cleanupReactions controls whose reactions to clean up after a choice is made
+ *
+ * aborting this prevents reaction cleanup and returns undefined
  */
-export async function presentOptions(msg, options, cleanupReactions = "all", awaitOptions = { max: 1, time: 60000 }) {
+export async function presentOptions(msg, options, cleanupReactions = "all", awaitOptions = { max: 1, time: 60000 }, abortController = { aborted: false }) {
     var _a, _b, _c;
     const options_ = arrayify(options);
     const optionsMeta = options_.map((o) => {
@@ -67,6 +69,9 @@ export async function presentOptions(msg, options, cleanupReactions = "all", awa
             emoji: optionsMeta.flatMap((o) => [o.id, o.name]).filter(Boolean),
         });
         const reactionCollection = await msg.awaitReactions(reactionFilter, awaitOptions);
+        if (abortController.aborted) {
+            return;
+        }
         // we timed out instead of getting a valid reaction
         if (!reactionCollection.size) {
             if (!msg.deleted)

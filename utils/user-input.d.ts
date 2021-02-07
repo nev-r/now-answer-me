@@ -19,5 +19,9 @@ export declare function promptForText({ channel, options, user, swallowResponse,
  * returns which emoji was selected, or undefined if it timed out waiting
  *
  * cleanupReactions controls whose reactions to clean up after a choice is made
+ *
+ * aborting this prevents reaction cleanup and returns undefined
  */
-export declare function presentOptions<T extends string>(msg: Message, options: T | T[], cleanupReactions?: "all" | "others", awaitOptions?: AwaitReactionsOptions): Promise<T | undefined>;
+export declare function presentOptions<T extends string>(msg: Message, options: T | T[], cleanupReactions?: "all" | "others", awaitOptions?: AwaitReactionsOptions, abortController?: {
+    aborted: boolean;
+}): Promise<T | undefined>;

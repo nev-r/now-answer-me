@@ -20,7 +20,9 @@ export async function sendRerollableStackEmbed(_) {
     return (await _paginatedEmbedSender_(Object.assign(Object.assign({}, _), { randomButton: true, arrowButtons: false }))).message;
 }
 // /** accepts a channel to post to, and a collection of pages to let users switch between* if the pages aren't MessageEmbeds, they are page source data, for a renderer function which turns them into MessageEmbeds* this can be used to defer heavy or async page rendering, until that page is navigated to */
-async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, renderer = (t) => t, pages, arrowButtons = true, randomButton, noReturn, abortController, }) {
+// aborting this prevents further pagination but does not clean up its reactions,
+// to prevent race conditions from deleting needed reactions
+async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, renderer = (t) => t, pages, arrowButtons = true, randomButton, noReturn, abortController = { aborted: false }, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     // we might modify this array, so copy it
@@ -102,7 +104,7 @@ async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistin
             embed.footer = null;
         paginatedMessage.deleted || (await paginatedMessage.edit(embed));
     });
-    return { message: paginatedMessage };
+    return { message: paginatedMessage, abortController };
 }
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
@@ -121,10 +123,12 @@ export async function sendPaginatedSelector({ preexistingMessage, user, channel,
         numPages > 1 && pageEmbed.setFooter(`${pageNum + 1} / ${numPages}`);
         return pageEmbed;
     });
+    const abortController = { aborted: false };
     const selectorMessage = (await _paginatedEmbedSender_({
         pages,
         preexistingMessage,
         channel,
+        abortController,
     })).message;
     // not awaiting this bugOut dispatches it, to monitor the message
     // asynchronously while sendPaginatedSelector returns the selectorMessage
@@ -143,7 +147,11 @@ export async function sendPaginatedSelector({ preexistingMessage, user, channel,
             }
         })();
         const userInput = await choiceDetector;
-        if (userInput)
+        if (userInput) {
+            abortController.aborted = true;
+            await selectorMessage.reactions.removeAll();
+            await sleep(800);
             resultAction(selectorMessage, selectables[userInput - 1]);
+        }
     });
 }
