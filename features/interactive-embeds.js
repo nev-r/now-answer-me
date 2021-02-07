@@ -22,12 +22,12 @@ export async function sendRerollableStackEmbed(_) {
 // /** accepts a channel to post to, and a collection of pages to let users switch between* if the pages aren't MessageEmbeds, they are page source data, for a renderer function which turns them into MessageEmbeds* this can be used to defer heavy or async page rendering, until that page is navigated to */
 // aborting this prevents further pagination but does not clean up its reactions,
 // to prevent race conditions from deleting needed reactions
-async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, renderer = (t) => t, pages, arrowButtons = true, randomButton, noReturn, abortController = { aborted: false }, }) {
+async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, renderer = (t) => t, pages, startPage = 0, arrowButtons = true, randomButton, noReturn, abortController = { aborted: false }, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     // we might modify this array, so copy it
     pages = Array.from(pages);
-    let currentPage = 0;
+    let currentPage = startPage;
     if (!pages) {
         pages;
     }

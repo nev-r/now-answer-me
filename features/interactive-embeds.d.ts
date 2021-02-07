@@ -6,11 +6,16 @@ import { MessageEmbed } from "discord.js";
  *
  * in this implementation, each page is a MessageEmbed
  */
-export declare function sendPaginatedEmbed<T>(_: {
-    preexistingMessage?: Message;
+export declare function sendPaginatedEmbed<T>(_: ({
+    preexistingMessage?: undefined;
     channel: TextChannel | DMChannel | NewsChannel;
+} | {
+    preexistingMessage: Message;
+    channel?: undefined;
+}) & {
     pages: MessageEmbed[];
     renderer?: undefined;
+    startPage?: number;
 }): Promise<Message>;
 /**
  * accepts a channel to post to, and a collection of pages to
@@ -22,11 +27,16 @@ export declare function sendPaginatedEmbed<T>(_: {
  * this can be used to defer heavy or async page rendering,
  * until that page is navigated to
  */
-export declare function sendPaginatedEmbed<T>(_: {
-    preexistingMessage?: Message;
+export declare function sendPaginatedEmbed<T>(_: ({
+    preexistingMessage?: undefined;
     channel: TextChannel | DMChannel | NewsChannel;
+} | {
+    preexistingMessage: Message;
+    channel?: undefined;
+}) & {
     pages: T[];
     renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+    startPage?: number;
 }): Promise<Message>;
 /**
  * accepts a channel to post to, and a collection of "pages" to let users randomly switch between

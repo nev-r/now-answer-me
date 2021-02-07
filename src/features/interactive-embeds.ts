@@ -27,12 +27,22 @@ const trash = "🚮";
  *
  * in this implementation, each page is a MessageEmbed
  */
-export async function sendPaginatedEmbed<T>(_: {
-	preexistingMessage?: Message;
-	channel: TextChannel | DMChannel | NewsChannel;
-	pages: MessageEmbed[];
-	renderer?: undefined;
-}): Promise<Message>;
+export async function sendPaginatedEmbed<T>(
+	_: (
+		| {
+				preexistingMessage?: undefined;
+				channel: TextChannel | DMChannel | NewsChannel;
+		  }
+		| {
+				preexistingMessage: Message;
+				channel?: undefined;
+		  }
+	) & {
+		pages: MessageEmbed[];
+		renderer?: undefined;
+		startPage?: number;
+	}
+): Promise<Message>;
 /**
  * accepts a channel to post to, and a collection of pages to
  * let users switch between
@@ -43,17 +53,29 @@ export async function sendPaginatedEmbed<T>(_: {
  * this can be used to defer heavy or async page rendering,
  * until that page is navigated to
  */
+export async function sendPaginatedEmbed<T>(
+	_: (
+		| {
+				preexistingMessage?: undefined;
+				channel: TextChannel | DMChannel | NewsChannel;
+		  }
+		| {
+				preexistingMessage: Message;
+				channel?: undefined;
+		  }
+	) & {
+		pages: T[];
+		renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+		startPage?: number;
+	}
+): Promise<Message>;
+
 export async function sendPaginatedEmbed<T>(_: {
 	preexistingMessage?: Message;
-	channel: TextChannel | DMChannel | NewsChannel;
-	pages: T[];
-	renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
-}): Promise<Message>;
-export async function sendPaginatedEmbed<T>(_: {
-	preexistingMessage?: Message;
-	channel: TextChannel | DMChannel | NewsChannel;
+	channel?: TextChannel | DMChannel | NewsChannel;
 	pages: (MessageEmbed | T)[];
 	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
+	startPage?: number;
 }): Promise<Message> {
 	return (await _paginatedEmbedSender_(_)).message;
 }
@@ -127,6 +149,7 @@ async function _paginatedEmbedSender_<T>({
 	channel = preexistingMessage?.channel,
 	renderer = (t: MessageEmbed) => t,
 	pages,
+	startPage = 0,
 	arrowButtons = true,
 	randomButton,
 	noReturn,
@@ -136,6 +159,7 @@ async function _paginatedEmbedSender_<T>({
 	channel?: TextChannel | DMChannel | NewsChannel;
 	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
 	pages: (MessageEmbed | T)[];
+	startPage?: number;
 	arrowButtons?: boolean;
 	randomButton?: boolean;
 	noReturn?: boolean;
@@ -145,7 +169,7 @@ async function _paginatedEmbedSender_<T>({
 
 	// we might modify this array, so copy it
 	pages = Array.from(pages);
-	let currentPage = 0;
+	let currentPage = startPage;
 	if (!pages) {
 		pages;
 	}
