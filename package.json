@@ -1,30 +1,21 @@
 {
 	"name": "now-answer-me",
 	"version": "2.1.0",
-	"description": "dead simple discord bot",
+	"description": "i dont know what purpose this serves",
 	"main": "./index.js",
 	"types": "./index.d.ts",
 	"exports": {
-		".": "./lib/index.js",
-		"./utils": "./lib/utils/index.js",
-		"./bot": "./lib/bot/index.js",
-		"./static": "./lib/static/index.js",
-		"./features": "./lib/features/index.js",
-		"./types": "./lib/types/index.js"
-	},
-	"typesVersions": {
-		"*": {
-			"*": [
-				"./lib/*"
-			]
-		}
+		".": "./index.js",
+		"./utils": "./utils/index.js",
+		"./bot": "./bot/index.js",
+		"./static": "./static/index.js",
+		"./features": "./features/index.js",
+		"./types": "./types/index.js"
 	},
 	"type": "module",
 	"scripts": {
-		"test": "rm -rf ./lib && tsc && node test.mjs",
-		"build": "rm -rf ./lib && tsc",
-		"build_disabled": "rm -rf ./lib && tsc && cp ./package.json ./lib && cp ./README.md ./lib",
-		"pub": "cp ./package.json ./lib && npm publish lib"
+		"test": "find . -type f \\( -name '*.d.ts' -or -name '*.js' \\) -not -path './node_modules*' -not -path './apo*' -delete && tsc && node test.mjs",
+		"build": "find . -type f \\( -name '*.d.ts' -or -name '*.js' \\) -not -path './node_modules*' -not -path './apo*' -delete && tsc"
 	},
 	"repository": {
 		"type": "git",

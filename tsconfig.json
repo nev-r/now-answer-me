@@ -3,7 +3,7 @@
   "include": ["./src/**/*"],
   "compilerOptions": {
     "lib": ["esnext", "dom"],
-    "outDir": "lib",
+    "outDir": "",
     "declaration": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
