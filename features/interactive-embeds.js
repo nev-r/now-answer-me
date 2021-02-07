@@ -122,6 +122,7 @@ export async function sendPaginatedSelector({ preexistingMessage, user, channel,
     const selectorMessage = (await _paginatedEmbedSender_({
         pages,
         preexistingMessage,
+        channel
     })).message;
     // not awaiting this bugOut dispatches it, to monitor the message
     // asynchronously while sendPaginatedSelector returns the selectorMessage

@@ -272,6 +272,7 @@ export async function sendPaginatedSelector<T>({
 		await _paginatedEmbedSender_({
 			pages,
 			preexistingMessage,
+			channel
 		})
 	).message;
 
