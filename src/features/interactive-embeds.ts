@@ -209,12 +209,24 @@ async function _paginatedEmbedSender_<T>({
 				pages.length > 1 &&
 				// keep looping as long as user is clicking in a timely fashion i guess
 				reactOptions &&
-				(userInput = await presentOptions(paginatedMessage, reactOptions, "all"))) ||
+				(userInput = await presentOptions(
+					paginatedMessage,
+					reactOptions,
+					"all",
+					undefined,
+					abortController
+				))) ||
 				// if there's 1 page left and we're in noReturn mode
 				(pages.length === 1 &&
 					noReturn &&
 					// suggest deletion
-					(userInput = await presentOptions(paginatedMessage, trash, "others"))))
+					(userInput = await presentOptions(
+						paginatedMessage,
+						trash,
+						"others",
+						undefined,
+						abortController
+					))))
 		) {
 			if (abortController?.aborted) return;
 			if (noReturn) {
