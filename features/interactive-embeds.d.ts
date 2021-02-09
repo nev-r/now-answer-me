@@ -82,7 +82,7 @@ export declare function sendRerollableStackEmbed<T>(_: {
     pages: T[];
     renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
 }): Promise<Message>;
-export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, renderer, selectables, startPage, arrowButtons, randomButton, prompt, itemsPerPage, }: {
+export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, renderer, selectables, startPage, arrowButtons, randomButton, prompt, itemsPerPage, timeToWait }: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
@@ -95,11 +95,12 @@ export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMes
     randomButton?: boolean;
     prompt?: string;
     itemsPerPage?: number;
+    timeToWait?: number;
 }): Promise<{
     selection: number | undefined;
     paginatedMessage: Message;
 }>;
-export declare function returnOfPaginator<T>({ user, preexistingMessage, channel, pages, renderer, startPage, arrowButtons, randomButton, }: {
+export declare function returnOfPaginator<T>({ user, preexistingMessage, channel, pages, renderer, startPage, arrowButtons, randomButton, timeToWait }: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
@@ -110,7 +111,11 @@ export declare function returnOfPaginator<T>({ user, preexistingMessage, channel
     randomButton?: boolean;
     prompt?: string;
     itemsPerPage?: number;
-}): Promise<void>;
+    timeToWait?: number;
+}): Promise<{
+    page: number;
+    paginatedMessage: Message;
+}>;
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
  */

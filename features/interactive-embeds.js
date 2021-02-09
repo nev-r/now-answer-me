@@ -108,7 +108,7 @@ async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistin
     });
     return { message: paginatedMessage, abortController };
 }
-export async function revengeOfSendPaginatedSelector({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, optionRenderer = (l, i) => ({ name: i, value: `${l}`, inline: true }), renderer = (t) => t, selectables, startPage = 0, arrowButtons = true, randomButton, prompt = "choose by responding with a number:", itemsPerPage = 25, }) {
+export async function revengeOfSendPaginatedSelector({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, optionRenderer = (l, i) => ({ name: i, value: `${l}`, inline: true }), renderer = (t) => t, selectables, startPage = 0, arrowButtons = true, randomButton, prompt = "choose by responding with a number:", itemsPerPage = 25, timeToWait = 180000 }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     const numPages = Math.ceil(selectables.length / itemsPerPage);
@@ -143,7 +143,7 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
     const paginationReactionMonitor = serialReactionMonitor({
         msg: paginatedMessage,
         constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user },
-        awaitOptions: { time: 300000 },
+        awaitOptions: { time: timeToWait },
     });
     if (pages.length > 1) {
         await serialReactions(paginatedMessage, reactOptions);
@@ -172,10 +172,6 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
                 await paginatedMessage.edit(embed);
             }
             // loop breaks when there's no more input or when a choice was made
-            if (userChoice === undefined) {
-                // no more input
-                await paginatedMessage.edit("timed out waiting for a selection");
-            }
         });
     }
     // also, listen for choice text
@@ -184,8 +180,8 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
             if ((user && m.author.id !== user.id) || !/^\d+$/.test(m.content))
                 return false;
             const index = Number(m.content);
-            return index > 0 && index <= pages.length;
-        }, { max: 1, time: 300000 })).first();
+            return index > 0 && index <= selectables.length;
+        }, { max: 1, time: timeToWait })).first();
         if (choiceMessage) {
             await delMsg(choiceMessage);
             return Number(choiceMessage.content);
@@ -204,7 +200,7 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
         returnResolver = resolve;
     });
 }
-export async function returnOfPaginator({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, pages, renderer, startPage = 0, arrowButtons = true, randomButton, }) {
+export async function returnOfPaginator({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, pages, renderer, startPage = 0, arrowButtons = true, randomButton, timeToWait = 180000 }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     let currentPage = startPage;
@@ -228,8 +224,9 @@ export async function returnOfPaginator({ user, preexistingMessage, channel = pr
     const paginationReactionMonitor = serialReactionMonitor({
         msg: paginatedMessage,
         constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user },
-        awaitOptions: { time: 300000 },
+        awaitOptions: { time: timeToWait },
     });
+    let paginationResolver;
     // not awaiting this bugOut dispatches it, to monitor the message
     // asynchronously while sendPaginatedEmbed returns the paginatedMessage
     bugOut(paginatedMessage, async () => {
@@ -261,6 +258,10 @@ export async function returnOfPaginator({ user, preexistingMessage, channel = pr
         if (((_b = (_a = embed.footer) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.match(/^\d+ \/ \d+$/)) || ((_d = (_c = embed.footer) === null || _c === void 0 ? void 0 : _c.text) === null || _d === void 0 ? void 0 : _d.match(/^\d+ remaining$/)))
             embed.footer = null;
         paginatedMessage.deleted || (await paginatedMessage.edit(embed));
+        paginationResolver({ page: currentPage, paginatedMessage });
+    });
+    return new Promise((resolve) => {
+        paginationResolver = resolve;
     });
 }
 // /**
@@ -321,7 +322,7 @@ export async function returnOfPaginator({ user, preexistingMessage, channel = pr
 // 						const index = Number(m.content);
 // 						return index > 0 && index <= selectables.length;
 // 					},
-// 					{ max: 1, time: 300000 }
+// 					{ max: 1, time: 180000 }
 // 				)
 // 			).first();
 // 			if (choiceMessage) {
@@ -372,7 +373,7 @@ export async function sendPaginatedSelector({ preexistingMessage, user, channel,
                     return false;
                 const index = Number(m.content);
                 return index > 0 && index <= selectables.length;
-            }, { max: 1, time: 300000 })).first();
+            }, { max: 1, time: 180000 })).first();
             if (choiceMessage) {
                 await delMsg(choiceMessage);
                 return Number(choiceMessage.content);
