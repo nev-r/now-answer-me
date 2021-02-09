@@ -332,24 +332,23 @@ export async function revengeOfSendPaginatedSelector<T>({
 			? ([random] as typeof random[])
 			: undefined;
 	if (!reactOptions) throw new Error("invalid button options selected");
+	let userChoice: undefined | number;
 
-	await serialReactions(paginatedMessage, reactOptions);
-	await sleep(200);
-
+	let returnResolver: (value: { selection: number | undefined; paginatedMessage: Message }) => void;
 	const paginationReactionMonitor = serialReactionMonitor({
 		msg: paginatedMessage,
 		constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user! },
 		awaitOptions: { time: 300000 },
 	});
-	let userChoice: undefined | number;
+	if (pages.length > 1) {
+		await serialReactions(paginatedMessage, reactOptions);
+		await sleep(200);
 
-	let returnResolver: (value: { selection: number | undefined; paginatedMessage: Message }) => void;
+		// not awaiting this bugOut dispatches it, to monitor the message
+		// asynchronously while sendPaginatedEmbed returns the paginatedMessage
+		bugOut(paginatedMessage, async () => {
+			// if there's pages to switch between, enter a loop of listening for input
 
-	// not awaiting this bugOut dispatches it, to monitor the message
-	// asynchronously while sendPaginatedEmbed returns the paginatedMessage
-	bugOut(paginatedMessage, async () => {
-		// if there's pages to switch between, enter a loop of listening for input
-		if (pages.length > 1)
 			for await (const reaction of paginationReactionMonitor) {
 				const userInput = reaction.emoji.name;
 
@@ -369,12 +368,13 @@ export async function revengeOfSendPaginatedSelector<T>({
 				await paginatedMessage.edit(embed);
 			}
 
-		// loop breaks when there's no more input or when a choice was made
-		if (userChoice === undefined) {
-			// no more input
-			await paginatedMessage.edit("timed out waiting for a selection");
-		}
-	});
+			// loop breaks when there's no more input or when a choice was made
+			if (userChoice === undefined) {
+				// no more input
+				await paginatedMessage.edit("timed out waiting for a selection");
+			}
+		});
+	}
 
 	// also, listen for choice text
 	const choiceDetector = (async () => {
