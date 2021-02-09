@@ -279,30 +279,41 @@ export async function revengeOfSendPaginatedSelector<T>({
 	preexistingMessage,
 	channel = preexistingMessage?.channel,
 	cleanupReactions = false,
+	optionRenderer = (l, i) => ({ name: i, value: `${l}`, inline: true }),
 	renderer = (t: MessageEmbed) => t,
-	pages,
+	selectables,
 	startPage = 0,
 	arrowButtons = true,
 	randomButton,
+	prompt = "choose by responding with a number:",
+	itemsPerPage = 25,
 }: {
 	user?: User;
 	preexistingMessage?: Message;
 	channel?: TextChannel | DMChannel | NewsChannel;
 	cleanupReactions?: boolean;
+	optionRenderer: (listItem: T, index: number) => EmbedFieldData;
 	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
-	pages: (MessageEmbed | T)[];
+	selectables: T[];
 	startPage?: number;
 	arrowButtons?: boolean;
 	randomButton?: boolean;
+	prompt?: string;
+	itemsPerPage?: number;
 }) {
 	if (!channel) throw new Error("no channel provided to send pagination to");
-
-	// we might modify this array, so copy it
-	pages = Array.from(pages);
+	const numPages = Math.ceil(selectables.length / itemsPerPage);
 	let currentPage = startPage;
-	if (!pages) {
-		pages;
-	}
+	const pages = [...Array(numPages)].map((x, pageNum) => {
+		const pageEmbed = new MessageEmbed({
+			fields: selectables
+				.slice(pageNum * itemsPerPage, (pageNum + 1) * itemsPerPage)
+				.map((t, i) => optionRenderer(t, pageNum * itemsPerPage + i + 1)),
+		});
+		prompt && pageEmbed.setDescription(prompt);
+		numPages > 1 && pageEmbed.setFooter(`${pageNum + 1} / ${numPages}`);
+		return pageEmbed;
+	});
 
 	let embed = await renderer(pages[currentPage]);
 	if (pages.length > 1 && embed.footer === null)
