@@ -82,6 +82,20 @@ export declare function sendRerollableStackEmbed<T>(_: {
     pages: T[];
     renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
 }): Promise<Message>;
+export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMessage, channel, cleanupReactions, renderer, pages, startPage, arrowButtons, randomButton, }: {
+    user?: User;
+    preexistingMessage?: Message;
+    channel?: TextChannel | DMChannel | NewsChannel;
+    cleanupReactions?: boolean;
+    renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
+    pages: (MessageEmbed | T)[];
+    startPage?: number;
+    arrowButtons?: boolean;
+    randomButton?: boolean;
+}): Promise<{
+    selection: number | undefined;
+    paginatedMessage: Message;
+}>;
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
  */

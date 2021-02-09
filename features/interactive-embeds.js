@@ -115,7 +115,7 @@ async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistin
     });
     return { message: paginatedMessage, abortController };
 }
-async function revengeOfSendPaginatedSelector({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, renderer = (t) => t, pages, startPage = 0, arrowButtons = true, randomButton, }) {
+export async function revengeOfSendPaginatedSelector({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, renderer = (t) => t, pages, startPage = 0, arrowButtons = true, randomButton, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     // we might modify this array, so copy it

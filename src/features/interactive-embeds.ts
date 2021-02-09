@@ -274,7 +274,7 @@ async function _paginatedEmbedSender_<T>({
 	return { message: paginatedMessage, abortController };
 }
 
-async function revengeOfSendPaginatedSelector<T>({
+export async function revengeOfSendPaginatedSelector<T>({
 	user,
 	preexistingMessage,
 	channel = preexistingMessage?.channel,
