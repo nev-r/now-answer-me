@@ -5,4 +5,5 @@ export {
 	sendPaginatedSelector,
 	sendRerollableEmbed,
 	sendRerollableStackEmbed,
+	revengeOfSendPaginatedSelector,
 } from "./interactive-embeds.js";
