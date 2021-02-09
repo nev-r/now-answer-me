@@ -23,7 +23,7 @@ export async function promptForText({
 	promptContent,
 }: {
 	channel: TextChannel | DMChannel | NewsChannel;
-	options: RegExp | string[];
+	options: RegExp | string | string[];
 	user?: UserResolvable | UserResolvable[];
 	swallowResponse?: boolean;
 	awaitOptions?: AwaitReactionsOptions;
@@ -32,15 +32,17 @@ export async function promptForText({
 	// if users exists, force it to be an array of IDs
 	const users = user ? arrayify(user).map((u) => normalizeID(u)) : undefined;
 
-	const optionFilter: (s: string) => boolean = Array.isArray(options)
-		? (s) => options.includes(s)
-		: (s) => options.test(s);
+	const validOptions = typeof options === "string" ? [options] : options;
+	const optionFilter: (s: string) => boolean = Array.isArray(validOptions)
+		? (s) => validOptions.includes(s)
+		: (s) => validOptions.test(s);
 
-	const optionOutput: (s: string) => string = Array.isArray(options)
+	const optionOutput: (s: string) => string = Array.isArray(validOptions)
 		? // a string was determined to be an exact match, so return it as-is
 		  (s) => s
-		: // we can assume exec succeeds because options.test found a match in optionFilter
-		  (s) => options.exec(s)![0];
+		: // we can assume exec succeeds because by the time we reach optionOutput,
+		  // .test already found a match inside optionFilter
+		  (s) => validOptions.exec(s)![0];
 
 	let promptMessage: Message | undefined;
 	if (promptContent) {

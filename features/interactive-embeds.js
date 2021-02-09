@@ -1,10 +1,19 @@
 //
 // things which will self-manage after sending
 //
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 import { MessageEmbed } from "discord.js";
 import { sleep } from "one-stone/promise";
+import { serialReactions } from "../utils/message-actions.js";
 import { bugOut, delMsg } from "../utils/misc.js";
 import { presentOptions } from "../utils/user-input.js";
+import { serialReactionMonitor } from "./reactionHelpers.js";
 const adjustDirections = { "⬅️": -1, "➡️": 1 };
 const directions = Object.keys(adjustDirections);
 const random = "🎲";
@@ -106,6 +115,181 @@ async function _paginatedEmbedSender_({ preexistingMessage, channel = preexistin
     });
     return { message: paginatedMessage, abortController };
 }
+async function revengeOfSendPaginatedSelector({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, renderer = (t) => t, pages, startPage = 0, arrowButtons = true, randomButton, }) {
+    if (!channel)
+        throw new Error("no channel provided to send pagination to");
+    // we might modify this array, so copy it
+    pages = Array.from(pages);
+    let currentPage = startPage;
+    if (!pages) {
+        pages;
+    }
+    let embed = await renderer(pages[currentPage]);
+    if (pages.length > 1 && embed.footer === null)
+        embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+    const paginatedMessage = preexistingMessage
+        ? await preexistingMessage.edit(embed)
+        : await channel.send(embed);
+    const reactOptions = arrowButtons && randomButton
+        ? dirsAndRandom
+        : arrowButtons
+            ? directions
+            : randomButton
+                ? [random]
+                : undefined;
+    if (!reactOptions)
+        throw new Error("invalid button options selected");
+    await serialReactions(paginatedMessage, reactOptions);
+    await sleep(200);
+    const paginationReactionMonitor = serialReactionMonitor({
+        msg: paginatedMessage,
+        constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user },
+        awaitOptions: { time: 300000 },
+    });
+    let userChoice;
+    let returnResolver;
+    // not awaiting this bugOut dispatches it, to monitor the message
+    // asynchronously while sendPaginatedEmbed returns the paginatedMessage
+    bugOut(paginatedMessage, async () => {
+        var e_1, _a;
+        // if there's pages to switch between, enter a loop of listening for input
+        if (pages.length > 1)
+            try {
+                for (var paginationReactionMonitor_1 = __asyncValues(paginationReactionMonitor), paginationReactionMonitor_1_1; paginationReactionMonitor_1_1 = await paginationReactionMonitor_1.next(), !paginationReactionMonitor_1_1.done;) {
+                    const reaction = paginationReactionMonitor_1_1.value;
+                    const userInput = reaction.emoji.name;
+                    // adjust the page accordingly
+                    if (userInput === random) {
+                        currentPage = Math.floor(Math.random() * pages.length);
+                    }
+                    else if (userInput === "⬅️" || userInput === "➡️") {
+                        currentPage += adjustDirections[userInput];
+                        if (currentPage + 1 > pages.length)
+                            currentPage = 0;
+                        if (currentPage < 0)
+                            currentPage = pages.length - 1;
+                    }
+                    // and update the message with the new embed
+                    embed = await renderer(pages[currentPage]);
+                    if (embed.footer === null)
+                        embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+                    await paginatedMessage.edit(embed);
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (paginationReactionMonitor_1_1 && !paginationReactionMonitor_1_1.done && (_a = paginationReactionMonitor_1.return)) await _a.call(paginationReactionMonitor_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+        // loop breaks when there's no more input or when a choice was made
+        if (userChoice === undefined) {
+            // no more input
+            await paginatedMessage.edit("timed out waiting for a selection");
+        }
+    });
+    // also, listen for choice text
+    const choiceDetector = (async () => {
+        const choiceMessage = (await channel.awaitMessages((m) => {
+            if ((user && m.author.id !== user.id) || !/^\d+$/.test(m.content))
+                return false;
+            const index = Number(m.content);
+            return index > 0 && index <= pages.length;
+        }, { max: 1, time: 300000 })).first();
+        if (choiceMessage) {
+            await delMsg(choiceMessage);
+            return Number(choiceMessage.content);
+        }
+    })();
+    choiceDetector.then((selection) => {
+        userChoice = selection;
+        paginationReactionMonitor.return();
+        cleanupReactions &&
+            sleep(800).then(() => {
+                paginatedMessage.reactions.removeAll();
+            });
+        returnResolver({ selection, paginatedMessage });
+    });
+    return new Promise((resolve) => {
+        returnResolver = resolve;
+    });
+}
+// /**
+//  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
+//  */
+// export async function revengeOfSendPaginatedSelector<T>({
+// 	preexistingMessage,
+// 	user,
+// 	channel,
+// 	selectables,
+// 	optionRenderer = (l, i) => ({ name: i, value: `${l}`, inline: true }),
+// 	resultRenderer = (l) => new MessageEmbed({ description: `${l}` }),
+// 	resultAction = async (s, c) => {
+// 		await s.edit(await resultRenderer(c));
+// 	},
+// 	prompt = "choose by responding with a number:",
+// 	itemsPerPage = 25,
+// }: {
+// 	preexistingMessage?: Message;
+// 	user: User;
+// 	channel: TextChannel | DMChannel | NewsChannel;
+// 	selectables: T[];
+// 	optionRenderer: (listItem: T, index: number) => EmbedFieldData;
+// 	resultRenderer?: (listItem: T) => Promise<MessageEmbed> | MessageEmbed;
+// 	resultAction?: (selectorMessage: Message, choice: T) => Promise<void> | void;
+// 	prompt?: string;
+// 	itemsPerPage?: number;
+// }) {
+// 	const numPages = Math.ceil(selectables.length / itemsPerPage);
+// 	const pages = [...Array(numPages)].map((x, pageNum) => {
+// 		const pageEmbed = new MessageEmbed({
+// 			fields: selectables
+// 				.slice(pageNum * itemsPerPage, (pageNum + 1) * itemsPerPage)
+// 				.map((t, i) => optionRenderer(t, pageNum * itemsPerPage + i + 1)),
+// 		});
+// 		prompt && pageEmbed.setDescription(prompt);
+// 		numPages > 1 && pageEmbed.setFooter(`${pageNum + 1} / ${numPages}`);
+// 		return pageEmbed;
+// 	});
+// 	const abortController = { aborted: false };
+// 	const selectorMessage = (
+// 		await _paginatedEmbedSender_({
+// 			pages,
+// 			preexistingMessage,
+// 			channel,
+// 			abortController,
+// 		})
+// 	).message;
+// 	// not awaiting this bugOut dispatches it, to monitor the message
+// 	// asynchronously while sendPaginatedSelector returns the selectorMessage
+// 	bugOut(selectorMessage, async () => {
+// 		// this continually listens for a numeric choice
+// 		const choiceDetector = (async () => {
+// 			const choiceMessage = (
+// 				await channel.awaitMessages(
+// 					(m: Message) => {
+// 						if (m.author.id !== user.id || !/^\d+$/.test(m.content)) return false;
+// 						const index = Number(m.content);
+// 						return index > 0 && index <= selectables.length;
+// 					},
+// 					{ max: 1, time: 300000 }
+// 				)
+// 			).first();
+// 			if (choiceMessage) {
+// 				await delMsg(choiceMessage);
+// 				return Number(choiceMessage.content);
+// 			}
+// 		})();
+// 		const userInput = await choiceDetector;
+// 		if (userInput) {
+// 			abortController.aborted = true;
+// 			await selectorMessage.reactions.removeAll();
+// 			await sleep(800);
+// 			resultAction(selectorMessage, selectables[userInput - 1]);
+// 		}
+// 	});
+// }
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
  */

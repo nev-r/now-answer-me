@@ -3,7 +3,7 @@ import { Sendable } from "../types/types-discord.js";
 /** wip */
 export declare function promptForText({ channel, options, user, swallowResponse, awaitOptions, promptContent, }: {
     channel: TextChannel | DMChannel | NewsChannel;
-    options: RegExp | string[];
+    options: RegExp | string | string[];
     user?: UserResolvable | UserResolvable[];
     swallowResponse?: boolean;
     awaitOptions?: AwaitReactionsOptions;

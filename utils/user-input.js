@@ -7,14 +7,16 @@ import { buildReactionFilter, delMsg, normalizeID } from "./misc.js";
 export async function promptForText({ channel, options, user, swallowResponse = true, awaitOptions = { max: 1, time: 120000 }, promptContent, }) {
     // if users exists, force it to be an array of IDs
     const users = user ? arrayify(user).map((u) => normalizeID(u)) : undefined;
-    const optionFilter = Array.isArray(options)
-        ? (s) => options.includes(s)
-        : (s) => options.test(s);
-    const optionOutput = Array.isArray(options)
+    const validOptions = typeof options === "string" ? [options] : options;
+    const optionFilter = Array.isArray(validOptions)
+        ? (s) => validOptions.includes(s)
+        : (s) => validOptions.test(s);
+    const optionOutput = Array.isArray(validOptions)
         ? // a string was determined to be an exact match, so return it as-is
             (s) => s
-        : // we can assume exec succeeds because options.test found a match in optionFilter
-            (s) => options.exec(s)[0];
+        : // we can assume exec succeeds because by the time we reach optionOutput,
+            // .test already found a match inside optionFilter
+            (s) => validOptions.exec(s)[0];
     let promptMessage;
     if (promptContent) {
         if (typeof promptContent === "string")
