@@ -82,7 +82,7 @@ export declare function sendRerollableStackEmbed<T>(_: {
     pages: T[];
     renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
 }): Promise<Message>;
-export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, renderer, selectables, startPage, arrowButtons, randomButton, prompt, itemsPerPage, timeToWait }: {
+export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, renderer, selectables, startPage, arrowButtons, randomButton, prompt, itemsPerPage, timeToWait, }: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
@@ -100,7 +100,7 @@ export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMes
     selection: number | undefined;
     paginatedMessage: Message;
 }>;
-export declare function returnOfPaginator<T>({ user, preexistingMessage, channel, pages, renderer, startPage, arrowButtons, randomButton, timeToWait }: {
+export declare function returnOfPaginator<T>({ user, preexistingMessage, channel, pages, renderer, startPage, arrowButtons, randomButton, timeToWait, }: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
