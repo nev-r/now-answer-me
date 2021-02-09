@@ -99,6 +99,18 @@ export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMes
     selection: number | undefined;
     paginatedMessage: Message;
 }>;
+export declare function returnOfPaginator<T>({ user, preexistingMessage, channel, pages, renderer, startPage, arrowButtons, randomButton, }: {
+    user?: User;
+    preexistingMessage?: Message;
+    channel?: TextChannel | DMChannel | NewsChannel;
+    pages: T[];
+    renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+    startPage?: number;
+    arrowButtons?: boolean;
+    randomButton?: boolean;
+    prompt?: string;
+    itemsPerPage?: number;
+}): Promise<void>;
 /**
  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
  */

@@ -410,6 +410,90 @@ export async function revengeOfSendPaginatedSelector<T>({
 	});
 }
 
+export async function returnOfPaginator<T>({
+	user,
+	preexistingMessage,
+	channel = preexistingMessage?.channel,
+	pages,
+	renderer,
+	startPage = 0,
+	arrowButtons = true,
+	randomButton,
+}: {
+	user?: User;
+	preexistingMessage?: Message;
+	channel?: TextChannel | DMChannel | NewsChannel;
+	pages: T[];
+	renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+	startPage?: number;
+	arrowButtons?: boolean;
+	randomButton?: boolean;
+	prompt?: string;
+	itemsPerPage?: number;
+}) {
+	if (!channel) throw new Error("no channel provided to send pagination to");
+	let currentPage = startPage;
+
+	let embed = await renderer(pages[currentPage]);
+	if (pages.length > 1 && embed.footer === null)
+		embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+
+	const paginatedMessage = preexistingMessage
+		? await preexistingMessage.edit(embed)
+		: await channel.send(embed);
+
+	const reactOptions =
+		arrowButtons && randomButton
+			? dirsAndRandom
+			: arrowButtons
+			? directions
+			: randomButton
+			? ([random] as typeof random[])
+			: undefined;
+	if (!reactOptions) throw new Error("invalid button options selected");
+
+	await serialReactions(paginatedMessage, reactOptions);
+	await sleep(200);
+
+	const paginationReactionMonitor = serialReactionMonitor({
+		msg: paginatedMessage,
+		constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user! },
+		awaitOptions: { time: 300000 },
+	});
+
+	// not awaiting this bugOut dispatches it, to monitor the message
+	// asynchronously while sendPaginatedEmbed returns the paginatedMessage
+	bugOut(paginatedMessage, async () => {
+		// if there's pages to switch between, enter a loop of listening for input
+		if (pages.length > 1)
+			for await (const reaction of paginationReactionMonitor) {
+				const userInput = reaction.emoji.name;
+
+				// adjust the page accordingly
+				if (userInput === random) {
+					currentPage = Math.floor(Math.random() * pages.length);
+				} else if (userInput === "⬅️" || userInput === "➡️") {
+					currentPage += adjustDirections[userInput];
+					if (currentPage + 1 > pages.length) currentPage = 0;
+					if (currentPage < 0) currentPage = pages.length - 1;
+				}
+
+				// and update the message with the new embed
+				embed = await renderer(pages[currentPage]);
+				if (embed.footer === null) embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+
+				await paginatedMessage.edit(embed);
+			}
+
+		// loop breaks when there's no more input or when a choice was made
+		// let's remove the pagination footer (if we were using it to count)
+		// and perform one last edit (if the message is still there)
+		if (embed.footer?.text?.match(/^\d+ \/ \d+$/) || embed.footer?.text?.match(/^\d+ remaining$/))
+			embed.footer = null;
+		paginatedMessage.deleted || (await paginatedMessage.edit(embed));
+	});
+}
+
 // /**
 //  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
 //  */

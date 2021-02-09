@@ -221,6 +221,76 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
         returnResolver = resolve;
     });
 }
+export async function returnOfPaginator({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, pages, renderer, startPage = 0, arrowButtons = true, randomButton, }) {
+    if (!channel)
+        throw new Error("no channel provided to send pagination to");
+    let currentPage = startPage;
+    let embed = await renderer(pages[currentPage]);
+    if (pages.length > 1 && embed.footer === null)
+        embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+    const paginatedMessage = preexistingMessage
+        ? await preexistingMessage.edit(embed)
+        : await channel.send(embed);
+    const reactOptions = arrowButtons && randomButton
+        ? dirsAndRandom
+        : arrowButtons
+            ? directions
+            : randomButton
+                ? [random]
+                : undefined;
+    if (!reactOptions)
+        throw new Error("invalid button options selected");
+    await serialReactions(paginatedMessage, reactOptions);
+    await sleep(200);
+    const paginationReactionMonitor = serialReactionMonitor({
+        msg: paginatedMessage,
+        constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user },
+        awaitOptions: { time: 300000 },
+    });
+    // not awaiting this bugOut dispatches it, to monitor the message
+    // asynchronously while sendPaginatedEmbed returns the paginatedMessage
+    bugOut(paginatedMessage, async () => {
+        var e_2, _a;
+        var _b, _c, _d, _e;
+        // if there's pages to switch between, enter a loop of listening for input
+        if (pages.length > 1)
+            try {
+                for (var paginationReactionMonitor_2 = __asyncValues(paginationReactionMonitor), paginationReactionMonitor_2_1; paginationReactionMonitor_2_1 = await paginationReactionMonitor_2.next(), !paginationReactionMonitor_2_1.done;) {
+                    const reaction = paginationReactionMonitor_2_1.value;
+                    const userInput = reaction.emoji.name;
+                    // adjust the page accordingly
+                    if (userInput === random) {
+                        currentPage = Math.floor(Math.random() * pages.length);
+                    }
+                    else if (userInput === "⬅️" || userInput === "➡️") {
+                        currentPage += adjustDirections[userInput];
+                        if (currentPage + 1 > pages.length)
+                            currentPage = 0;
+                        if (currentPage < 0)
+                            currentPage = pages.length - 1;
+                    }
+                    // and update the message with the new embed
+                    embed = await renderer(pages[currentPage]);
+                    if (embed.footer === null)
+                        embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+                    await paginatedMessage.edit(embed);
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (paginationReactionMonitor_2_1 && !paginationReactionMonitor_2_1.done && (_a = paginationReactionMonitor_2.return)) await _a.call(paginationReactionMonitor_2);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+        // loop breaks when there's no more input or when a choice was made
+        // let's remove the pagination footer (if we were using it to count)
+        // and perform one last edit (if the message is still there)
+        if (((_c = (_b = embed.footer) === null || _b === void 0 ? void 0 : _b.text) === null || _c === void 0 ? void 0 : _c.match(/^\d+ \/ \d+$/)) || ((_e = (_d = embed.footer) === null || _d === void 0 ? void 0 : _d.text) === null || _e === void 0 ? void 0 : _e.match(/^\d+ remaining$/)))
+            embed.footer = null;
+        paginatedMessage.deleted || (await paginatedMessage.edit(embed));
+    });
+}
 // /**
 //  * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
 //  */
