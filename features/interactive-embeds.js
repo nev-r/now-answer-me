@@ -146,6 +146,7 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
         msg: paginatedMessage,
         constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user },
         awaitOptions: { time: timeToWait },
+        cancelCondition: () => userChoice !== undefined,
     });
     if (pages.length > 1) {
         await serialReactions(paginatedMessage, reactOptions);

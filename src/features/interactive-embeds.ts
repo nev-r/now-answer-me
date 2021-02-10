@@ -343,6 +343,7 @@ export async function revengeOfSendPaginatedSelector<T>({
 		msg: paginatedMessage,
 		constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user! },
 		awaitOptions: { time: timeToWait },
+		cancelCondition: () => userChoice !== undefined,
 	});
 
 	if (pages.length > 1) {
