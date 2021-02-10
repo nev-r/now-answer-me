@@ -1,4 +1,4 @@
-import type { Message, MessageReaction, User, Emoji, AwaitReactionsOptions } from "discord.js";
+import type { Message, MessageReaction, User, Emoji, AwaitReactionsOptions, Collection } from "discord.js";
 /**
  * listens for, consumes, and yields one reaction at a time,
  * matching collectorParams.constraints, returning nothing when exhausted
@@ -15,7 +15,7 @@ export declare function consumeReaction(...params: Parameters<typeof consumeReac
  * consume reactions by deleting valid ones as they come in,
  * and return the collected reactions in standard awaitReactions format
  */
-export declare function consumeReactions({ msg, constraints, awaitOptions, }: {
+export declare function consumeReactions({ msg, constraints, awaitOptions, cancelCondition, }: {
     msg: Message;
     constraints?: {
         users?: string | User | (string | User)[];
@@ -24,4 +24,5 @@ export declare function consumeReactions({ msg, constraints, awaitOptions, }: {
         notEmoji?: string | Emoji | (string | Emoji)[];
     };
     awaitOptions?: AwaitReactionsOptions;
-}): Promise<import("discord.js").Collection<string, MessageReaction> | undefined>;
+    cancelCondition?: () => boolean;
+}): Promise<Collection<string, MessageReaction> | undefined>;

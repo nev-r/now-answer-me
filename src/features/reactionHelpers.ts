@@ -13,6 +13,7 @@ import type {
 	GuildEmoji,
 	GuildChannel,
 	AwaitReactionsOptions,
+	Collection,
 } from "discord.js";
 import { ReactionFilter, buildReactionFilter } from "../utils/misc.js";
 
@@ -50,6 +51,7 @@ export async function consumeReactions({
 	msg,
 	constraints = {},
 	awaitOptions = { max: 3, time: 60000 },
+	cancelCondition = () => false,
 }: {
 	msg: Message;
 	constraints?: {
@@ -59,24 +61,44 @@ export async function consumeReactions({
 		notEmoji?: string | Emoji | (string | Emoji)[];
 	};
 	awaitOptions?: AwaitReactionsOptions;
+	cancelCondition?: () => boolean;
 }) {
 	// holds a emoji+user combo string briefly, to de-duplicate reaction deletions
-	const removed = new Set<string>();
-	// checks for reactions we want
+	// const removed = new Set<string>();
 	const reactionFilter = buildReactionFilter(constraints ?? {});
-	// obeys the above filter, but as it's checking, removes the reactions
-	const reactionFilterAndSaver: ReactionFilter = (reaction, user) => {
-		if (!reactionFilter(reaction, user)) return false;
-		const identifier = `${reaction.emoji.name}${user.id}`;
-		if (!removed.has(identifier)) {
-			removed.add(identifier);
-			reaction.users.remove(user);
-			setTimeout(() => removed.delete(identifier), 500);
-		}
-		return true;
-	};
 
-	const reactionCollection = await msg.awaitReactions(reactionFilterAndSaver, awaitOptions);
-	if (!reactionCollection.size) return;
-	return reactionCollection;
+	const collector = msg.createReactionCollector(reactionFilter, awaitOptions); //  awaitReactions(filter, options = {}) {
+
+	return new Promise<Collection<string, MessageReaction> | undefined>((resolve) => {
+		collector.on("collect", (reaction, user) => {
+			if (cancelCondition()) return;
+			if (!reactionFilter(reaction, user)) return;
+			// const identifier = `${reaction.emoji.name}${user.id}`;
+			// if (removed.has(identifier)) return;
+			// removed.add(identifier);
+			reaction.users.remove(user);
+			// setTimeout(() => removed.delete(identifier), 500);
+		});
+
+		collector.once("end", (reactions) => resolve(reactions.size ? reactions : undefined));
+	});
 }
+
+// // checks for reactions we want
+// // const reactionFilter = buildReactionFilter(constraints ?? {});
+// // obeys the above filter, but as it's checking, removes the reactions
+// const reactionFilterAndSaver: ReactionFilter = (reaction, user) => {
+// 	if (!reactionFilter(reaction, user)) return false;
+// 	const identifier = `${reaction.emoji.name}${user.id}`;
+// 	if (!removed.has(identifier)) {
+// 		removed.add(identifier);
+// 		reaction.users.remove(user);
+// 		setTimeout(() => removed.delete(identifier), 500);
+// 	}
+// 	return true;
+// };
+
+// const reactionCollection = await msg.awaitReactions(reactionFilterAndSaver, awaitOptions);
+// if (!reactionCollection.size) return;
+// return reactionCollection;
+// }
