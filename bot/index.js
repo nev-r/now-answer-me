@@ -147,7 +147,7 @@ export function addTrigger(...triggers_) {
 }
 // given a command string, find and run the appropriate function
 async function routeMessage(msg) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     const commandMatch = prefixCheck(msg.content);
     let foundRoute = (commandMatch &&
         commands.find((r) => mixedIncludes(r.command, commandMatch.groups.command))) ||
@@ -165,8 +165,8 @@ async function routeMessage(msg) {
                     (await response({
                         msg,
                         command: (_c = (_b = commandMatch === null || commandMatch === void 0 ? void 0 : commandMatch.groups) === null || _b === void 0 ? void 0 : _b.command) !== null && _c !== void 0 ? _c : "",
-                        args: (_e = (_d = commandMatch === null || commandMatch === void 0 ? void 0 : commandMatch.groups) === null || _d === void 0 ? void 0 : _d.args) !== null && _e !== void 0 ? _e : "",
-                        content: msg.content,
+                        args: (_f = (_e = (_d = commandMatch === null || commandMatch === void 0 ? void 0 : commandMatch.groups) === null || _d === void 0 ? void 0 : _d.args) === null || _e === void 0 ? void 0 : _e.trim()) !== null && _f !== void 0 ? _f : "",
+                        content: msg.content.trim(),
                         channel,
                         guild,
                         user,

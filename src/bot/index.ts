@@ -211,8 +211,8 @@ async function routeMessage(msg: Message) {
 					(await response({
 						msg,
 						command: commandMatch?.groups?.command ?? "",
-						args: commandMatch?.groups?.args ?? "",
-						content: msg.content,
+						args: commandMatch?.groups?.args?.trim() ?? "",
+						content: msg.content.trim(),
 						channel,
 						guild,
 						user,
