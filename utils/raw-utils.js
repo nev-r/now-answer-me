@@ -3,7 +3,7 @@
 //
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
-import { normalizeID } from "./misc.js";
+import { normalizeID } from "./data-normalization.js";
 export async function buildEmojiDictUsingClient(client, guilds) {
     var _a;
     guilds = Array.isArray(guilds) ? guilds : [guilds];

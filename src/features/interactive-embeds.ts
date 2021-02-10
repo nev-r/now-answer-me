@@ -15,7 +15,7 @@ import { sleep } from "one-stone/promise";
 import { serialReactions } from "../utils/message-actions.js";
 import { bugOut, delMsg } from "../utils/misc.js";
 import { presentOptions } from "../utils/user-input.js";
-import { serialReactionMonitor } from "./reactionHelpers.js";
+import { serialReactionMonitor } from "../utils/reactionHelpers.js";
 
 const adjustDirections = { "⬅️": -1, "➡️": 1 };
 const directions = Object.keys(adjustDirections) as (keyof typeof adjustDirections)[];
