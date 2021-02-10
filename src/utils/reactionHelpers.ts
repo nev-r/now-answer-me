@@ -55,9 +55,10 @@ export async function consumeReactions({
 	awaitOptions?: AwaitReactionsOptions;
 	cancelCondition?: () => boolean;
 }) {
-	let reactionFilter = buildReactionFilter(constraints);
+	const reactionFilterConditions = buildReactionFilter(constraints);
 	// add cancelCondition to the reaction filter, & allow it to veto before any other checking
-	reactionFilter = (..._) => !cancelCondition() && reactionFilter(..._);
+	const reactionFilter: ReactionFilter = (..._) =>
+		!cancelCondition() && reactionFilterConditions(..._);
 	// a promise that behaves sort of like msg.awaitReactions,
 	// but also deletes incoming reactions, if they passed the filter (on "collect")
 	return new Promise<Collection<string, MessageReaction> | undefined>((resolve) => {

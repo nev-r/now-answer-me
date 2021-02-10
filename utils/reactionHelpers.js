@@ -29,9 +29,9 @@ export async function consumeReaction(...params) {
  * and return the collected reactions in standard awaitReactions format
  */
 export async function consumeReactions({ msg, constraints = {}, awaitOptions = { max: 3, time: 60000 }, cancelCondition = () => false, }) {
-    let reactionFilter = buildReactionFilter(constraints);
+    const reactionFilterConditions = buildReactionFilter(constraints);
     // add cancelCondition to the reaction filter, & allow it to veto before any other checking
-    reactionFilter = (..._) => !cancelCondition() && reactionFilter(..._);
+    const reactionFilter = (..._) => !cancelCondition() && reactionFilterConditions(..._);
     // a promise that behaves sort of like msg.awaitReactions,
     // but also deletes incoming reactions, if they passed the filter (on "collect")
     return new Promise((resolve) => {
