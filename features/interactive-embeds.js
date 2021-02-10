@@ -147,33 +147,35 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
         constraints: { emoji: reactOptions, users: user, notUsers: paginatedMessage.client.user },
         awaitOptions: { time: timeToWait },
     });
-    await serialReactions(paginatedMessage, reactOptions);
-    await sleep(200);
-    // not awaiting this bugOut dispatches it, to monitor the message
-    // asynchronously while sendPaginatedEmbed returns the paginatedMessage
-    bugOut(paginatedMessage, async () => {
-        // if there's pages to switch between, enter a loop of listening for input
-        for await (const reaction of paginationReactionMonitor) {
-            const userInput = reaction.emoji.name;
-            // adjust the page accordingly
-            if (userInput === random) {
-                currentPage = Math.floor(Math.random() * pages.length);
+    if (pages.length > 1) {
+        await serialReactions(paginatedMessage, reactOptions);
+        await sleep(200);
+        // not awaiting this bugOut dispatches it, to monitor the message
+        // asynchronously while sendPaginatedEmbed returns the paginatedMessage
+        bugOut(paginatedMessage, async () => {
+            // if there's pages to switch between, enter a loop of listening for input
+            for await (const reaction of paginationReactionMonitor) {
+                const userInput = reaction.emoji.name;
+                // adjust the page accordingly
+                if (userInput === random) {
+                    currentPage = Math.floor(Math.random() * pages.length);
+                }
+                else if (userInput === "⬅️" || userInput === "➡️") {
+                    currentPage += adjustDirections[userInput];
+                    if (currentPage + 1 > pages.length)
+                        currentPage = 0;
+                    if (currentPage < 0)
+                        currentPage = pages.length - 1;
+                }
+                // and update the message with the new embed
+                embed = await renderer(pages[currentPage]);
+                if (embed.footer === null)
+                    embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+                await paginatedMessage.edit(embed);
             }
-            else if (userInput === "⬅️" || userInput === "➡️") {
-                currentPage += adjustDirections[userInput];
-                if (currentPage + 1 > pages.length)
-                    currentPage = 0;
-                if (currentPage < 0)
-                    currentPage = pages.length - 1;
-            }
-            // and update the message with the new embed
-            embed = await renderer(pages[currentPage]);
-            if (embed.footer === null)
-                embed.setFooter(`${currentPage + 1} / ${pages.length}`);
-            await paginatedMessage.edit(embed);
-        }
-        // loop breaks when there's no more input or when a choice was made
-    });
+            // loop breaks when there's no more input or when a choice was made
+        });
+    }
     // also, listen for choice text
     const choiceDetector = (async () => {
         const choiceMessage = (await channel.awaitMessages((m) => {
