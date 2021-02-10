@@ -16,7 +16,7 @@ import type {
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { Sendable } from "../types/types-discord.js";
-import { normalizeID } from "./misc.js";
+import { normalizeID } from "./data-normalization.js";
 
 export async function buildEmojiDictUsingClient(
 	client: Client,
