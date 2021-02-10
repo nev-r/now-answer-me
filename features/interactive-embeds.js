@@ -129,7 +129,7 @@ export async function revengeOfSendPaginatedSelector({ user, preexistingMessage,
     const paginatedMessage = preexistingMessage
         ? await preexistingMessage.edit(embed)
         : await channel.send(embed);
-    if (pages.length === 1)
+    if (selectables.length === 1)
         return { selection: 1, paginatedMessage };
     const reactOptions = arrowButtons && randomButton
         ? dirsAndRandom
