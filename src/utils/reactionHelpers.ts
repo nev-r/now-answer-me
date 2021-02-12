@@ -7,6 +7,7 @@ import type {
 	Collection,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
+import { ConstraintSet } from "../types/types-bot.js";
 import { normalizeID, normalizeName } from "./data-normalization.js";
 
 /**
@@ -46,12 +47,7 @@ export async function consumeReactions({
 	cancelCondition = () => false,
 }: {
 	msg: Message;
-	constraints?: {
-		users?: string | User | (string | User)[];
-		notUsers?: string | User | (string | User)[];
-		emoji?: string | Emoji | (string | Emoji)[];
-		notEmoji?: string | Emoji | (string | Emoji)[];
-	};
+	constraints?: ConstraintSet;
 	awaitOptions?: AwaitReactionsOptions;
 	cancelCondition?: () => boolean;
 }) {
@@ -75,12 +71,7 @@ export function buildReactionFilter({
 	notUsers,
 	emoji,
 	notEmoji,
-}: {
-	users?: string | User | (string | User)[];
-	notUsers?: string | User | (string | User)[];
-	emoji?: string | Emoji | (string | Emoji)[];
-	notEmoji?: string | Emoji | (string | Emoji)[];
-}): ReactionFilter {
+}: ConstraintSet): ReactionFilter {
 	const userIDs = users ? arrayify(users).map(normalizeID) : undefined;
 	const notUsersIDs = notUsers ? arrayify(notUsers).map(normalizeID) : undefined;
 	const emojiNamesIDs = emoji

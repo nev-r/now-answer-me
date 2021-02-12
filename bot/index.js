@@ -1,6 +1,9 @@
 import { Client } from "discord.js";
+import { Message } from "discord.js";
 import { makeTrashable } from "../utils/message-actions.js";
 import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWellStructuredTrigger, escapeRegExp, mixedIncludes, meetsConstraints, } from "./checkers.js";
+import { sleep } from "one-stone/promise";
+import { delMsg } from "../utils/misc.js";
 export const startupTimestamp = new Date();
 export const client = new Client();
 let _clientReadyResolve;
@@ -153,16 +156,17 @@ async function routeMessage(msg) {
         commands.find((r) => mixedIncludes(r.command, commandMatch.groups.command))) ||
         triggers.find((t) => t.trigger.test(msg.content));
     if (foundRoute) {
-        let { response, trashable, reportViaReaction } = foundRoute;
+        let { response: responseGenerator, trashable, selfDestructSeconds, reportViaReaction, } = foundRoute;
         if (!meetsConstraints(msg, foundRoute)) {
             console.log(`constraints suppressed a response to ${msg.author.username} requesting ${(_a = foundRoute.command) !== null && _a !== void 0 ? _a : foundRoute.trigger.source}`);
             return;
         }
         try {
-            if (typeof response === "function") {
+            let results;
+            if (typeof responseGenerator === "function") {
                 const { guild, channel, author: user } = msg;
-                response =
-                    (await response({
+                results =
+                    (await responseGenerator({
                         msg,
                         command: (_c = (_b = commandMatch === null || commandMatch === void 0 ? void 0 : commandMatch.groups) === null || _b === void 0 ? void 0 : _b.command) !== null && _c !== void 0 ? _c : "",
                         args: (_f = (_e = (_d = commandMatch === null || commandMatch === void 0 ? void 0 : commandMatch.groups) === null || _d === void 0 ? void 0 : _d.args) === null || _e === void 0 ? void 0 : _e.trim()) !== null && _f !== void 0 ? _f : "",
@@ -172,14 +176,26 @@ async function routeMessage(msg) {
                         user,
                     })) || "";
             }
+            else {
+                results = responseGenerator;
+            }
             if (reportViaReaction) {
-                await msg.react(response === false ? "🚫" : "☑");
+                let reactionEmoji;
+                if (typeof results === "string")
+                    reactionEmoji = getReactionEmojiFromString(results);
+                if (!reactionEmoji) {
+                    reactionEmoji = results === false ? "🚫" : "☑";
+                }
+                await msg.react(reactionEmoji);
                 return;
             }
-            if (response) {
-                const sentMessage = await msg.channel.send(response);
+            if (results) {
+                const sentMessage = isMessage(results) ? results : await msg.channel.send(results);
                 if (trashable)
                     makeTrashable(sentMessage, trashable === "requestor" ? msg.author.id : undefined);
+                if (selfDestructSeconds) {
+                    sleep(selfDestructSeconds * 1000).then(() => delMsg(sentMessage));
+                }
             }
         }
         catch (e) {
@@ -189,4 +205,25 @@ async function routeMessage(msg) {
             console.log(e);
         }
     }
+}
+function isMessage(response) {
+    return response instanceof Message;
+}
+function getReactionEmojiFromString(str) {
+    var _a;
+    // string manip
+    str = str.replace(/\uFE0F|\u20E3/g, "");
+    if ([...str].length === 1) {
+        if (/^[\d*#]$/.test(str))
+            return str + "\uFE0F\u20E3";
+        if (/^\p{Emoji}$/u.test(str))
+            return str;
+    }
+    const matched = str.match(/^<a?:(\w+):(?<snowflake>\d+)>$/);
+    if ((_a = matched === null || matched === void 0 ? void 0 : matched.groups) === null || _a === void 0 ? void 0 : _a.snowflake)
+        str = matched.groups.snowflake;
+    // try resolving
+    const resolved = client.emojis.resolve(str);
+    if (resolved)
+        return resolved.id;
 }

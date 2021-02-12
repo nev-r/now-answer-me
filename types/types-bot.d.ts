@@ -1,4 +1,4 @@
-import type { Message } from "discord.js";
+import { Emoji, Message, User } from "discord.js";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 /**
@@ -29,15 +29,22 @@ export interface TriggerParams {
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the CommandParams object
  */
-export declare type CommandResponse = ((params: CommandParams) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
+export declare type CommandResponse = ((params: CommandParams) => Sendable | undefined | void | Promise<Message | Sendable | undefined | void>) | Sendable;
 /**
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
  */
-export declare type TriggerResponse = ((params: TriggerParams) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
+export declare type TriggerResponse = ((params: TriggerParams) => Sendable | undefined | void | Promise<Message | Sendable | undefined | void>) | Sendable;
 export declare type ConstraintTypes = `${"require" | "block" | "allow"}${"User" | "Channel" | "Guild"}`;
 export declare type Constraints = Partial<Record<ConstraintTypes, string | string[]>>;
 export interface Extras {
     trashable?: "requestor" | "everyone";
     reportViaReaction?: boolean;
+    selfDestructSeconds?: number;
+}
+export interface ConstraintSet {
+    users?: string | User | (string | User)[];
+    notUsers?: string | User | (string | User)[];
+    emoji?: string | Emoji | (string | Emoji)[];
+    notEmoji?: string | Emoji | (string | Emoji)[];
 }

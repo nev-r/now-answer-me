@@ -1,6 +1,13 @@
 import { Client } from "discord.js";
-import type { Message, ActivityOptions } from "discord.js";
-import type { CommandResponse, Constraints, Extras, TriggerResponse } from "../types/types-bot.js";
+import { Message } from "discord.js";
+import type { ActivityOptions } from "discord.js";
+import type {
+	CommandResponse,
+	Constraints,
+	Extras,
+	Sendable,
+	TriggerResponse,
+} from "../types/types-bot.js";
 import { makeTrashable } from "../utils/message-actions.js";
 import {
 	enforceWellStructuredCommand,
@@ -10,6 +17,8 @@ import {
 	mixedIncludes,
 	meetsConstraints,
 } from "./checkers.js";
+import { sleep } from "one-stone/promise";
+import { delMsg } from "../utils/misc.js";
 
 export const startupTimestamp = new Date();
 export const client = new Client();
@@ -194,7 +203,12 @@ async function routeMessage(msg: Message) {
 		triggers.find((t) => t.trigger.test(msg.content));
 
 	if (foundRoute) {
-		let { response, trashable, reportViaReaction } = foundRoute;
+		let {
+			response: responseGenerator,
+			trashable,
+			selfDestructSeconds,
+			reportViaReaction,
+		} = foundRoute;
 		if (!meetsConstraints(msg, foundRoute)) {
 			console.log(
 				`constraints suppressed a response to ${msg.author.username} requesting ${
@@ -205,10 +219,11 @@ async function routeMessage(msg: Message) {
 		}
 
 		try {
-			if (typeof response === "function") {
+			let results: Sendable | Message | undefined;
+			if (typeof responseGenerator === "function") {
 				const { guild, channel, author: user } = msg;
-				response =
-					(await response({
+				results =
+					(await responseGenerator({
 						msg,
 						command: commandMatch?.groups?.command ?? "",
 						args: commandMatch?.groups?.args?.trim() ?? "",
@@ -217,15 +232,25 @@ async function routeMessage(msg: Message) {
 						guild,
 						user,
 					})) || "";
+			} else {
+				results = responseGenerator;
 			}
 			if (reportViaReaction) {
-				await msg.react(response === false ? "🚫" : "☑");
+				let reactionEmoji: string | undefined;
+				if (typeof results === "string") reactionEmoji = getReactionEmojiFromString(results);
+				if (!reactionEmoji) {
+					reactionEmoji = results === false ? "🚫" : "☑";
+				}
+				await msg.react(reactionEmoji);
 				return;
 			}
-			if (response) {
-				const sentMessage = await msg.channel.send(response);
+			if (results) {
+				const sentMessage = isMessage(results) ? results : await msg.channel.send(results);
 				if (trashable)
 					makeTrashable(sentMessage, trashable === "requestor" ? msg.author.id : undefined);
+				if (selfDestructSeconds) {
+					sleep(selfDestructSeconds * 1000).then(() => delMsg(sentMessage));
+				}
 			}
 		} catch (e) {
 			if (reportViaReaction) {
@@ -234,4 +259,23 @@ async function routeMessage(msg: Message) {
 			console.log(e);
 		}
 	}
+}
+
+function isMessage(response: any): response is Message {
+	return response instanceof Message;
+}
+function getReactionEmojiFromString(str: string) {
+	// string manip
+	str = str.replace(/\uFE0F|\u20E3/g, "");
+	if ([...str].length === 1) {
+		if (/^[\d*#]$/.test(str)) return str + "\uFE0F\u20E3";
+		if (/^\p{Emoji}$/u.test(str)) return str;
+	}
+
+	const matched = str.match(/^<a?:(\w+):(?<snowflake>\d+)>$/);
+	if (matched?.groups?.snowflake) str = matched.groups.snowflake;
+
+	// try resolving
+	const resolved = client.emojis.resolve(str);
+	if (resolved) return resolved.id;
 }

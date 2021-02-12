@@ -1,4 +1,5 @@
-import type { Message, MessageReaction, User, Emoji, AwaitReactionsOptions, Collection } from "discord.js";
+import type { Message, MessageReaction, User, AwaitReactionsOptions, Collection } from "discord.js";
+import { ConstraintSet } from "../types/types-bot.js";
 /**
  * listens for, consumes, and yields one reaction at a time,
  * matching collectorParams.constraints, returning nothing when exhausted
@@ -17,19 +18,9 @@ export declare function consumeReaction(...params: Parameters<typeof consumeReac
  */
 export declare function consumeReactions({ msg, constraints, awaitOptions, cancelCondition, }: {
     msg: Message;
-    constraints?: {
-        users?: string | User | (string | User)[];
-        notUsers?: string | User | (string | User)[];
-        emoji?: string | Emoji | (string | Emoji)[];
-        notEmoji?: string | Emoji | (string | Emoji)[];
-    };
+    constraints?: ConstraintSet;
     awaitOptions?: AwaitReactionsOptions;
     cancelCondition?: () => boolean;
 }): Promise<Collection<string, MessageReaction> | undefined>;
 export declare type ReactionFilter = (reaction: MessageReaction, user: User) => boolean;
-export declare function buildReactionFilter({ users, notUsers, emoji, notEmoji, }: {
-    users?: string | User | (string | User)[];
-    notUsers?: string | User | (string | User)[];
-    emoji?: string | Emoji | (string | Emoji)[];
-    notEmoji?: string | Emoji | (string | Emoji)[];
-}): ReactionFilter;
+export declare function buildReactionFilter({ users, notUsers, emoji, notEmoji, }: ConstraintSet): ReactionFilter;

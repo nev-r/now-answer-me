@@ -16,7 +16,10 @@ export declare function sendPaginatedEmbed<T>(_: ({
     pages: MessageEmbed[];
     renderer?: undefined;
     startPage?: number;
-}): Promise<Message>;
+}): Promise<{
+    paginatedMessage: Message;
+    page: Promise<number | undefined>;
+}>;
 /**
  * accepts a channel to post to, and a collection of pages to
  * let users switch between
@@ -37,7 +40,10 @@ export declare function sendPaginatedEmbed<T>(_: ({
     pages: T[];
     renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
     startPage?: number;
-}): Promise<Message>;
+}): Promise<{
+    paginatedMessage: Message;
+    page: Promise<number | undefined>;
+}>;
 /**
  * accepts a channel to post to, and a collection of "pages" to let users randomly switch between
  *
@@ -82,51 +88,44 @@ export declare function sendRerollableStackEmbed<T>(_: {
     pages: T[];
     renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
 }): Promise<Message>;
-export declare function revengeOfSendPaginatedSelector<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, renderer, selectables, startPage, arrowButtons, randomButton, prompt, itemsPerPage, timeToWait, }: {
+/**
+ * accepts a channel to post to or an existing bot-owned message to edit,
+ * and a collection of options to let users select from
+ *
+ * in this implementation, each selectable is already an EmbedField
+ * (an object with the keys "name", "value", and optionally "inline")
+ */
+export declare function sendPaginatedSelector<T>(_: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
     cleanupReactions?: boolean;
-    optionRenderer: (listItem: T, index: number) => EmbedFieldData;
-    renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
-    selectables: T[];
-    startPage?: number;
-    arrowButtons?: boolean;
-    randomButton?: boolean;
+    selectables: EmbedFieldData[];
     prompt?: string;
     itemsPerPage?: number;
     timeToWait?: number;
 }): Promise<{
-    selection: number | undefined;
     paginatedMessage: Message;
+    selection: Promise<number | undefined>;
 }>;
-export declare function returnOfPaginator<T>({ user, preexistingMessage, channel, pages, renderer, startPage, arrowButtons, randomButton, timeToWait, }: {
+/**
+ * accepts a channel to post to or an existing bot-owned message to edit,
+ * and a collection of options to let users select from
+ *
+ * in this implementation, an optionRenderer is included which can convert
+ * a selectable to an EmbedFieldData
+ */
+export declare function sendPaginatedSelector<T>(_: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
-    pages: T[];
-    renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
-    startPage?: number;
-    arrowButtons?: boolean;
-    randomButton?: boolean;
+    cleanupReactions?: boolean;
+    optionRenderer?: (selectable: T, index: number) => EmbedFieldData;
+    selectables: T[];
     prompt?: string;
     itemsPerPage?: number;
     timeToWait?: number;
 }): Promise<{
-    page: number;
     paginatedMessage: Message;
+    selection: Promise<number | undefined>;
 }>;
-/**
- * accepts a channel to post to, a list of `T`s, and a function that turns a `T` into a valid element of a `MessageEmbed` field
- */
-export declare function sendPaginatedSelector<T>({ preexistingMessage, user, channel, selectables, optionRenderer, resultRenderer, resultAction, prompt, itemsPerPage, }: {
-    preexistingMessage?: Message;
-    user: User;
-    channel: TextChannel | DMChannel | NewsChannel;
-    selectables: T[];
-    optionRenderer: (listItem: T, index: number) => EmbedFieldData;
-    resultRenderer?: (listItem: T) => Promise<MessageEmbed> | MessageEmbed;
-    resultAction?: (selectorMessage: Message, choice: T) => Promise<void> | void;
-    prompt?: string;
-    itemsPerPage?: number;
-}): Promise<void>;
