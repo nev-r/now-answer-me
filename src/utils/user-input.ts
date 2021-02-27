@@ -12,7 +12,7 @@ import { sleep } from "one-stone/promise";
 import { serialReactions } from "./message-actions.js";
 import { Sendable } from "../types/types-discord.js";
 import { delMsg } from "./misc.js";
-import { buildReactionFilter } from "./reactionHelpers.js";
+import { buildReactionFilter, consumeReaction } from "./reactionHelpers.js";
 import { normalizeID } from "./data-normalization.js";
 
 /** wip */
@@ -87,9 +87,8 @@ export async function promptForText({
 export async function presentOptions<T extends string>(
 	msg: Message,
 	options: T | T[],
-	cleanupReactions: "all" | "others" = "all",
-	awaitOptions: AwaitReactionsOptions = { max: 1, time: 60000 },
-	abortController = { aborted: false }
+	cleanupReactions = true,
+	awaitOptions: AwaitReactionsOptions = { max: 1, time: 60000 }
 ): Promise<T | undefined> {
 	const options_ = arrayify(options);
 
@@ -101,51 +100,28 @@ export async function presentOptions<T extends string>(
 		return { option: o, name: o };
 	});
 
-	await serialReactions(msg, options_);
+	const applying = serialReactions(msg, options_).then(() => sleep(800));
 
 	try {
-		const reactionFilter = buildReactionFilter({
-			notUsers: msg.client.user?.id,
-			emoji: optionsMeta.flatMap((o) => [o.id!, o.name]).filter(Boolean),
+		const capturedReaction = await consumeReaction({
+			msg,
+			constraints: { emoji: optionsMeta.flatMap((o) => [o.id!, o.name]).filter(Boolean) },
+			awaitOptions,
 		});
-		const reactionCollection = await msg.awaitReactions(reactionFilter, awaitOptions);
-
-		if (abortController.aborted) {
-			return;
-		}
 
 		// we timed out instead of getting a valid reaction
-		if (!reactionCollection.size) {
-			if (!msg.deleted) await msg.reactions.removeAll();
-			return undefined;
+		if (!capturedReaction || cleanupReactions) {
+			if (!msg.deleted)
+				applying.then(() => {
+					if (!msg.reactions.cache.size) return;
+					console.log("cleanup");
+					msg.reactions.removeAll();
+				});
+
+			if (!capturedReaction) return undefined;
 		}
 
-		switch (cleanupReactions) {
-			case "others": {
-				const reactionBundles = [...reactionCollection.values()];
-				for (const reactionBundle of reactionBundles) {
-					const reactingUsers = [...reactionBundle.users.cache.values()].filter(
-						(user) => user.id !== msg.client.user?.id
-					);
-					for (const reactingUser of reactingUsers) {
-						console.log(
-							`removing [${reactionBundle.emoji.identifier}][${reactionBundle.emoji.name}] from [${reactingUser.username}]`
-						);
-						await reactionBundle.users.remove(reactingUser);
-						await sleep(800);
-					}
-				}
-				break;
-			}
-
-			default:
-				if (!msg.deleted) await msg.reactions.removeAll();
-				await sleep(800);
-				break;
-		}
-
-		const result = reactionCollection.first()?.emoji;
-		if (!result) return;
+		const result = capturedReaction.emoji;
 		return optionsMeta.find(
 			(o) => o.name === result.name || (result.id && o.id && result.id === o.id)
 		)?.option;

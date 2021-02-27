@@ -51,6 +51,8 @@ export async function consumeReactions({
 	awaitOptions?: AwaitReactionsOptions;
 	cancelCondition?: () => boolean;
 }) {
+	// forces the bot to be ignored
+	constraints.notUsers = [...arrayify(constraints.notUsers ?? []), msg.client.user!];
 	const reactionFilterConditions = buildReactionFilter(constraints);
 	// add cancelCondition to the reaction filter, & allow it to veto before any other checking
 	const reactionFilter: ReactionFilter = (..._) =>

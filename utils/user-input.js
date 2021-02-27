@@ -3,7 +3,7 @@ import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { serialReactions } from "./message-actions.js";
 import { delMsg } from "./misc.js";
-import { buildReactionFilter } from "./reactionHelpers.js";
+import { consumeReaction } from "./reactionHelpers.js";
 import { normalizeID } from "./data-normalization.js";
 /** wip */
 export async function promptForText({ channel, options, user, swallowResponse = true, awaitOptions = { max: 1, time: 120000 }, promptContent, }) {
@@ -54,8 +54,8 @@ export async function promptForText({ channel, options, user, swallowResponse = 
  *
  * aborting this prevents reaction cleanup and returns undefined
  */
-export async function presentOptions(msg, options, cleanupReactions = "all", awaitOptions = { max: 1, time: 60000 }, abortController = { aborted: false }) {
-    var _a, _b, _c;
+export async function presentOptions(msg, options, cleanupReactions = true, awaitOptions = { max: 1, time: 60000 }) {
+    var _a;
     const options_ = arrayify(options);
     const optionsMeta = options_.map((o) => {
         const resolved = msg.client.emojis.resolve(o);
@@ -66,45 +66,27 @@ export async function presentOptions(msg, options, cleanupReactions = "all", awa
             return { option: o, name: matched[1], id: matched[2] };
         return { option: o, name: o };
     });
-    await serialReactions(msg, options_);
+    const applying = serialReactions(msg, options_).then(() => sleep(800));
     try {
-        const reactionFilter = buildReactionFilter({
-            notUsers: (_a = msg.client.user) === null || _a === void 0 ? void 0 : _a.id,
-            emoji: optionsMeta.flatMap((o) => [o.id, o.name]).filter(Boolean),
+        const capturedReaction = await consumeReaction({
+            msg,
+            constraints: { emoji: optionsMeta.flatMap((o) => [o.id, o.name]).filter(Boolean) },
+            awaitOptions,
         });
-        const reactionCollection = await msg.awaitReactions(reactionFilter, awaitOptions);
-        if (abortController.aborted) {
-            return;
-        }
         // we timed out instead of getting a valid reaction
-        if (!reactionCollection.size) {
+        if (!capturedReaction || cleanupReactions) {
             if (!msg.deleted)
-                await msg.reactions.removeAll();
-            return undefined;
+                applying.then(() => {
+                    if (!msg.reactions.cache.size)
+                        return;
+                    console.log("cleanup");
+                    msg.reactions.removeAll();
+                });
+            if (!capturedReaction)
+                return undefined;
         }
-        switch (cleanupReactions) {
-            case "others": {
-                const reactionBundles = [...reactionCollection.values()];
-                for (const reactionBundle of reactionBundles) {
-                    const reactingUsers = [...reactionBundle.users.cache.values()].filter((user) => { var _a; return user.id !== ((_a = msg.client.user) === null || _a === void 0 ? void 0 : _a.id); });
-                    for (const reactingUser of reactingUsers) {
-                        console.log(`removing [${reactionBundle.emoji.identifier}][${reactionBundle.emoji.name}] from [${reactingUser.username}]`);
-                        await reactionBundle.users.remove(reactingUser);
-                        await sleep(800);
-                    }
-                }
-                break;
-            }
-            default:
-                if (!msg.deleted)
-                    await msg.reactions.removeAll();
-                await sleep(800);
-                break;
-        }
-        const result = (_b = reactionCollection.first()) === null || _b === void 0 ? void 0 : _b.emoji;
-        if (!result)
-            return;
-        return (_c = optionsMeta.find((o) => o.name === result.name || (result.id && o.id && result.id === o.id))) === null || _c === void 0 ? void 0 : _c.option;
+        const result = capturedReaction.emoji;
+        return (_a = optionsMeta.find((o) => o.name === result.name || (result.id && o.id && result.id === o.id))) === null || _a === void 0 ? void 0 : _a.option;
     }
     catch (e) {
         return undefined;

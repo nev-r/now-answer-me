@@ -29,6 +29,9 @@ export async function consumeReaction(...params) {
  * and return the collected reactions in standard awaitReactions format
  */
 export async function consumeReactions({ msg, constraints = {}, awaitOptions = { max: 3, time: 60000 }, cancelCondition = () => false, }) {
+    var _a;
+    // forces the bot to be ignored
+    constraints.notUsers = [...arrayify((_a = constraints.notUsers) !== null && _a !== void 0 ? _a : []), msg.client.user];
     const reactionFilterConditions = buildReactionFilter(constraints);
     // add cancelCondition to the reaction filter, & allow it to veto before any other checking
     const reactionFilter = (..._) => !cancelCondition() && reactionFilterConditions(..._);
