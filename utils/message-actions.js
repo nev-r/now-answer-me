@@ -41,7 +41,7 @@ export async function serialReactions(msg, reactions) {
 export async function singleReaction(msg, reaction) {
     var _a;
     try {
-        if (!((_a = msg.reactions.cache.get(reaction)) === null || _a === void 0 ? void 0 : _a.me)) {
+        if (!msg.deleted && !((_a = msg.reactions.cache.get(reaction)) === null || _a === void 0 ? void 0 : _a.me)) {
             await msg.react(reaction);
             await sleep(800); // apparently discord rate limited this
         }

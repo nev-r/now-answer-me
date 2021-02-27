@@ -49,7 +49,7 @@ export async function serialReactions(msg: Message, reactions: string[]) {
  */
 export async function singleReaction(msg: Message, reaction: string) {
 	try {
-		if (!msg.reactions.cache.get(reaction)?.me) {
+		if (!msg.deleted && !msg.reactions.cache.get(reaction)?.me) {
 			await msg.react(reaction);
 			await sleep(800); // apparently discord rate limited this
 		}
