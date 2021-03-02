@@ -1,16 +1,16 @@
 import type {
-  BufferResolvable,
-  ChannelResolvable,
-  GuildResolvable,
-  MessageEmbed,
-  MessageResolvable,
+	BufferResolvable,
+	ChannelResolvable,
+	GuildResolvable,
+	MessageEmbed,
+	MessageResolvable,
 } from "discord.js";
 import {
-  buildEmojiDictUsingClient,
-  editMessageUsingClient,
-  publishMessageUsingClient,
-  sendMessageUsingClient,
-  uploadEmojisUsingClient,
+	buildEmojiDictUsingClient,
+	editMessageUsingClient,
+	publishMessageUsingClient,
+	sendMessageUsingClient,
+	uploadEmojisUsingClient,
 } from "../utils/raw-utils.js";
 import { doSomethingUsingTempClient } from "../utils/temp-client.js";
 
@@ -21,13 +21,14 @@ import { doSomethingUsingTempClient } from "../utils/temp-client.js";
  * returns the message that was sent
  */
 export async function sendSingleMessage(
-  apiToken: string,
-  channel: ChannelResolvable,
-  content: string | MessageEmbed
+	apiToken: string,
+	channel: ChannelResolvable,
+	content: string | MessageEmbed,
+	publish?: boolean
 ) {
-  return doSomethingUsingTempClient(apiToken, async (client) => {
-    return sendMessageUsingClient(client, channel, content);
-  });
+	return doSomethingUsingTempClient(apiToken, async (client) => {
+		return sendMessageUsingClient(client, channel, content, publish);
+	});
 }
 
 /**
@@ -36,13 +37,13 @@ export async function sendSingleMessage(
  * returns the message that was published
  */
 export async function publishSingleMessage(
-  apiToken: string,
-  channel: ChannelResolvable,
-  message: MessageResolvable
+	apiToken: string,
+	channel: ChannelResolvable,
+	message: MessageResolvable
 ) {
-  return doSomethingUsingTempClient(apiToken, async (client) => {
-    return publishMessageUsingClient(client, channel, message);
-  });
+	return doSomethingUsingTempClient(apiToken, async (client) => {
+		return publishMessageUsingClient(client, channel, message);
+	});
 }
 
 /**
@@ -51,14 +52,14 @@ export async function publishSingleMessage(
  * returns the message that was edited
  */
 export async function editSingleMessage(
-  apiToken: string,
-  channel: ChannelResolvable,
-  messageId: string,
-  content: string | MessageEmbed
+	apiToken: string,
+	channel: ChannelResolvable,
+	messageId: string,
+	content: string | MessageEmbed
 ) {
-  return doSomethingUsingTempClient(apiToken, async (client) => {
-    return editMessageUsingClient(client, channel, messageId, content);
-  });
+	return doSomethingUsingTempClient(apiToken, async (client) => {
+		return editMessageUsingClient(client, channel, messageId, content);
+	});
 }
 
 /**
@@ -67,13 +68,13 @@ export async function editSingleMessage(
  * returns the emoji dict
  */
 export async function staticBuildEmojiDict(
-  apiToken: string,
-  guilds: GuildResolvable | GuildResolvable[]
+	apiToken: string,
+	guilds: GuildResolvable | GuildResolvable[]
 ) {
-  guilds = Array.isArray(guilds) ? guilds : [guilds];
-  return doSomethingUsingTempClient(apiToken, (client) => {
-    return buildEmojiDictUsingClient(client, guilds);
-  });
+	guilds = Array.isArray(guilds) ? guilds : [guilds];
+	return doSomethingUsingTempClient(apiToken, (client) => {
+		return buildEmojiDictUsingClient(client, guilds);
+	});
 }
 
 /**
@@ -82,15 +83,15 @@ export async function staticBuildEmojiDict(
  * returns the emoji dict
  */
 export async function uploadEmojis(
-  apiToken: string,
-  guild: GuildResolvable,
-  emojis: { attachment: BufferResolvable; name: string }[]
+	apiToken: string,
+	guild: GuildResolvable,
+	emojis: { attachment: BufferResolvable; name: string }[]
 ) {
-  return doSomethingUsingTempClient(apiToken, (client) => {
-    return uploadEmojisUsingClient(client, guild, emojis);
-  });
+	return doSomethingUsingTempClient(apiToken, (client) => {
+		return uploadEmojisUsingClient(client, guild, emojis);
+	});
 }
 
 function undict<T>(dict: NodeJS.Dict<T>): Record<string, T> {
-  return dict as any;
+	return dict as any;
 }

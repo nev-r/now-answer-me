@@ -6,9 +6,9 @@ import { doSomethingUsingTempClient } from "../utils/temp-client.js";
  *
  * returns the message that was sent
  */
-export async function sendSingleMessage(apiToken, channel, content) {
+export async function sendSingleMessage(apiToken, channel, content, publish) {
     return doSomethingUsingTempClient(apiToken, async (client) => {
-        return sendMessageUsingClient(client, channel, content);
+        return sendMessageUsingClient(client, channel, content, publish);
     });
 }
 /**

@@ -6,7 +6,7 @@ import type { BufferResolvable, ChannelResolvable, GuildResolvable, MessageEmbed
  *
  * returns the message that was sent
  */
-export declare function sendSingleMessage(apiToken: string, channel: ChannelResolvable, content: string | MessageEmbed): Promise<import("discord.js").Message>;
+export declare function sendSingleMessage(apiToken: string, channel: ChannelResolvable, content: string | MessageEmbed, publish?: boolean): Promise<import("discord.js").Message>;
 /**
  * logs into discord, publishes an existing message found in a specific channel, and logs out
  *

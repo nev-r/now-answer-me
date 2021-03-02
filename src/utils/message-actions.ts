@@ -38,18 +38,26 @@ const trashEmojis = ["🚮", "🗑️", "🚫"];
 /**
  * apply `reactions` to `msg`, in a set order, without complaining about errors
  */
-export async function serialReactions(msg: Message, reactions: string[]) {
+export async function serialReactions(
+	msg: Message,
+	reactions: string[],
+	abortController: { abort: boolean } = { abort: false }
+) {
 	for (const reaction of reactions) {
-		await singleReaction(msg, reaction);
+		!abortController.abort && (await singleReaction(msg, reaction));
 	}
 }
 
 /**
  * apply `reaction` to `msg`, without complaining about errors
  */
-export async function singleReaction(msg: Message, reaction: string) {
+export async function singleReaction(
+	msg: Message,
+	reaction: string,
+	abortController: { abort: boolean } = { abort: false }
+) {
 	try {
-		if (!msg.deleted && !msg.reactions.cache.get(reaction)?.me) {
+		if (!abortController.abort && !msg.deleted && !msg.reactions.cache.get(reaction)?.me) {
 			await msg.react(reaction);
 			await sleep(800); // apparently discord rate limited this
 		}

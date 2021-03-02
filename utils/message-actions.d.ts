@@ -9,8 +9,12 @@ export declare function makeTrashable(msg: Message | void | Promise<Message | vo
 /**
  * apply `reactions` to `msg`, in a set order, without complaining about errors
  */
-export declare function serialReactions(msg: Message, reactions: string[]): Promise<void>;
+export declare function serialReactions(msg: Message, reactions: string[], abortController?: {
+    abort: boolean;
+}): Promise<void>;
 /**
  * apply `reaction` to `msg`, without complaining about errors
  */
-export declare function singleReaction(msg: Message, reaction: string): Promise<void>;
+export declare function singleReaction(msg: Message, reaction: string, abortController?: {
+    abort: boolean;
+}): Promise<void>;

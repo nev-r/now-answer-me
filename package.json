@@ -1,6 +1,6 @@
 {
 	"name": "now-answer-me",
-	"version": "2.3.1",
+	"version": "2.3.2",
 	"description": "i dont know what purpose this serves",
 	"main": "./index.js",
 	"types": "./index.d.ts",
