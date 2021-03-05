@@ -23,9 +23,9 @@ export async function consumeReaction(__) {
 }
 /** like `consumeReaction` but accepts a `controller` param and returns an endEarly */
 export function _consumeReaction_(__) {
-    var _a;
-    (_a = __.awaitOptions) !== null && _a !== void 0 ? _a : (__.awaitOptions = { max: 1, time: 60000 });
-    __.awaitOptions.max = 1;
+    var _a, _b;
+    // force 1 reaction max
+    __.awaitOptions = { max: 1, time: (_b = (_a = __.awaitOptions) === null || _a === void 0 ? void 0 : _a.time) !== null && _b !== void 0 ? _b : 60000 };
     const { collectedReactions, endEarly } = _consumeReactions_(__);
     return {
         endEarly,
@@ -51,20 +51,18 @@ export function _consumeReactions_({ msg, constraints = {}, awaitOptions = { max
     // if it's been told to give up, reactionFilter will say yes to any reaction,
     // but meawhile consumeReactions will resolve undefined
     const reactionFilter = (..._) => {
-        if (controller.messageGone) {
-            return true;
-        }
         return reactionFilterConditions(..._);
     };
     const collector = msg.createReactionCollector(reactionFilter, awaitOptions);
     collector.on("collect", async (reaction, user) => {
-        // a valid reaction was received. this is just the cleanup function so abort if no message
-        if (msg.deleted || controller.messageGone)
-            return;
+        // a valid reaction was received
         // make sure upstream has cleared us for reaction deletion, so we don't hit rate limits
         await controller.consumptionOk;
         // await the current queue of deletions
         await Promise.allSettled(reactionDeletions);
+        // abort if there's no message to delete from
+        if (msg.deleted || controller.messageGone)
+            return;
         // and push a new promise into it
         reactionDeletions.push(reaction.users.remove(user).then(() => sleep(800)));
     });

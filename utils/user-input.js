@@ -69,7 +69,12 @@ export async function presentOptions({ msg, options, deleteAfter = true, cleanup
     });
     const serialReactionsAbortController = { abort: false };
     const applyingReactions = serialReactions(msg, options_, serialReactionsAbortController).then(() => sleep(800));
-    const consumerController = { messageGone: false, consumptionOk: applyingReactions };
+    // if we're deleting the message anyway, treat the message as already gone,
+    // so _consumeReaction_ won't bother to try and clean up
+    const consumerController = {
+        messageGone: deleteAfter ? true : false,
+        consumptionOk: applyingReactions,
+    };
     try {
         const { collectedReaction: cR } = _consumeReaction_({
             msg,
