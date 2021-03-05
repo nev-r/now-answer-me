@@ -103,7 +103,7 @@ export declare function sendPaginatedSelector<T>(_: {
     selectables: EmbedFieldData[];
     prompt?: string;
     itemsPerPage?: number;
-    timeToWait?: number;
+    waitTime?: number;
 }): Promise<{
     paginatedMessage: Message;
     selection: Promise<number | undefined>;
@@ -124,7 +124,7 @@ export declare function sendPaginatedSelector<T>(_: {
     selectables: T[];
     prompt?: string;
     itemsPerPage?: number;
-    timeToWait?: number;
+    waitTime?: number;
 }): Promise<{
     paginatedMessage: Message;
     selection: Promise<number | undefined>;

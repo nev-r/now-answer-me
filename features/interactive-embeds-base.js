@@ -15,7 +15,7 @@ const reactOptions = {
     random: [random],
     arrowsRandom: [...arrows, random],
 };
-export async function _newPaginatedSelector_({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, optionRenderer, selectables, startPage = 0, buttons = "arrows", prompt = "choose by responding with a number:", itemsPerPage = 18, timeToWait = 180000, }) {
+export async function _newPaginatedSelector_({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, optionRenderer, selectables, startPage = 0, buttons = "arrows", prompt = "choose by responding with a number:", itemsPerPage = 18, waitTime = 180000, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     const numPages = Math.ceil(selectables.length / itemsPerPage);
@@ -62,7 +62,7 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
             const paginationReactionMonitor = serialReactionMonitor({
                 msg: paginatedMessage,
                 constraints: { emoji: options, users: user, notUsers: paginatedMessage.client.user },
-                awaitOptions: { time: timeToWait },
+                awaitOptions: { time: waitTime },
             });
             if (pages.length > 1) {
                 await serialReactions(paginatedMessage, options);
@@ -101,7 +101,7 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
                         return false;
                     const index = Number(m.content);
                     return index > 0 && index <= selectables.length;
-                }, { max: 1, time: timeToWait })).first();
+                }, { max: 1, time: waitTime })).first();
                 if (choiceMessage) {
                     await delMsg(choiceMessage);
                     return Number(choiceMessage.content);
@@ -119,7 +119,7 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
         }),
     };
 }
-export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, pages, renderer = (e) => e, startPage = 0, buttons = "arrows", timeToWait = 180000, }) {
+export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, pages, renderer = (e) => e, startPage = 0, buttons = "arrows", waitTime = 180000, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     let currentPage = startPage;
@@ -140,7 +140,7 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
             const paginationReactionMonitor = serialReactionMonitor({
                 msg: paginatedMessage,
                 constraints: { emoji: options, users: user, notUsers: paginatedMessage.client.user },
-                awaitOptions: { time: timeToWait },
+                awaitOptions: { time: waitTime },
             });
             try {
                 await bugOut(paginatedMessage, async () => {

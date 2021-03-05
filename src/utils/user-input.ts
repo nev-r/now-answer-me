@@ -100,7 +100,7 @@ export async function presentOptions<T extends string>({
 	options: T | T[];
 	deleteAfter?: boolean;
 	cleanupReactions?: boolean;
-	waitTime: number;
+	waitTime?: number;
 }): Promise<T | undefined> {
 	const awaitOptions = { max: 1, time: waitTime };
 	const options_ = arrayify(options);

@@ -38,7 +38,7 @@ export async function _newPaginatedSelector_<T>({
 	buttons = "arrows",
 	prompt = "choose by responding with a number:",
 	itemsPerPage = 18,
-	timeToWait = 180000,
+	waitTime = 180000,
 }: {
 	user?: User;
 	preexistingMessage?: Message;
@@ -50,7 +50,7 @@ export async function _newPaginatedSelector_<T>({
 	buttons?: keyof typeof reactOptions;
 	prompt?: string;
 	itemsPerPage?: number;
-	timeToWait?: number;
+	waitTime?: number;
 }) {
 	if (!channel) throw new Error("no channel provided to send pagination to");
 	const numPages = Math.ceil(selectables.length / itemsPerPage);
@@ -97,7 +97,7 @@ export async function _newPaginatedSelector_<T>({
 			const paginationReactionMonitor = serialReactionMonitor({
 				msg: paginatedMessage,
 				constraints: { emoji: options, users: user, notUsers: paginatedMessage.client.user! },
-				awaitOptions: { time: timeToWait },
+				awaitOptions: { time: waitTime },
 			});
 
 			if (pages.length > 1) {
@@ -140,7 +140,7 @@ export async function _newPaginatedSelector_<T>({
 							const index = Number(m.content);
 							return index > 0 && index <= selectables.length;
 						},
-						{ max: 1, time: timeToWait }
+						{ max: 1, time: waitTime }
 					)
 				).first();
 				if (choiceMessage) {
@@ -169,7 +169,7 @@ export async function _newPaginatedEmbed_({
 	renderer = (e: any) => e,
 	startPage = 0,
 	buttons = "arrows",
-	timeToWait = 180000,
+	waitTime = 180000,
 }: {
 	user?: User;
 	preexistingMessage?: Message;
@@ -178,7 +178,7 @@ export async function _newPaginatedEmbed_({
 	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
 	startPage?: number;
 	buttons?: keyof typeof reactOptions;
-	timeToWait?: number;
+	waitTime?: number;
 }) {
 	if (!channel) throw new Error("no channel provided to send pagination to");
 	let currentPage = startPage;
@@ -203,7 +203,7 @@ export async function _newPaginatedEmbed_({
 			const paginationReactionMonitor = serialReactionMonitor({
 				msg: paginatedMessage,
 				constraints: { emoji: options, users: user, notUsers: paginatedMessage.client.user! },
-				awaitOptions: { time: timeToWait },
+				awaitOptions: { time: waitTime },
 			});
 
 			try {

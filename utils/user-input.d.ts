@@ -27,5 +27,5 @@ export declare function presentOptions<T extends string>({ msg, options, deleteA
     options: T | T[];
     deleteAfter?: boolean;
     cleanupReactions?: boolean;
-    waitTime: number;
+    waitTime?: number;
 }): Promise<T | undefined>;

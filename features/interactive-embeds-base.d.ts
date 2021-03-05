@@ -5,7 +5,7 @@ declare const reactOptions: {
     random: "🎲"[];
     arrowsRandom: ("⬅️" | "➡️" | "🎲")[];
 };
-export declare function _newPaginatedSelector_<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, selectables, startPage, buttons, prompt, itemsPerPage, timeToWait, }: {
+export declare function _newPaginatedSelector_<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, selectables, startPage, buttons, prompt, itemsPerPage, waitTime, }: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
@@ -16,12 +16,12 @@ export declare function _newPaginatedSelector_<T>({ user, preexistingMessage, ch
     buttons?: keyof typeof reactOptions;
     prompt?: string;
     itemsPerPage?: number;
-    timeToWait?: number;
+    waitTime?: number;
 }): Promise<{
     paginatedMessage: Message;
     selection: Promise<number | undefined>;
 }>;
-export declare function _newPaginatedEmbed_({ user, preexistingMessage, channel, pages, renderer, startPage, buttons, timeToWait, }: {
+export declare function _newPaginatedEmbed_({ user, preexistingMessage, channel, pages, renderer, startPage, buttons, waitTime, }: {
     user?: User;
     preexistingMessage?: Message;
     channel?: TextChannel | DMChannel | NewsChannel;
@@ -29,7 +29,7 @@ export declare function _newPaginatedEmbed_({ user, preexistingMessage, channel,
     renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
     startPage?: number;
     buttons?: keyof typeof reactOptions;
-    timeToWait?: number;
+    waitTime?: number;
 }): Promise<{
     paginatedMessage: Message;
     page: Promise<number | undefined>;

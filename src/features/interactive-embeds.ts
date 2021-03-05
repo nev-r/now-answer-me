@@ -153,7 +153,7 @@ export async function sendPaginatedSelector<T>(_: {
 	selectables: EmbedFieldData[];
 	prompt?: string;
 	itemsPerPage?: number;
-	timeToWait?: number;
+	waitTime?: number;
 }): Promise<{
 	paginatedMessage: Message;
 	selection: Promise<number | undefined>;
@@ -174,7 +174,7 @@ export async function sendPaginatedSelector<T>(_: {
 	selectables: T[];
 	prompt?: string;
 	itemsPerPage?: number;
-	timeToWait?: number;
+	waitTime?: number;
 }): Promise<{
 	paginatedMessage: Message;
 	selection: Promise<number | undefined>;
@@ -188,7 +188,7 @@ export async function sendPaginatedSelector<T>(_: {
 	selectables: (T | EmbedFieldData)[];
 	prompt?: string;
 	itemsPerPage?: number;
-	timeToWait?: number;
+	waitTime?: number;
 }) {
 	return await _newPaginatedSelector_(_);
 }
