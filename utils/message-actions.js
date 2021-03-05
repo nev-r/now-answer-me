@@ -47,7 +47,7 @@ export async function singleReaction(msg, reaction, abortController = { abort: f
         }
     }
     catch (e) {
-        // nodeLog(`${reaction[0]}≠>${msg}`)();
+        console.log(e);
     }
 }
 // function nodeLog(

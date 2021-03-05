@@ -1,4 +1,5 @@
 import { arrayify } from "one-stone/array";
+import { sleep } from "one-stone/promise";
 import { normalizeID, normalizeName } from "./data-normalization.js";
 /**
  * listens for, consumes, and yields one reaction at a time,
@@ -17,31 +18,64 @@ export async function* serialReactionMonitor({ limit, ...collectorParams }) {
  * "consume" a single reaction by deleting reactions as they come in,
  * and returning the reaction once a match is found
  */
-export async function consumeReaction(...params) {
-    var _a, _b;
-    var _c;
-    (_a = (_c = params[0]).awaitOptions) !== null && _a !== void 0 ? _a : (_c.awaitOptions = { max: 1, time: 60000 });
-    params[0].awaitOptions.max = 1;
-    return (_b = (await consumeReactions(...params))) === null || _b === void 0 ? void 0 : _b.first();
+export async function consumeReaction(__) {
+    return _consumeReaction_(__).collectedReaction;
+}
+/** like `consumeReaction` but accepts a `controller` param and returns an endEarly */
+export function _consumeReaction_(__) {
+    var _a;
+    (_a = __.awaitOptions) !== null && _a !== void 0 ? _a : (__.awaitOptions = { max: 1, time: 60000 });
+    __.awaitOptions.max = 1;
+    const { collectedReactions, endEarly } = _consumeReactions_(__);
+    return {
+        endEarly,
+        collectedReaction: collectedReactions.then((cr) => cr === null || cr === void 0 ? void 0 : cr.first()),
+    };
 }
 /**
  * consume reactions by deleting valid ones as they come in,
  * and return the collected reactions in standard awaitReactions format
  */
-export async function consumeReactions({ msg, constraints = {}, awaitOptions = { max: 3, time: 60000 }, cancelCondition = () => false, }) {
+export async function consumeReactions(__) {
+    return _consumeReactions_(__).collectedReactions;
+}
+/** like `consumeReactions` but accepts a `controller` param and returns an endEarly */
+export function _consumeReactions_({ msg, constraints = {}, awaitOptions = { max: 3, time: 60000 }, controller = { messageGone: false, consumptionOk: Promise.resolve() }, }) {
     var _a;
-    // forces the bot to be ignored
+    // queue holding reaction deletions.
+    // we can only process 1 per... whatever, because heavy rate limiting
+    const reactionDeletions = [];
+    // forces the bot to ignore its own reactions
     constraints.notUsers = [...arrayify((_a = constraints.notUsers) !== null && _a !== void 0 ? _a : []), msg.client.user];
     const reactionFilterConditions = buildReactionFilter(constraints);
-    // add cancelCondition to the reaction filter, & allow it to veto before any other checking
-    const reactionFilter = (..._) => !cancelCondition() && reactionFilterConditions(..._);
-    // a promise that behaves sort of like msg.awaitReactions,
-    // but also deletes incoming reactions, if they passed the filter (on "collect")
-    return new Promise((resolve) => {
-        const collector = msg.createReactionCollector(reactionFilter, awaitOptions);
-        collector.on("collect", (reaction, user) => reaction.users.remove(user));
-        collector.once("end", (reactions) => resolve(reactions.size ? reactions : undefined));
+    // if it's been told to give up, reactionFilter will say yes to any reaction,
+    // but meawhile consumeReactions will resolve undefined
+    const reactionFilter = (..._) => {
+        if (controller.messageGone) {
+            return true;
+        }
+        return reactionFilterConditions(..._);
+    };
+    const collector = msg.createReactionCollector(reactionFilter, awaitOptions);
+    collector.on("collect", async (reaction, user) => {
+        // a valid reaction was received. this is just the cleanup function so abort if no message
+        if (msg.deleted || controller.messageGone)
+            return;
+        // make sure upstream has cleared us for reaction deletion, so we don't hit rate limits
+        await controller.consumptionOk;
+        // await the current queue of deletions
+        await Promise.allSettled(reactionDeletions);
+        // and push a new promise into it
+        reactionDeletions.push(reaction.users.remove(user).then(() => sleep(800)));
     });
+    return {
+        endEarly: () => {
+            collector.stop();
+        },
+        collectedReactions: new Promise((resolve) => {
+            collector.once("end", (reactions) => resolve(reactions.size ? reactions : undefined));
+        }),
+    };
 }
 export function buildReactionFilter({ users, notUsers, emoji, notEmoji, }) {
     const userIDs = users ? arrayify(users).map(normalizeID) : undefined;

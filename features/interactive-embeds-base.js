@@ -58,11 +58,11 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
             if (!options)
                 throw new Error("invalid button options selected");
             let userChoice;
+            // const abortController= { abort: false };
             const paginationReactionMonitor = serialReactionMonitor({
                 msg: paginatedMessage,
                 constraints: { emoji: options, users: user, notUsers: paginatedMessage.client.user },
                 awaitOptions: { time: timeToWait },
-                cancelCondition: () => userChoice !== undefined,
             });
             if (pages.length > 1) {
                 await serialReactions(paginatedMessage, options);

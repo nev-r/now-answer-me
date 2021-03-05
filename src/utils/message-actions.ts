@@ -62,7 +62,7 @@ export async function singleReaction(
 			await sleep(800); // apparently discord rate limited this
 		}
 	} catch (e) {
-		// nodeLog(`${reaction[0]}≠>${msg}`)();
+		console.log(e);
 	}
 }
 
