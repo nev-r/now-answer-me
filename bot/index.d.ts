@@ -1,4 +1,5 @@
 import { Client } from "discord.js";
+import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import type { CommandResponse, Constraints, Extras, TriggerResponse } from "../types/types-bot.js";
 export declare const startupTimestamp: Date;
@@ -45,6 +46,8 @@ export declare function addOnReconnect(...onReconnect_: typeof onReconnects): vo
 export declare function setOnReconnect(onReconnect_: typeof onReconnects): void;
 export declare function ignoreServerId(...serverIds: (string | string[])[]): void;
 export declare function ignoreUserId(...userIds: (string | string[])[]): void;
+declare type MessageFilter = (msg: Message) => boolean;
+export declare function addMessageFilter(...messageFilter: MessageFilter[]): void;
 export declare function ignoreDms(setting?: boolean): void;
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export declare function init(token: string): Promise<Client>;

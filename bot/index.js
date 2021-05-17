@@ -96,6 +96,12 @@ export function ignoreUserId(...userIds) {
         }
     }
 }
+const messageFilters = [];
+export function addMessageFilter(...messageFilter) {
+    for (const f of messageFilter) {
+        messageFilters.push(f);
+    }
+}
 let doIgnoreDMs = false;
 export function ignoreDms(setting = true) {
     doIgnoreDMs = setting;
@@ -113,6 +119,8 @@ export function init(token) {
         if (ignoredUserIds.has(msg.author.id))
             return;
         if (doIgnoreDMs && msg.channel.type === "dm")
+            return;
+        if (messageFilters.some((f) => f(msg) === false))
             return;
         routeMessage(msg);
     })
