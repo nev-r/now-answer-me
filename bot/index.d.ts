@@ -43,6 +43,9 @@ declare let onReconnects: ((client_: Client) => void)[];
 export declare function addOnReconnect(...onReconnect_: typeof onReconnects): void;
 /** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
 export declare function setOnReconnect(onReconnect_: typeof onReconnects): void;
+export declare function ignoreServerId(...serverIds: (string | string[])[]): void;
+export declare function ignoreUserId(...userIds: (string | string[])[]): void;
+export declare function ignoreDms(setting?: boolean): void;
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export declare function init(token: string): Promise<Client>;
 declare const commands: ({

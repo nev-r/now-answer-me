@@ -19,6 +19,7 @@ import {
 } from "./checkers.js";
 import { sleep } from "one-stone/promise";
 import { delMsg } from "../utils/misc.js";
+import { arrayify } from "one-stone/array";
 
 export const startupTimestamp = new Date();
 export const client = new Client();
@@ -112,12 +113,39 @@ export function setOnReconnect(onReconnect_: typeof onReconnects) {
 	onReconnects = onReconnect_;
 }
 
+const ignoredServerIds = new Set<string>();
+export function ignoreServerId(...serverIds: (string | string[])[]) {
+	for (const serverIdGroup of serverIds) {
+		for (const s of arrayify(serverIdGroup)) {
+			ignoredServerIds.add(s);
+		}
+	}
+}
+
+const ignoredUserIds = new Set<string>();
+export function ignoreUserId(...userIds: (string | string[])[]) {
+	for (const userIdGroup of userIds) {
+		for (const u of arrayify(userIdGroup)) {
+			ignoredUserIds.add(u);
+		}
+	}
+}
+
+let doIgnoreDMs = false;
+export function ignoreDms(setting = true) {
+	doIgnoreDMs = setting;
+}
+
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token: string) {
 	client
 		.on("message", async (msg: Message) => {
 			// quit if this is the bot's own message
 			if (msg.author === client.user) return;
+			if (ignoredServerIds.has(msg.guild?.id!)) return;
+			if (ignoredUserIds.has(msg.author.id)) return;
+			if (doIgnoreDMs && msg.channel.type === "dm") return;
+
 			routeMessage(msg);
 		})
 		.once("ready", () => {

@@ -4,6 +4,7 @@ import { makeTrashable } from "../utils/message-actions.js";
 import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWellStructuredTrigger, escapeRegExp, mixedIncludes, meetsConstraints, } from "./checkers.js";
 import { sleep } from "one-stone/promise";
 import { delMsg } from "../utils/misc.js";
+import { arrayify } from "one-stone/array";
 export const startupTimestamp = new Date();
 export const client = new Client();
 let _clientReadyResolve;
@@ -79,12 +80,39 @@ export function addOnReconnect(...onReconnect_) {
 export function setOnReconnect(onReconnect_) {
     onReconnects = onReconnect_;
 }
+const ignoredServerIds = new Set();
+export function ignoreServerId(...serverIds) {
+    for (const serverIdGroup of serverIds) {
+        for (const s of arrayify(serverIdGroup)) {
+            ignoredServerIds.add(s);
+        }
+    }
+}
+const ignoredUserIds = new Set();
+export function ignoreUserId(...userIds) {
+    for (const userIdGroup of userIds) {
+        for (const u of arrayify(userIdGroup)) {
+            ignoredUserIds.add(u);
+        }
+    }
+}
+let doIgnoreDMs = false;
+export function ignoreDms(setting = true) {
+    doIgnoreDMs = setting;
+}
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token) {
     client
         .on("message", async (msg) => {
+        var _a;
         // quit if this is the bot's own message
         if (msg.author === client.user)
+            return;
+        if (ignoredServerIds.has((_a = msg.guild) === null || _a === void 0 ? void 0 : _a.id))
+            return;
+        if (ignoredUserIds.has(msg.author.id))
+            return;
+        if (doIgnoreDMs && msg.channel.type === "dm")
             return;
         routeMessage(msg);
     })
