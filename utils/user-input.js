@@ -2,7 +2,7 @@ import { MessageEmbed, } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { serialReactions } from "./message-actions.js";
-import { delMsg } from "./misc.js";
+import { boolFilter, delMsg } from "./misc.js";
 import { _consumeReaction_, } from "./reactionHelpers.js";
 import { normalizeID } from "./data-normalization.js";
 /** wip */
@@ -23,7 +23,7 @@ export async function promptForText({ channel, options, user, swallowResponse = 
     if (promptContent) {
         if (typeof promptContent === "string")
             promptContent = new MessageEmbed({ description: promptContent });
-        promptMessage = await channel.send(promptContent);
+        promptMessage = await channel.send({ embeds: [promptContent] });
     }
     try {
         const choiceMessage = (await channel.awaitMessages((m) => {
@@ -78,7 +78,7 @@ export async function presentOptions({ msg, options, deleteAfter = true, cleanup
     try {
         const { collectedReaction: cR } = _consumeReaction_({
             msg,
-            constraints: { emoji: optionsMeta.flatMap((o) => [o.id, o.name]).filter(Boolean) },
+            constraints: { emoji: boolFilter(optionsMeta.flatMap((o) => [o.id, o.name])) },
             awaitOptions,
             controller: consumerController,
         });

@@ -1,4 +1,4 @@
-import type { MessageOptions, MessageAdditions } from "discord.js";
+import type { MessageOptions } from "discord.js";
 /**
  * a Sendable is anything that can be fed into discord.js's send function:
  *
@@ -6,4 +6,4 @@ import type { MessageOptions, MessageAdditions } from "discord.js";
  */
 export declare type Sendable = (MessageOptions & {
     split?: false | undefined;
-}) | MessageAdditions | string;
+}) | string;

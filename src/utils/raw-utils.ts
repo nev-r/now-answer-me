@@ -12,6 +12,7 @@ import type {
 	UserResolvable,
 	GuildEmojiManager,
 	TextChannel,
+	Snowflake,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
@@ -26,7 +27,9 @@ export async function buildEmojiDictUsingClient(
 	const results: NodeJS.Dict<GuildEmoji> = {};
 	for (const guild of guilds as GuildResolvable[]) {
 		const emojis = client.guilds.resolve(guild)?.emojis.cache;
-		emojis?.forEach((emoji) => (results[emoji.name] = emoji));
+		emojis?.forEach((emoji) => {
+			if (emoji.name) results[emoji.name] = emoji;
+		});
 	}
 	return results;
 }
@@ -43,7 +46,9 @@ export async function sendMessageUsingClient(
 	if (!resolvedChannel.isText()) throw new Error(`channel ${channel} is not a text channel`);
 	if (publish && resolvedChannel.type !== "news")
 		throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
-	const sentMessage = await resolvedChannel.send(content);
+	const sentMessage = await resolvedChannel.send(
+		typeof content === "string" ? content : { embeds: [content] }
+	);
 	if (publish) await sentMessage.crosspost();
 	client.destroy();
 	return sentMessage;
@@ -69,7 +74,7 @@ export async function editMessageUsingClient(
 	const messageToEdit = await resolvedChannel.messages.fetch(normalizeID(message));
 	if (!messageToEdit)
 		throw new Error(`couldn't find message ${message} in channel ${resolvedChannel}`);
-	await messageToEdit.edit(content);
+	await messageToEdit.edit(typeof content === "string" ? content : { embeds: [content] });
 	return messageToEdit;
 }
 
@@ -132,7 +137,7 @@ export async function uploadEmojisUsingClient(
 export function announceToChannels(
 	client: Client,
 	message: Sendable,
-	channelIds: string | string[]
+	channelIds: Snowflake | Snowflake[]
 ) {
 	return arrayify(channelIds).map((channelId) => {
 		const channel = client.channels.cache.get(channelId);

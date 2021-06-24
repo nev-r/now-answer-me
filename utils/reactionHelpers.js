@@ -1,6 +1,7 @@
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { normalizeID, normalizeName } from "./data-normalization.js";
+import { boolFilter } from "./misc.js";
 /**
  * listens for, consumes, and yields one reaction at a time,
  * matching collectorParams.constraints, returning nothing when exhausted
@@ -79,14 +80,10 @@ export function buildReactionFilter({ users, notUsers, emoji, notEmoji, }) {
     const userIDs = users ? arrayify(users).map(normalizeID) : undefined;
     const notUsersIDs = notUsers ? arrayify(notUsers).map(normalizeID) : undefined;
     const emojiNamesIDs = emoji
-        ? arrayify(emoji)
-            .flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id])
-            .filter(Boolean)
+        ? boolFilter(arrayify(emoji).flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id]))
         : undefined;
     const notEmojiNamesIDs = notEmoji
-        ? arrayify(notEmoji)
-            .flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id])
-            .filter(Boolean)
+        ? boolFilter(arrayify(notEmoji).flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id]))
         : undefined;
     return (reaction, user) => {
         return (

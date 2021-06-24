@@ -22,11 +22,7 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
     let currentPage = startPage;
     const useOptionRenderer = 
     // in upstream overloads, we will gate optionRenderer to "must operate upon <T>"
-    optionRenderer !== null && 
-    // in upstream overloads, we will gate optionRenderer to "must operate upon <T>"
-    optionRenderer !== void 0 ? 
-    // in upstream overloads, we will gate optionRenderer to "must operate upon <T>"
-    optionRenderer : 
+    optionRenderer !== null && optionRenderer !== void 0 ? optionRenderer : 
     // otherwise,
     (isEmbedFields(selectables) // if selectables are already embeds
         ? (o) => o // return them as-is
@@ -46,8 +42,8 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
         embed.setFooter(`${currentPage + 1} / ${pages.length}`);
     // either send or edit, our initial message
     const paginatedMessage = preexistingMessage
-        ? await preexistingMessage.edit(embed)
-        : await channel.send(embed);
+        ? await preexistingMessage.edit({ embeds: [embed] })
+        : await channel.send({ embeds: [embed] });
     // return this message right away so upstream can do things like watch it for reactions
     return {
         paginatedMessage,
@@ -89,7 +85,7 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
                         embed = pages[currentPage];
                         if (embed.footer === null)
                             embed.setFooter(`${currentPage + 1} / ${pages.length}`);
-                        await paginatedMessage.edit(embed);
+                        await paginatedMessage.edit({ embeds: [embed] });
                     }
                     // loop breaks when there's no more input or when a choice was made
                 });
@@ -127,8 +123,8 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
     if (pages.length > 1 && embed.footer === null)
         embed.setFooter(`${currentPage + 1} / ${pages.length}`);
     const paginatedMessage = preexistingMessage
-        ? await preexistingMessage.edit(embed)
-        : await channel.send(embed);
+        ? await preexistingMessage.edit({ embeds: [embed] })
+        : await channel.send({ embeds: [embed] });
     return {
         paginatedMessage,
         page: new Promise(async (resolvePage) => {
@@ -164,14 +160,15 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
                             embed = await renderer(pages[currentPage]);
                             if (embed.footer === null)
                                 embed.setFooter(`${currentPage + 1} / ${pages.length}`);
-                            await paginatedMessage.edit(embed);
+                            await paginatedMessage.edit({ embeds: [embed] });
                         }
                     // loop breaks when there's no more input or when a choice was made
                     // let's remove the pagination footer (if we were using it to count)
                     // and perform one last edit (if the message is still there)
-                    if (((_b = (_a = embed.footer) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.match(/^\d+ \/ \d+$/)) || ((_d = (_c = embed.footer) === null || _c === void 0 ? void 0 : _c.text) === null || _d === void 0 ? void 0 : _d.match(/^\d+ remaining$/)))
+                    if (((_b = (_a = embed.footer) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.match(/^\d+ \/ \d+$/)) ||
+                        ((_d = (_c = embed.footer) === null || _c === void 0 ? void 0 : _c.text) === null || _d === void 0 ? void 0 : _d.match(/^\d+ remaining$/)))
                         embed.footer = null;
-                    paginatedMessage.deleted || (await paginatedMessage.edit(embed));
+                    paginatedMessage.deleted || (await paginatedMessage.edit({ embeds: [embed] }));
                     resolvePage(currentPage);
                 });
             }

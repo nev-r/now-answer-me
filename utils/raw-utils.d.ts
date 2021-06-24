@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import type { Client, ChannelResolvable, GuildEmoji, GuildResolvable, MessageEmbed, MessageResolvable, UserResolvable, GuildEmojiManager } from "discord.js";
+import type { Client, ChannelResolvable, GuildEmoji, GuildResolvable, MessageEmbed, MessageResolvable, UserResolvable, GuildEmojiManager, Snowflake } from "discord.js";
 import { Sendable } from "../types/types-discord.js";
 export declare function buildEmojiDictUsingClient(client: Client, guilds: GuildResolvable | GuildResolvable[]): Promise<NodeJS.Dict<GuildEmoji>>;
 export declare function sendMessageUsingClient(client: Client, channel: ChannelResolvable, content: string | MessageEmbed, publish?: boolean): Promise<import("discord.js").Message>;
@@ -12,5 +12,5 @@ export declare function uploadEmojisUsingClient(client: Client, guild: GuildReso
     attachment: EmojiAttachment;
     name: EmojiName;
 }[]): Promise<Record<string, GuildEmoji>>;
-export declare function announceToChannels(client: Client, message: Sendable, channelIds: string | string[]): (false | Promise<import("discord.js").Message>)[];
+export declare function announceToChannels(client: Client, message: Sendable, channelIds: Snowflake | Snowflake[]): (false | Promise<import("discord.js").Message>)[];
 export {};

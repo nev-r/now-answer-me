@@ -6,12 +6,14 @@ import {
 	DMChannel,
 	NewsChannel,
 	AwaitReactionsOptions,
+	EmojiResolvable,
+	Snowflake,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { serialReactions } from "./message-actions.js";
 import { Sendable } from "../types/types-discord.js";
-import { delMsg } from "./misc.js";
+import { boolFilter, delMsg } from "./misc.js";
 import {
 	buildReactionFilter,
 	consumeReaction,
@@ -34,7 +36,7 @@ export async function promptForText({
 	user?: UserResolvable | UserResolvable[];
 	swallowResponse?: boolean;
 	awaitOptions?: AwaitReactionsOptions;
-	promptContent?: Sendable;
+	promptContent?: string | MessageEmbed;
 }) {
 	// if users exists, force it to be an array of IDs
 	const users = user ? arrayify(user).map((u) => normalizeID(u)) : undefined;
@@ -55,7 +57,7 @@ export async function promptForText({
 	if (promptContent) {
 		if (typeof promptContent === "string")
 			promptContent = new MessageEmbed({ description: promptContent });
-		promptMessage = await channel.send(promptContent);
+		promptMessage = await channel.send({ embeds: [promptContent] });
 	}
 
 	try {
@@ -106,19 +108,17 @@ export async function presentOptions<T extends string>({
 	const options_ = arrayify(options);
 
 	const optionsMeta = options_.map((o) => {
-		const resolved = msg.client.emojis.resolve(o);
+		const resolved = msg.client.emojis.resolve(o as EmojiResolvable);
 		if (resolved) return { option: o, name: resolved.name, id: resolved.id };
 		const matched = o.match(/^<a?:(\w+):(\d+)>$/);
-		if (matched) return { option: o, name: matched[1], id: matched[2] };
+		if (matched) return { option: o, name: matched[1], id: matched[2] as Snowflake };
 		return { option: o, name: o };
 	});
 
 	const serialReactionsAbortController = { abort: false };
-	const applyingReactions = serialReactions(
-		msg,
-		options_,
-		serialReactionsAbortController
-	).then(() => sleep(800));
+	const applyingReactions = serialReactions(msg, options_, serialReactionsAbortController).then(
+		() => sleep(800)
+	);
 
 	// if we're deleting the message anyway, treat the message as already gone,
 	// so _consumeReaction_ won't bother to try and clean up
@@ -129,7 +129,7 @@ export async function presentOptions<T extends string>({
 	try {
 		const { collectedReaction: cR } = _consumeReaction_({
 			msg,
-			constraints: { emoji: optionsMeta.flatMap((o) => [o.id!, o.name]).filter(Boolean) },
+			constraints: { emoji: boolFilter(optionsMeta.flatMap((o) => [o.id!, o.name])) },
 			awaitOptions,
 			controller: consumerController,
 		});

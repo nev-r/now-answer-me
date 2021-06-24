@@ -10,7 +10,10 @@ export async function buildEmojiDictUsingClient(client, guilds) {
     const results = {};
     for (const guild of guilds) {
         const emojis = (_a = client.guilds.resolve(guild)) === null || _a === void 0 ? void 0 : _a.emojis.cache;
-        emojis === null || emojis === void 0 ? void 0 : emojis.forEach((emoji) => (results[emoji.name] = emoji));
+        emojis === null || emojis === void 0 ? void 0 : emojis.forEach((emoji) => {
+            if (emoji.name)
+                results[emoji.name] = emoji;
+        });
     }
     return results;
 }
@@ -22,7 +25,7 @@ export async function sendMessageUsingClient(client, channel, content, publish) 
         throw new Error(`channel ${channel} is not a text channel`);
     if (publish && resolvedChannel.type !== "news")
         throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
-    const sentMessage = await resolvedChannel.send(content);
+    const sentMessage = await resolvedChannel.send(typeof content === "string" ? content : { embeds: [content] });
     if (publish)
         await sentMessage.crosspost();
     client.destroy();
@@ -43,7 +46,7 @@ export async function editMessageUsingClient(client, channel, message, content) 
     const messageToEdit = await resolvedChannel.messages.fetch(normalizeID(message));
     if (!messageToEdit)
         throw new Error(`couldn't find message ${message} in channel ${resolvedChannel}`);
-    await messageToEdit.edit(content);
+    await messageToEdit.edit(typeof content === "string" ? content : { embeds: [content] });
     return messageToEdit;
 }
 export async function publishMessageUsingClient(client, channel, message) {

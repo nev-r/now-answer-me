@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
 export async function doSomethingUsingTempClient(apiToken, something) {
-    const tempClient = new Client();
+    const tempClient = new Client({ intents: ["GUILDS", "GUILD_MESSAGES", "GUILD_EMOJIS"] });
     const resolvesThenDestroysClient = new Promise((resolve) => {
         tempClient.on("ready", async () => {
             try {

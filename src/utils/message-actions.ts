@@ -21,11 +21,11 @@ export async function makeTrashable(
 ) {
 	msg = await msg;
 	if (!msg) return;
-	let reactionFilter: ReactionFilter = (reaction) => trashEmojis.includes(reaction.emoji.name);
+	let reactionFilter: ReactionFilter = (reaction) => trashEmojis.includes(reaction.emoji.name!);
 	if (whoCanDelete) {
 		const peopleList = arrayify(whoCanDelete);
 		reactionFilter = (reaction, user) =>
-			trashEmojis.includes(reaction.emoji.name) && peopleList.includes(user.id);
+			trashEmojis.includes(reaction.emoji.name!) && peopleList.includes(user.id);
 	}
 	const userReactions = await msg.awaitReactions(reactionFilter, {
 		max: 1,

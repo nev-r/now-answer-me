@@ -80,8 +80,8 @@ export async function _newPaginatedSelector_<T>({
 
 	// either send or edit, our initial message
 	const paginatedMessage = preexistingMessage
-		? await preexistingMessage.edit(embed)
-		: await channel.send(embed);
+		? await preexistingMessage.edit({ embeds: [embed] })
+		: await channel.send({ embeds: [embed] });
 	// return this message right away so upstream can do things like watch it for reactions
 
 	return {
@@ -125,7 +125,7 @@ export async function _newPaginatedSelector_<T>({
 						embed = pages[currentPage];
 						if (embed.footer === null) embed.setFooter(`${currentPage + 1} / ${pages.length}`);
 
-						await paginatedMessage.edit(embed);
+						await paginatedMessage.edit({ embeds: [embed] });
 					}
 					// loop breaks when there's no more input or when a choice was made
 				});
@@ -188,8 +188,8 @@ export async function _newPaginatedEmbed_({
 		embed.setFooter(`${currentPage + 1} / ${pages.length}`);
 
 	const paginatedMessage = preexistingMessage
-		? await preexistingMessage.edit(embed)
-		: await channel.send(embed);
+		? await preexistingMessage.edit({ embeds: [embed] })
+		: await channel.send({ embeds: [embed] });
 
 	return {
 		paginatedMessage,
@@ -226,7 +226,7 @@ export async function _newPaginatedEmbed_({
 							embed = await renderer(pages[currentPage]);
 							if (embed.footer === null) embed.setFooter(`${currentPage + 1} / ${pages.length}`);
 
-							await paginatedMessage.edit(embed);
+							await paginatedMessage.edit({ embeds: [embed] });
 						}
 
 					// loop breaks when there's no more input or when a choice was made
@@ -237,7 +237,7 @@ export async function _newPaginatedEmbed_({
 						embed.footer?.text?.match(/^\d+ remaining$/)
 					)
 						embed.footer = null;
-					paginatedMessage.deleted || (await paginatedMessage.edit(embed));
+					paginatedMessage.deleted || (await paginatedMessage.edit({ embeds: [embed] }));
 					resolvePage(currentPage);
 				});
 			} catch (e) {

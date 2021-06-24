@@ -54,7 +54,7 @@ export async function publishSingleMessage(
 export async function editSingleMessage(
 	apiToken: string,
 	channel: ChannelResolvable,
-	messageId: string,
+	messageId: MessageResolvable,
 	content: string | MessageEmbed
 ) {
 	return doSomethingUsingTempClient(apiToken, async (client) => {

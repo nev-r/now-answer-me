@@ -10,6 +10,7 @@ import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { ConstraintSet } from "../types/types-bot.js";
 import { normalizeID, normalizeName } from "./data-normalization.js";
+import { boolFilter } from "./misc.js";
 
 /**
  * listens for, consumes, and yields one reaction at a time,
@@ -122,14 +123,14 @@ export function buildReactionFilter({
 	const userIDs = users ? arrayify(users).map(normalizeID) : undefined;
 	const notUsersIDs = notUsers ? arrayify(notUsers).map(normalizeID) : undefined;
 	const emojiNamesIDs = emoji
-		? arrayify(emoji)
-				.flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id!])
-				.filter(Boolean)
+		? boolFilter(
+				arrayify(emoji).flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id!])
+		  )
 		: undefined;
 	const notEmojiNamesIDs = notEmoji
-		? arrayify(notEmoji)
-				.flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id!])
-				.filter(Boolean)
+		? boolFilter(
+				arrayify(notEmoji).flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id!])
+		  )
 		: undefined;
 
 	return (reaction, user) => {
@@ -140,11 +141,11 @@ export function buildReactionFilter({
 			(!notUsersIDs || !notUsersIDs.includes(user.id)) &&
 			// no limits or a limit matches
 			(!emojiNamesIDs ||
-				emojiNamesIDs.includes(reaction.emoji.name) ||
+				emojiNamesIDs.includes(reaction.emoji.name!) ||
 				emojiNamesIDs.includes(reaction.emoji.id!)) &&
 			// no limits or no limits match
 			(!notEmojiNamesIDs ||
-				(!notEmojiNamesIDs.includes(reaction.emoji.name) &&
+				(!notEmojiNamesIDs.includes(reaction.emoji.name!) &&
 					!notEmojiNamesIDs.includes(reaction.emoji.id!)))
 		);
 	};

@@ -22,7 +22,16 @@ import { delMsg } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 
 export const startupTimestamp = new Date();
-export const client = new Client();
+export const client = new Client({
+	intents: [
+		"GUILDS",
+		"GUILD_MESSAGES",
+		"DIRECT_MESSAGES",
+		"DIRECT_MESSAGE_REACTIONS",
+		"GUILD_EMOJIS",
+		"GUILD_MESSAGE_REACTIONS",
+	],
+});
 
 let _clientReadyResolve: (value: Client | PromiseLike<Client>) => void;
 
@@ -313,6 +322,6 @@ function getReactionEmojiFromString(str: string) {
 	if (matched?.groups?.snowflake) str = matched.groups.snowflake;
 
 	// try resolving
-	const resolved = client.emojis.resolve(str);
+	const resolved = client.emojis.resolve(str as `${bigint}`);
 	if (resolved) return resolved.id;
 }

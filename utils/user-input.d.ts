@@ -1,5 +1,4 @@
-import { UserResolvable, Message, TextChannel, DMChannel, NewsChannel, AwaitReactionsOptions } from "discord.js";
-import { Sendable } from "../types/types-discord.js";
+import { MessageEmbed, UserResolvable, Message, TextChannel, DMChannel, NewsChannel, AwaitReactionsOptions } from "discord.js";
 /** wip */
 export declare function promptForText({ channel, options, user, swallowResponse, awaitOptions, promptContent, }: {
     channel: TextChannel | DMChannel | NewsChannel;
@@ -7,7 +6,7 @@ export declare function promptForText({ channel, options, user, swallowResponse,
     user?: UserResolvable | UserResolvable[];
     swallowResponse?: boolean;
     awaitOptions?: AwaitReactionsOptions;
-    promptContent?: Sendable;
+    promptContent?: string | MessageEmbed;
 }): Promise<{
     text: string;
     message: Message;

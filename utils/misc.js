@@ -20,3 +20,6 @@ export async function delMsg(msg) {
     }
     return;
 }
+export function boolFilter(arr) {
+    return arr.filter(Boolean);
+}

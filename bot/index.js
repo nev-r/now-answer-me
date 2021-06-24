@@ -6,7 +6,16 @@ import { sleep } from "one-stone/promise";
 import { delMsg } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 export const startupTimestamp = new Date();
-export const client = new Client();
+export const client = new Client({
+    intents: [
+        "GUILDS",
+        "GUILD_MESSAGES",
+        "DIRECT_MESSAGES",
+        "DIRECT_MESSAGE_REACTIONS",
+        "GUILD_EMOJIS",
+        "GUILD_MESSAGE_REACTIONS",
+    ],
+});
 let _clientReadyResolve;
 /** resolves when the client has connected */
 export let clientReady = new Promise((resolve) => {

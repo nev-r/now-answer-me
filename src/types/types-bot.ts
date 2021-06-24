@@ -1,4 +1,4 @@
-import { Emoji, Message, User } from "discord.js";
+import { Emoji, Message, Snowflake, User } from "discord.js";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 
@@ -59,8 +59,8 @@ export interface Extras {
 }
 
 export interface ConstraintSet {
-	users?: string | User | (string | User)[];
-	notUsers?: string | User | (string | User)[];
-	emoji?: string | Emoji | (string | Emoji)[];
-	notEmoji?: string | Emoji | (string | Emoji)[];
+	users?: null | Snowflake | User | (Snowflake | User)[];
+	notUsers?: null | Snowflake | User | (Snowflake | User)[];
+	emoji?: null | string | Snowflake | Emoji | (Snowflake | string | Emoji)[];
+	notEmoji?: null | string | Snowflake | Emoji | (Snowflake | string | Emoji)[];
 }

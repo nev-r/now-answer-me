@@ -18,7 +18,7 @@ export declare function publishSingleMessage(apiToken: string, channel: ChannelR
  *
  * returns the message that was edited
  */
-export declare function editSingleMessage(apiToken: string, channel: ChannelResolvable, messageId: string, content: string | MessageEmbed): Promise<import("discord.js").Message>;
+export declare function editSingleMessage(apiToken: string, channel: ChannelResolvable, messageId: MessageResolvable, content: string | MessageEmbed): Promise<import("discord.js").Message>;
 /**
  * logs into discord, and builds an emoji dict from a server or array of servers
  *

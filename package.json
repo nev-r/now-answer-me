@@ -15,7 +15,7 @@
 	"type": "module",
 	"scripts": {
 		"test": "find . -type f \\( -name '*.d.ts' -or -name '*.js' \\) -not -path './node_modules*' -not -path './apo*' -delete && tsc && node test.mjs",
-		"build": "find . -type f \\( -name '*.d.ts' -or -name '*.js' \\) -not -path './node_modules*' -not -path './apo*' -delete && tsc"
+		"clear": "find . -type f \\( -name '*.d.ts' -or -name '*.js' \\) -not -path './node_modules*' -not -path './apo*' -delete"
 	},
 	"repository": {
 		"type": "git",
