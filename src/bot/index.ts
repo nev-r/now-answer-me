@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { Client, MessageEmbed, MessageOptions } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import type {
@@ -291,11 +291,24 @@ async function routeMessage(msg: Message) {
 				return;
 			}
 			if (results) {
-				const sentMessage = isMessage(results) ? results : await msg.channel.send(results);
-				if (trashable)
-					makeTrashable(sentMessage, trashable === "requestor" ? msg.author.id : undefined);
-				if (selfDestructSeconds) {
-					sleep(selfDestructSeconds * 1000).then(() => delMsg(sentMessage));
+				let sentMessage: Message | undefined;
+				// if the command already sent and returned a message
+				if (isMessage(results)) sentMessage = results;
+				else {
+					let toSend: (MessageOptions & { split?: false | undefined }) | undefined;
+					if (results instanceof MessageEmbed) toSend = { embeds: [results] };
+					else if (typeof results === "string") {
+						if (results) toSend = { content: results };
+					} else toSend = results;
+
+					if (toSend) sentMessage = await msg.channel.send(toSend);
+				}
+				if (sentMessage) {
+					if (trashable)
+						makeTrashable(sentMessage, trashable === "requestor" ? msg.author.id : undefined);
+					if (selfDestructSeconds) {
+						sleep(selfDestructSeconds * 1000).then(() => delMsg(sentMessage));
+					}
 				}
 			}
 		} catch (e) {
