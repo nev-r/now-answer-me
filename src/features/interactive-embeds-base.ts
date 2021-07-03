@@ -9,6 +9,7 @@ import type {
 	NewsChannel,
 	User,
 	EmbedFieldData,
+	ThreadChannel,
 } from "discord.js";
 import { MessageEmbed } from "discord.js";
 import { sleep } from "one-stone/promise";
@@ -42,7 +43,7 @@ export async function _newPaginatedSelector_<T>({
 }: {
 	user?: User;
 	preexistingMessage?: Message;
-	channel?: TextChannel | DMChannel | NewsChannel;
+	channel?: TextChannel | DMChannel | NewsChannel | ThreadChannel;
 	cleanupReactions?: boolean;
 	optionRenderer?: (listItem: any, index: number) => EmbedFieldData;
 	selectables: (T | EmbedFieldData)[];
@@ -134,14 +135,15 @@ export async function _newPaginatedSelector_<T>({
 			// also, listen for choice text
 			const choiceDetector = (async () => {
 				const choiceMessage = (
-					await channel.awaitMessages(
-						(m: Message) => {
+					await channel.awaitMessages({
+						max: 1,
+						time: waitTime,
+						filter: (m: Message) => {
 							if ((user && m.author.id !== user.id) || !/^\d+$/.test(m.content)) return false;
 							const index = Number(m.content);
 							return index > 0 && index <= selectables.length;
 						},
-						{ max: 1, time: waitTime }
-					)
+					})
 				).first();
 				if (choiceMessage) {
 					await delMsg(choiceMessage);
@@ -173,7 +175,7 @@ export async function _newPaginatedEmbed_({
 }: {
 	user?: User;
 	preexistingMessage?: Message;
-	channel?: TextChannel | DMChannel | NewsChannel;
+	channel?: TextChannel | DMChannel | NewsChannel | ThreadChannel;
 	pages: any[];
 	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
 	startPage?: number;

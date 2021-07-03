@@ -27,7 +27,8 @@ export async function makeTrashable(
 		reactionFilter = (reaction, user) =>
 			trashEmojis.includes(reaction.emoji.name!) && peopleList.includes(user.id);
 	}
-	const userReactions = await msg.awaitReactions(reactionFilter, {
+	const userReactions = await msg.awaitReactions({
+		filter: reactionFilter,
 		max: 1,
 		time: 300000,
 	});

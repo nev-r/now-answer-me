@@ -86,7 +86,7 @@ export function _consumeReactions_({
 		return reactionFilterConditions(..._);
 	};
 
-	const collector = msg.createReactionCollector(reactionFilter, awaitOptions);
+	const collector = msg.createReactionCollector({ filter: reactionFilter, ...awaitOptions });
 	collector.on("collect", async (reaction, user) => {
 		// a valid reaction was received
 		// make sure upstream has cleared us for reaction deletion, so we don't hit rate limits

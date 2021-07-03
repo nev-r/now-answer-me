@@ -8,6 +8,7 @@ import type {
 	GuildEmoji,
 	GuildChannel,
 	Snowflake,
+	ThreadMember,
 } from "discord.js";
 
 export function normalizeID(
@@ -20,6 +21,7 @@ export function normalizeID(
 		| GuildChannel
 		| GuildMember
 		| GuildEmoji
+		| ThreadMember
 		| Snowflake
 ) {
 	return typeof resolvable === "string" ? resolvable : resolvable.id;

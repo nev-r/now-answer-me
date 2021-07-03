@@ -18,6 +18,7 @@ import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { Sendable } from "../types/types-discord.js";
 import { normalizeID } from "./data-normalization.js";
+import { sendMsg } from "./misc.js";
 
 export async function buildEmojiDictUsingClient(
 	client: Client,
@@ -142,7 +143,8 @@ export function announceToChannels(
 	return arrayify(channelIds).map((channelId) => {
 		const channel = client.channels.cache.get(channelId);
 		return (
-			(channel?.type === "dm" || channel?.type === "text") && (channel as TextChannel).send(message)
+			(channel?.type === "dm" || channel?.type === "text") &&
+			sendMsg(channel as TextChannel, message)
 		);
 	});
 }

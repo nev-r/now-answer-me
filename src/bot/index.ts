@@ -18,7 +18,7 @@ import {
 	meetsConstraints,
 } from "./checkers.js";
 import { sleep } from "one-stone/promise";
-import { delMsg } from "../utils/misc.js";
+import { delMsg, sendMsg } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 
 export const startupTimestamp = new Date();
@@ -295,13 +295,7 @@ async function routeMessage(msg: Message) {
 				// if the command already sent and returned a message
 				if (isMessage(results)) sentMessage = results;
 				else {
-					let toSend: (MessageOptions & { split?: false | undefined }) | undefined;
-					if (results instanceof MessageEmbed) toSend = { embeds: [results] };
-					else if (typeof results === "string") {
-						if (results) toSend = { content: results };
-					} else toSend = results;
-
-					if (toSend) sentMessage = await msg.channel.send(toSend);
+					sentMessage = await sendMsg(msg.channel, results);
 				}
 				if (sentMessage) {
 					if (trashable)

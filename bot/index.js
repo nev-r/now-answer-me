@@ -3,7 +3,7 @@ import { Message } from "discord.js";
 import { makeTrashable } from "../utils/message-actions.js";
 import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWellStructuredTrigger, escapeRegExp, mixedIncludes, meetsConstraints, } from "./checkers.js";
 import { sleep } from "one-stone/promise";
-import { delMsg } from "../utils/misc.js";
+import { delMsg, sendMsg } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 export const startupTimestamp = new Date();
 export const client = new Client({
@@ -235,11 +235,19 @@ async function routeMessage(msg) {
                 return;
             }
             if (results) {
-                const sentMessage = isMessage(results) ? results : await msg.channel.send(results);
-                if (trashable)
-                    makeTrashable(sentMessage, trashable === "requestor" ? msg.author.id : undefined);
-                if (selfDestructSeconds) {
-                    sleep(selfDestructSeconds * 1000).then(() => delMsg(sentMessage));
+                let sentMessage;
+                // if the command already sent and returned a message
+                if (isMessage(results))
+                    sentMessage = results;
+                else {
+                    sentMessage = await sendMsg(msg.channel, results);
+                }
+                if (sentMessage) {
+                    if (trashable)
+                        makeTrashable(sentMessage, trashable === "requestor" ? msg.author.id : undefined);
+                    if (selfDestructSeconds) {
+                        sleep(selfDestructSeconds * 1000).then(() => delMsg(sentMessage));
+                    }
                 }
             }
         }

@@ -26,11 +26,14 @@ export async function promptForText({ channel, options, user, swallowResponse = 
         promptMessage = await channel.send({ embeds: [promptContent] });
     }
     try {
-        const choiceMessage = (await channel.awaitMessages((m) => {
-            if (users && !users.includes(m.author.id))
-                return false;
-            return optionFilter(m.content);
-        }, awaitOptions)).first();
+        const choiceMessage = (await channel.awaitMessages({
+            filter: (m) => {
+                if (users && !users.includes(m.author.id))
+                    return false;
+                return optionFilter(m.content);
+            },
+            ...awaitOptions,
+        })).first();
         if (choiceMessage) {
             swallowResponse && (await delMsg(choiceMessage));
             return {

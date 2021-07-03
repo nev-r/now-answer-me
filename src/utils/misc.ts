@@ -2,8 +2,8 @@
 // delayed resolvers
 //
 
-import type { Message } from "discord.js";
-import { arrayify } from "one-stone/array";
+import { Message, MessageEmbed, MessageOptions } from "discord.js";
+import { Sendable } from "../types/types-discord.js";
 
 /** try to do whatever func wants to do, but delete msg if there's an error */
 export async function bugOut<T extends any>(
@@ -25,6 +25,15 @@ export async function delMsg(msg?: Message) {
 		console.log(e);
 	}
 	return;
+}
+
+export async function sendMsg(channel: Message["channel"], sendable: Sendable) {
+	let toSend: (MessageOptions & { split?: false | undefined }) | undefined;
+	if (sendable instanceof MessageEmbed) toSend = { embeds: [sendable] };
+	else if (typeof sendable === "string") toSend = { content: sendable };
+	else toSend = sendable;
+
+	return channel.send(toSend);
 }
 
 export function boolFilter<T>(arr: T[]): NonNullable<T>[] {

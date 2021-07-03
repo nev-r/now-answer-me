@@ -1,11 +1,11 @@
-import { MessageEmbed, UserResolvable, Message, TextChannel, DMChannel, NewsChannel, AwaitReactionsOptions } from "discord.js";
+import { MessageEmbed, UserResolvable, Message, TextChannel, DMChannel, NewsChannel, AwaitMessagesOptions } from "discord.js";
 /** wip */
 export declare function promptForText({ channel, options, user, swallowResponse, awaitOptions, promptContent, }: {
     channel: TextChannel | DMChannel | NewsChannel;
     options: RegExp | string | string[];
     user?: UserResolvable | UserResolvable[];
     swallowResponse?: boolean;
-    awaitOptions?: AwaitReactionsOptions;
+    awaitOptions?: AwaitMessagesOptions;
     promptContent?: string | MessageEmbed;
 }): Promise<{
     text: string;

@@ -1,4 +1,4 @@
-import type { Message, TextChannel, DMChannel, NewsChannel, User, EmbedFieldData } from "discord.js";
+import type { Message, TextChannel, DMChannel, NewsChannel, User, EmbedFieldData, ThreadChannel } from "discord.js";
 import { MessageEmbed } from "discord.js";
 declare const reactOptions: {
     arrows: ("⬅️" | "➡️")[];
@@ -8,7 +8,7 @@ declare const reactOptions: {
 export declare function _newPaginatedSelector_<T>({ user, preexistingMessage, channel, cleanupReactions, optionRenderer, selectables, startPage, buttons, prompt, itemsPerPage, waitTime, }: {
     user?: User;
     preexistingMessage?: Message;
-    channel?: TextChannel | DMChannel | NewsChannel;
+    channel?: TextChannel | DMChannel | NewsChannel | ThreadChannel;
     cleanupReactions?: boolean;
     optionRenderer?: (listItem: any, index: number) => EmbedFieldData;
     selectables: (T | EmbedFieldData)[];
@@ -24,7 +24,7 @@ export declare function _newPaginatedSelector_<T>({ user, preexistingMessage, ch
 export declare function _newPaginatedEmbed_({ user, preexistingMessage, channel, pages, renderer, startPage, buttons, waitTime, }: {
     user?: User;
     preexistingMessage?: Message;
-    channel?: TextChannel | DMChannel | NewsChannel;
+    channel?: TextChannel | DMChannel | NewsChannel | ThreadChannel;
     pages: any[];
     renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
     startPage?: number;

@@ -92,12 +92,16 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
             }
             // also, listen for choice text
             const choiceDetector = (async () => {
-                const choiceMessage = (await channel.awaitMessages((m) => {
-                    if ((user && m.author.id !== user.id) || !/^\d+$/.test(m.content))
-                        return false;
-                    const index = Number(m.content);
-                    return index > 0 && index <= selectables.length;
-                }, { max: 1, time: waitTime })).first();
+                const choiceMessage = (await channel.awaitMessages({
+                    max: 1,
+                    time: waitTime,
+                    filter: (m) => {
+                        if ((user && m.author.id !== user.id) || !/^\d+$/.test(m.content))
+                            return false;
+                        const index = Number(m.content);
+                        return index > 0 && index <= selectables.length;
+                    },
+                })).first();
                 if (choiceMessage) {
                     await delMsg(choiceMessage);
                     return Number(choiceMessage.content);

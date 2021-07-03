@@ -1,6 +1,7 @@
 //
 // delayed resolvers
 //
+import { MessageEmbed } from "discord.js";
 /** try to do whatever func wants to do, but delete msg if there's an error */
 export async function bugOut(msg, func) {
     try {
@@ -19,6 +20,16 @@ export async function delMsg(msg) {
         console.log(e);
     }
     return;
+}
+export async function sendMsg(channel, sendable) {
+    let toSend;
+    if (sendable instanceof MessageEmbed)
+        toSend = { embeds: [sendable] };
+    else if (typeof sendable === "string")
+        toSend = { content: sendable };
+    else
+        toSend = sendable;
+    return channel.send(toSend);
 }
 export function boolFilter(arr) {
     return arr.filter(Boolean);

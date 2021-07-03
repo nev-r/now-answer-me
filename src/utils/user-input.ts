@@ -8,6 +8,7 @@ import {
 	AwaitReactionsOptions,
 	EmojiResolvable,
 	Snowflake,
+	AwaitMessagesOptions,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
@@ -35,7 +36,7 @@ export async function promptForText({
 	options: RegExp | string | string[];
 	user?: UserResolvable | UserResolvable[];
 	swallowResponse?: boolean;
-	awaitOptions?: AwaitReactionsOptions;
+	awaitOptions?: AwaitMessagesOptions;
 	promptContent?: string | MessageEmbed;
 }) {
 	// if users exists, force it to be an array of IDs
@@ -62,10 +63,13 @@ export async function promptForText({
 
 	try {
 		const choiceMessage = (
-			await channel.awaitMessages((m: Message) => {
-				if (users && !users.includes(m.author.id)) return false;
-				return optionFilter(m.content);
-			}, awaitOptions)
+			await channel.awaitMessages({
+				filter: (m: Message) => {
+					if (users && !users.includes(m.author.id)) return false;
+					return optionFilter(m.content);
+				},
+				...awaitOptions,
+			})
 		).first();
 
 		if (choiceMessage) {
