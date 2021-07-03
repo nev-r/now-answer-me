@@ -2,7 +2,7 @@ import { MessageEmbed, } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { serialReactions } from "./message-actions.js";
-import { boolFilter, delMsg } from "./misc.js";
+import { boolFilter, delMsg, sendMsg } from "./misc.js";
 import { _consumeReaction_, } from "./reactionHelpers.js";
 import { normalizeID } from "./data-normalization.js";
 /** wip */
@@ -23,7 +23,7 @@ export async function promptForText({ channel, options, user, swallowResponse = 
     if (promptContent) {
         if (typeof promptContent === "string")
             promptContent = new MessageEmbed({ description: promptContent });
-        promptMessage = await channel.send({ embeds: [promptContent] });
+        promptMessage = await sendMsg(channel, promptContent);
     }
     try {
         const choiceMessage = (await channel.awaitMessages({
