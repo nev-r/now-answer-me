@@ -118,7 +118,7 @@ export function ignoreDms(setting = true) {
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token) {
     client
-        .on("message", async (msg) => {
+        .on('messageCreate', async (msg) => {
         var _a;
         // quit if this is the bot's own message
         if (msg.author === client.user)

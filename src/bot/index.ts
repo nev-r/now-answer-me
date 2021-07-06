@@ -156,7 +156,7 @@ export function ignoreDms(setting = true) {
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token: string) {
 	client
-		.on("message", async (msg: Message) => {
+		.on('messageCreate', async (msg: Message) => {
 			// quit if this is the bot's own message
 			if (msg.author === client.user) return;
 			if (ignoredServerIds.has(msg.guild?.id!)) return;
