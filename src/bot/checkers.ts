@@ -69,17 +69,11 @@ export function enforceWellStructuredResponse(response: any) {
 }
 
 export function enforceWellStructuredSlashCommand(command: any) {
-	if (
-		typeof command === "string" ||
-		(Array.isArray(command) && command.every((s) => typeof s === "string"))
-	)
-		return;
-	throw new Error(`bad command submitted:\n${command}`);
+	return;
 }
 
 export function enforceWellStructuredSlashResponse(response: any) {
-	if (typeof response !== "undefined") return;
-	throw new Error(`bad response submitted:\n${response}`);
+	return;
 }
 
 export function enforceWellStructuredTrigger(trigger: any) {
