@@ -2,6 +2,7 @@ import {
 	ApplicationCommandData,
 	Client,
 	CommandInteraction,
+	CommandInteractionOption,
 	MessageEmbed,
 	MessageOptions,
 } from "discord.js";
@@ -373,11 +374,18 @@ async function routeSlashCommand(interaction: CommandInteraction) {
 		let results: Sendable | Message | undefined;
 		if (typeof responseGenerator === "function") {
 			const { guild, channel, user } = interaction;
+			const optionList = [...interaction.options.values()];
+			const optionDict = optionList.reduce<NodeJS.Dict<CommandInteractionOption>>((a, b) => {
+				a[b.name] = b;
+				return a;
+			}, {});
 			results =
 				(await responseGenerator({
 					channel,
 					guild,
 					user,
+					optionList,
+					optionDict,
 				})) || "";
 		} else {
 			results = responseGenerator;

@@ -295,11 +295,18 @@ async function routeSlashCommand(interaction) {
         let results;
         if (typeof responseGenerator === "function") {
             const { guild, channel, user } = interaction;
+            const optionList = [...interaction.options.values()];
+            const optionDict = optionList.reduce((a, b) => {
+                a[b.name] = b;
+                return a;
+            }, {});
             results =
                 (await responseGenerator({
                     channel,
                     guild,
                     user,
+                    optionList,
+                    optionDict,
                 })) || "";
         }
         else {

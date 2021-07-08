@@ -1,4 +1,5 @@
-import { CommandInteraction, Emoji, Message, Snowflake, User } from "discord.js";
+/// <reference types="node" />
+import { CommandInteraction, CommandInteractionOption, Emoji, Message, Snowflake, User } from "discord.js";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 /**
@@ -24,6 +25,8 @@ export interface TriggerParams extends IncitingParams {
 export interface SlashCommandParams extends IncitingParams {
     /** the channel, if any, where this command was triggered */
     channel: CommandInteraction["channel"];
+    optionList: CommandInteractionOption[];
+    optionDict: NodeJS.Dict<CommandInteractionOption>;
 }
 /**
  * basic discord metadata about who and where a command was triggered
