@@ -1,9 +1,9 @@
-import { Client } from "discord.js";
+import { Client, } from "discord.js";
 import { Message } from "discord.js";
 import { makeTrashable } from "../utils/message-actions.js";
-import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWellStructuredTrigger, escapeRegExp, mixedIncludes, meetsConstraints, } from "./checkers.js";
+import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWellStructuredTrigger, escapeRegExp, mixedIncludes, meetsConstraints, enforceWellStructuredSlashCommand, enforceWellStructuredSlashResponse, } from "./checkers.js";
 import { sleep } from "one-stone/promise";
-import { delMsg, sendMsg } from "../utils/misc.js";
+import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 export const startupTimestamp = new Date();
 export const client = new Client({
@@ -118,7 +118,7 @@ export function ignoreDms(setting = true) {
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token) {
     client
-        .on('messageCreate', async (msg) => {
+        .on("messageCreate", async (msg) => {
         var _a;
         // quit if this is the bot's own message
         if (msg.author === client.user)
@@ -131,7 +131,17 @@ export function init(token) {
             return;
         if (messageFilters.some((f) => f(msg) === false))
             return;
-        routeMessage(msg);
+        routeMessageCommand(msg);
+    })
+        .on("interactionCreate", async (interaction) => {
+        if (interaction.isCommand()) {
+            routeSlashCommand(interaction);
+        }
+        else if (interaction.isButton()) {
+            interaction.update({
+                content: (parseFloat(interaction.message.content) + (interaction.customId === "abc" ? -1 : 1)).toString(),
+            });
+        }
     })
         .once("ready", () => {
         startActivityUpkeep();
@@ -181,6 +191,14 @@ export function addCommand(...commands_) {
     });
     commands.push(...commands_);
 }
+const slashCommands = {};
+export function addSlashCommand(...commands_) {
+    commands_.forEach((c) => {
+        enforceWellStructuredSlashCommand(c.command);
+        enforceWellStructuredSlashResponse(c.response);
+        slashCommands[c.command.name] = c;
+    });
+}
 const triggers = [];
 /**
  * either a Sendable, or a function that generates a Sendable.
@@ -194,7 +212,7 @@ export function addTrigger(...triggers_) {
     triggers.push(...triggers_);
 }
 // given a command string, find and run the appropriate function
-async function routeMessage(msg) {
+async function routeMessageCommand(msg) {
     var _a, _b, _c, _d, _e, _f;
     const commandMatch = prefixCheck(msg.content);
     let foundRoute = (commandMatch &&
@@ -237,10 +255,10 @@ async function routeMessage(msg) {
             if (results) {
                 let sentMessage;
                 // if the command already sent and returned a message
-                if (isMessage(results))
+                if (results instanceof Message)
                     sentMessage = results;
                 else {
-                    sentMessage = await sendMsg(msg.channel, results);
+                    sentMessage = await msg.channel.send(sendableToMessageOptions(results));
                 }
                 if (sentMessage) {
                     if (trashable)
@@ -259,9 +277,47 @@ async function routeMessage(msg) {
         }
     }
 }
-function isMessage(response) {
-    return response instanceof Message;
+// given a command string, find and run the appropriate function
+async function routeSlashCommand(interaction) {
+    const slashCommand = slashCommands[interaction.commandName];
+    if (!slashCommand) {
+        console.log(`unrecognized slash command received: ${interaction.commandName}`);
+        return;
+    }
+    let { response: responseGenerator, ephemeral, defer, deferIfLong } = slashCommand;
+    let deferalCountdown;
+    if (defer || deferIfLong) {
+        deferalCountdown = setTimeout(() => {
+            interaction.defer({ ephemeral });
+        }, defer ? 0 : 2300);
+    }
+    try {
+        let results;
+        if (typeof responseGenerator === "function") {
+            const { guild, channel, user } = interaction;
+            results =
+                (await responseGenerator({
+                    channel,
+                    guild,
+                    user,
+                })) || "";
+        }
+        else {
+            results = responseGenerator;
+        }
+        deferalCountdown && clearTimeout(deferalCountdown);
+        if (results && !interaction.replied) {
+            await interaction.reply({ ...sendableToMessageOptions(results), ephemeral });
+        }
+    }
+    catch (e) {
+        await interaction.reply({ content: "⚠", ephemeral: true });
+        console.log(e);
+    }
+    if (!interaction.replied)
+        await interaction.reply({ content: "☑", ephemeral: true });
 }
+// function isMessage(response: any): response is Message {	return response instanceof Message;}
 function getReactionEmojiFromString(str) {
     var _a;
     // string manip

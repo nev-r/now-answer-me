@@ -1,4 +1,4 @@
-import { Emoji, Message, Snowflake, User } from "discord.js";
+import { CommandInteraction, Emoji, Message, Snowflake, User } from "discord.js";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 
@@ -15,13 +15,23 @@ export interface CommandParams extends TriggerParams {
 /**
  * describes the message that triggered a TriggerResponse
  */
-export interface TriggerParams {
+export interface TriggerParams extends IncitingParams {
 	/** the message that triggered this command */
 	msg: Message;
 	/** the text content of the message that triggered this command */
 	content: string;
 	/** the channel where this command was triggered */
 	channel: Message["channel"];
+}
+export interface SlashCommandParams extends IncitingParams {
+	/** the channel, if any, where this command was triggered */
+	channel: CommandInteraction["channel"];
+}
+
+/**
+ * basic discord metadata about who and where a command was triggered
+ */
+export interface IncitingParams {
 	/** the guild where this command was triggered */
 	guild: Message["guild"];
 	/** the user who triggered this command */
@@ -36,6 +46,16 @@ export type CommandResponse =
 	| ((
 			params: CommandParams
 	  ) => Sendable | undefined | void | Promise<Message | Sendable | undefined | void>)
+	| Sendable;
+
+/**
+ * either a Sendable, or a function that generates a Sendable.
+ * if it's a function, it's passed the SlashCommandParams object
+ */
+export type SlashCommandResponse =
+	| ((
+			params: SlashCommandParams
+	  ) => Sendable | undefined | void | Promise<Sendable | undefined | void>)
 	| Sendable;
 
 /**

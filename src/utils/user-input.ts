@@ -14,7 +14,7 @@ import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { serialReactions } from "./message-actions.js";
 import { Sendable } from "../types/types-discord.js";
-import { boolFilter, delMsg, sendMsg } from "./misc.js";
+import { boolFilter, delMsg, sendableToMessageOptions } from "./misc.js";
 import {
 	buildReactionFilter,
 	consumeReaction,
@@ -58,7 +58,7 @@ export async function promptForText({
 	if (promptContent) {
 		if (typeof promptContent === "string")
 			promptContent = new MessageEmbed({ description: promptContent });
-		promptMessage = await sendMsg(channel, promptContent);
+		promptMessage = await channel.send(sendableToMessageOptions(promptContent));
 	}
 
 	try {

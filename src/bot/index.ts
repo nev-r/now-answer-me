@@ -1,4 +1,10 @@
-import { Client, MessageEmbed, MessageOptions } from "discord.js";
+import {
+	ApplicationCommandData,
+	Client,
+	CommandInteraction,
+	MessageEmbed,
+	MessageOptions,
+} from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import type {
@@ -6,6 +12,7 @@ import type {
 	Constraints,
 	Extras,
 	Sendable,
+	SlashCommandResponse,
 	TriggerResponse,
 } from "../types/types-bot.js";
 import { makeTrashable } from "../utils/message-actions.js";
@@ -16,9 +23,11 @@ import {
 	escapeRegExp,
 	mixedIncludes,
 	meetsConstraints,
+	enforceWellStructuredSlashCommand,
+	enforceWellStructuredSlashResponse,
 } from "./checkers.js";
 import { sleep } from "one-stone/promise";
-import { delMsg, sendMsg } from "../utils/misc.js";
+import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 
 export const startupTimestamp = new Date();
@@ -156,7 +165,7 @@ export function ignoreDms(setting = true) {
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token: string) {
 	client
-		.on('messageCreate', async (msg: Message) => {
+		.on("messageCreate", async (msg: Message) => {
 			// quit if this is the bot's own message
 			if (msg.author === client.user) return;
 			if (ignoredServerIds.has(msg.guild?.id!)) return;
@@ -164,7 +173,18 @@ export function init(token: string) {
 			if (doIgnoreDMs && msg.channel.type === "dm") return;
 			if (messageFilters.some((f) => f(msg) === false)) return;
 
-			routeMessage(msg);
+			routeMessageCommand(msg);
+		})
+		.on("interactionCreate", async (interaction) => {
+			if (interaction.isCommand()) {
+				routeSlashCommand(interaction);
+			} else if (interaction.isButton()) {
+				interaction.update({
+					content: (
+						parseFloat(interaction.message.content) + (interaction.customId === "abc" ? -1 : 1)
+					).toString(),
+				});
+			}
 		})
 		.once("ready", () => {
 			startActivityUpkeep();
@@ -223,6 +243,22 @@ export function addCommand(...commands_: typeof commands) {
 	commands.push(...commands_);
 }
 
+const slashCommands: NodeJS.Dict<{
+	command: ApplicationCommandData;
+	response: SlashCommandResponse;
+	ephemeral?: boolean;
+	defer?: boolean;
+	deferIfLong?: boolean;
+}> = {};
+
+export function addSlashCommand(...commands_: NonNullable<typeof slashCommands[string]>[]) {
+	commands_.forEach((c) => {
+		enforceWellStructuredSlashCommand(c.command);
+		enforceWellStructuredSlashResponse(c.response);
+		slashCommands[c.command.name] = c;
+	});
+}
+
 const triggers: ({
 	trigger: RegExp;
 	response: TriggerResponse;
@@ -240,8 +276,9 @@ export function addTrigger(...triggers_: typeof triggers) {
 	});
 	triggers.push(...triggers_);
 }
+
 // given a command string, find and run the appropriate function
-async function routeMessage(msg: Message) {
+async function routeMessageCommand(msg: Message) {
 	const commandMatch = prefixCheck(msg.content);
 	let foundRoute =
 		(commandMatch &&
@@ -293,9 +330,9 @@ async function routeMessage(msg: Message) {
 			if (results) {
 				let sentMessage: Message | undefined;
 				// if the command already sent and returned a message
-				if (isMessage(results)) sentMessage = results;
+				if (results instanceof Message) sentMessage = results;
 				else {
-					sentMessage = await sendMsg(msg.channel, results);
+					sentMessage = await msg.channel.send(sendableToMessageOptions(results));
 				}
 				if (sentMessage) {
 					if (trashable)
@@ -314,9 +351,50 @@ async function routeMessage(msg: Message) {
 	}
 }
 
-function isMessage(response: any): response is Message {
-	return response instanceof Message;
+// given a command string, find and run the appropriate function
+async function routeSlashCommand(interaction: CommandInteraction) {
+	const slashCommand = slashCommands[interaction.commandName];
+	if (!slashCommand) {
+		console.log(`unrecognized slash command received: ${interaction.commandName}`);
+		return;
+	}
+
+	let { response: responseGenerator, ephemeral, defer, deferIfLong } = slashCommand;
+	let deferalCountdown: undefined | NodeJS.Timeout;
+	if (defer || deferIfLong) {
+		deferalCountdown = setTimeout(
+			() => {
+				interaction.defer({ ephemeral });
+			},
+			defer ? 0 : 2300
+		);
+	}
+	try {
+		let results: Sendable | Message | undefined;
+		if (typeof responseGenerator === "function") {
+			const { guild, channel, user } = interaction;
+			results =
+				(await responseGenerator({
+					channel,
+					guild,
+					user,
+				})) || "";
+		} else {
+			results = responseGenerator;
+		}
+		deferalCountdown && clearTimeout(deferalCountdown);
+		if (results && !interaction.replied) {
+			await interaction.reply({ ...sendableToMessageOptions(results), ephemeral });
+		}
+	} catch (e) {
+		await interaction.reply({ content: "⚠", ephemeral: true });
+		console.log(e);
+	}
+	if (!interaction.replied) await interaction.reply({ content: "☑", ephemeral: true });
 }
+
+// function isMessage(response: any): response is Message {	return response instanceof Message;}
+
 function getReactionEmojiFromString(str: string) {
 	// string manip
 	str = str.replace(/\uFE0F|\u20E3/g, "");

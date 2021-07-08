@@ -21,6 +21,7 @@ export async function delMsg(msg) {
     }
     return;
 }
+/** deprecated i guess */
 export async function sendMsg(channel, sendable) {
     let toSend;
     if (sendable instanceof MessageEmbed)
@@ -30,6 +31,14 @@ export async function sendMsg(channel, sendable) {
     else
         toSend = sendable;
     return channel.send(toSend);
+}
+export function sendableToMessageOptions(sendable) {
+    if (sendable instanceof MessageEmbed)
+        return { embeds: [sendable] };
+    else if (typeof sendable === "string")
+        return { content: sendable };
+    else
+        return sendable;
 }
 export function boolFilter(arr) {
     return arr.filter(Boolean);

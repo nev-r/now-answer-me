@@ -68,6 +68,20 @@ export function enforceWellStructuredResponse(response: any) {
 	throw new Error(`bad response submitted:\n${response}`);
 }
 
+export function enforceWellStructuredSlashCommand(command: any) {
+	if (
+		typeof command === "string" ||
+		(Array.isArray(command) && command.every((s) => typeof s === "string"))
+	)
+		return;
+	throw new Error(`bad command submitted:\n${command}`);
+}
+
+export function enforceWellStructuredSlashResponse(response: any) {
+	if (typeof response !== "undefined") return;
+	throw new Error(`bad response submitted:\n${response}`);
+}
+
 export function enforceWellStructuredTrigger(trigger: any) {
 	if (trigger instanceof RegExp) return;
 	throw new Error(`bad trigger submitted:\n${trigger}`);

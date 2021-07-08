@@ -4,5 +4,7 @@ export declare function meetsConstraints(msg: Message, { allowChannel, allowGuil
 export declare function escapeRegExp(string: string): string;
 export declare function enforceWellStructuredCommand(command: any): void;
 export declare function enforceWellStructuredResponse(response: any): void;
+export declare function enforceWellStructuredSlashCommand(command: any): void;
+export declare function enforceWellStructuredSlashResponse(response: any): void;
 export declare function enforceWellStructuredTrigger(trigger: any): void;
 export declare function mixedIncludes(haystack: string | string[], needle: string): boolean;

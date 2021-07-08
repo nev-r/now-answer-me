@@ -4,7 +4,7 @@
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { normalizeID } from "./data-normalization.js";
-import { sendMsg } from "./misc.js";
+import { sendableToMessageOptions } from "./misc.js";
 export async function buildEmojiDictUsingClient(client, guilds) {
     var _a;
     guilds = Array.isArray(guilds) ? guilds : [guilds];
@@ -97,6 +97,7 @@ export function announceToChannels(client, message, channelIds) {
     return arrayify(channelIds).map((channelId) => {
         const channel = client.channels.cache.get(channelId);
         return (((channel === null || channel === void 0 ? void 0 : channel.type) === "dm" || (channel === null || channel === void 0 ? void 0 : channel.type) === "text") &&
-            sendMsg(channel, message));
+            channel.isText() &&
+            channel.send(sendableToMessageOptions(message)));
     });
 }
