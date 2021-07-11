@@ -23,6 +23,8 @@ export let clientReady = new Promise((resolve) => {
 });
 // whether the client has completed its first connection
 let hasConnected = false;
+// whether the client has completed its onConnects
+let performReconnects = false;
 //
 // bot functionality stuff
 //
@@ -144,6 +146,7 @@ export function init(token) {
         }
     })
         .once("ready", () => {
+        hasConnected = true;
         startActivityUpkeep();
         while (needRegistering.length) {
             const nameToRegister = needRegistering.pop();
@@ -157,12 +160,12 @@ export function init(token) {
         onConnects.forEach((fnc) => fnc(client));
         // set `clientReady` in 1s, so reconnect events don't fire the first time
         setTimeout(() => {
-            hasConnected = true;
+            performReconnects = true;
         }, 1000);
         _clientReadyResolve(client);
     })
         .on("ready", () => {
-        hasConnected && onReconnects.forEach((fnc) => fnc(client));
+        performReconnects && onReconnects.forEach((fnc) => fnc(client));
     })
         .login(token);
     return clientReady;
