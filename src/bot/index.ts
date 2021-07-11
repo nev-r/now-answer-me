@@ -3,8 +3,7 @@ import {
 	Client,
 	CommandInteraction,
 	CommandInteractionOption,
-	MessageEmbed,
-	MessageOptions,
+	GuildResolvable,
 } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
@@ -24,12 +23,11 @@ import {
 	escapeRegExp,
 	mixedIncludes,
 	meetsConstraints,
-	enforceWellStructuredSlashCommand,
-	enforceWellStructuredSlashResponse,
 } from "./checkers.js";
 import { sleep } from "one-stone/promise";
 import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
+import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
 
 export const startupTimestamp = new Date();
 export const client = new Client({
@@ -244,20 +242,31 @@ export function addCommand(...commands_: typeof commands) {
 	commands.push(...commands_);
 }
 
-const slashCommands: NodeJS.Dict<{
-	command: ApplicationCommandData;
-	response: SlashCommandResponse;
+const slashCommands: Record<
+	string,
+	{
+		config: StrictCommand;
+		handler: SlashCommandResponse<any>;
+		ephemeral?: boolean;
+		defer?: boolean;
+		deferIfLong?: boolean;
+	}
+> = {};
+
+export function addSlashCommand<
+	Config extends StrictCommand // Command<VagueOption>
+>(command: {
+	where: "global" | GuildResolvable;
+	config: Config;
+	handler: SlashCommandResponse<CommandOptions<Config>>;
 	ephemeral?: boolean;
 	defer?: boolean;
 	deferIfLong?: boolean;
-}> = {};
-
-export function addSlashCommand(...commands_: NonNullable<typeof slashCommands[string]>[]) {
-	commands_.forEach((c) => {
-		enforceWellStructuredSlashCommand(c.command);
-		enforceWellStructuredSlashResponse(c.response);
-		slashCommands[c.command.name] = c;
-	});
+}) {
+	if (hasConnected) {
+		registerSlashCommand(command.where, command.config);
+	}
+	slashCommands[command.config.name] = command;
 }
 
 const triggers: ({
@@ -360,7 +369,7 @@ async function routeSlashCommand(interaction: CommandInteraction) {
 		return;
 	}
 
-	let { response: responseGenerator, ephemeral, defer, deferIfLong } = slashCommand;
+	let { handler, ephemeral, defer, deferIfLong } = slashCommand;
 	let deferalCountdown: undefined | NodeJS.Timeout;
 	if (defer || deferIfLong) {
 		deferalCountdown = setTimeout(
@@ -372,15 +381,22 @@ async function routeSlashCommand(interaction: CommandInteraction) {
 	}
 	try {
 		let results: Sendable | Message | undefined;
-		if (typeof responseGenerator === "function") {
+		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
-			const optionList = [...interaction.options.values()];
-			const optionDict = optionList.reduce<NodeJS.Dict<CommandInteractionOption>>((a, b) => {
-				a[b.name] = b;
-				return a;
-			}, {});
+			const optionList = [
+				...interaction.options.map(
+					(o) => [o.name, o.value] as [string, CommandInteractionOption["value"]]
+				),
+			];
+			const optionDict = optionList.reduce<NodeJS.Dict<CommandInteractionOption["value"]>>(
+				(a, [optionName, optionValue]) => {
+					a[optionName] = optionValue;
+					return a;
+				},
+				{}
+			);
 			results =
-				(await responseGenerator({
+				(await handler({
 					channel,
 					guild,
 					user,
@@ -388,7 +404,7 @@ async function routeSlashCommand(interaction: CommandInteraction) {
 					optionDict,
 				})) || "";
 		} else {
-			results = responseGenerator;
+			results = handler;
 		}
 		deferalCountdown && clearTimeout(deferalCountdown);
 		if (results && !interaction.replied) {
@@ -400,8 +416,6 @@ async function routeSlashCommand(interaction: CommandInteraction) {
 	}
 	if (!interaction.replied) await interaction.reply({ content: "☑", ephemeral: true });
 }
-
-// function isMessage(response: any): response is Message {	return response instanceof Message;}
 
 function getReactionEmojiFromString(str: string) {
 	// string manip
@@ -417,4 +431,14 @@ function getReactionEmojiFromString(str: string) {
 	// try resolving
 	const resolved = client.emojis.resolve(str as `${bigint}`);
 	if (resolved) return resolved.id;
+}
+
+async function registerSlashCommand(where: "global" | GuildResolvable, config: StrictCommand) {
+	await clientReady;
+	const commandLocation = where === "global" ? client.application : client.guilds.resolve(where);
+	if (!commandLocation) throw `couldn't resolve ${where} to a guild`;
+	// commandLocation.commands.cache('')
+	console.log("pretending to register a command named", config.name);
+	console.log("here:", commandLocation);
+	console.log("command count:", commandLocation.commands.cache.size);
 }

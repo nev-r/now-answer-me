@@ -1,8 +1,8 @@
-/// <reference types="node" />
-import { ApplicationCommandData, Client } from "discord.js";
+import { Client, GuildResolvable } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import type { CommandResponse, Constraints, Extras, SlashCommandResponse, TriggerResponse } from "../types/types-bot.js";
+import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
 export declare const startupTimestamp: Date;
 export declare const client: Client;
 /** resolves when the client has connected */
@@ -61,14 +61,14 @@ declare const commands: ({
  * if it's a function, it's passed the TriggerParams object
  */
 export declare function addCommand(...commands_: typeof commands): void;
-declare const slashCommands: NodeJS.Dict<{
-    command: ApplicationCommandData;
-    response: SlashCommandResponse;
+export declare function addSlashCommand<Config extends StrictCommand>(command: {
+    where: "global" | GuildResolvable;
+    config: Config;
+    handler: SlashCommandResponse<CommandOptions<Config>>;
     ephemeral?: boolean;
     defer?: boolean;
     deferIfLong?: boolean;
-}>;
-export declare function addSlashCommand(...commands_: NonNullable<typeof slashCommands[string]>[]): void;
+}): void;
 declare const triggers: ({
     trigger: RegExp;
     response: TriggerResponse;

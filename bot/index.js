@@ -1,7 +1,7 @@
 import { Client, } from "discord.js";
 import { Message } from "discord.js";
 import { makeTrashable } from "../utils/message-actions.js";
-import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWellStructuredTrigger, escapeRegExp, mixedIncludes, meetsConstraints, enforceWellStructuredSlashCommand, enforceWellStructuredSlashResponse, } from "./checkers.js";
+import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWellStructuredTrigger, escapeRegExp, mixedIncludes, meetsConstraints, } from "./checkers.js";
 import { sleep } from "one-stone/promise";
 import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
@@ -192,12 +192,11 @@ export function addCommand(...commands_) {
     commands.push(...commands_);
 }
 const slashCommands = {};
-export function addSlashCommand(...commands_) {
-    commands_.forEach((c) => {
-        enforceWellStructuredSlashCommand(c.command);
-        enforceWellStructuredSlashResponse(c.response);
-        slashCommands[c.command.name] = c;
-    });
+export function addSlashCommand(command) {
+    if (hasConnected) {
+        registerSlashCommand(command.where, command.config);
+    }
+    slashCommands[command.config.name] = command;
 }
 const triggers = [];
 /**
@@ -284,7 +283,7 @@ async function routeSlashCommand(interaction) {
         console.log(`unrecognized slash command received: ${interaction.commandName}`);
         return;
     }
-    let { response: responseGenerator, ephemeral, defer, deferIfLong } = slashCommand;
+    let { handler, ephemeral, defer, deferIfLong } = slashCommand;
     let deferalCountdown;
     if (defer || deferIfLong) {
         deferalCountdown = setTimeout(() => {
@@ -293,15 +292,17 @@ async function routeSlashCommand(interaction) {
     }
     try {
         let results;
-        if (typeof responseGenerator === "function") {
+        if (typeof handler === "function") {
             const { guild, channel, user } = interaction;
-            const optionList = [...interaction.options.values()];
-            const optionDict = optionList.reduce((a, b) => {
-                a[b.name] = b;
+            const optionList = [
+                ...interaction.options.map((o) => [o.name, o.value]),
+            ];
+            const optionDict = optionList.reduce((a, [optionName, optionValue]) => {
+                a[optionName] = optionValue;
                 return a;
             }, {});
             results =
-                (await responseGenerator({
+                (await handler({
                     channel,
                     guild,
                     user,
@@ -310,7 +311,7 @@ async function routeSlashCommand(interaction) {
                 })) || "";
         }
         else {
-            results = responseGenerator;
+            results = handler;
         }
         deferalCountdown && clearTimeout(deferalCountdown);
         if (results && !interaction.replied) {
@@ -324,7 +325,6 @@ async function routeSlashCommand(interaction) {
     if (!interaction.replied)
         await interaction.reply({ content: "☑", ephemeral: true });
 }
-// function isMessage(response: any): response is Message {	return response instanceof Message;}
 function getReactionEmojiFromString(str) {
     var _a;
     // string manip
@@ -342,4 +342,14 @@ function getReactionEmojiFromString(str) {
     const resolved = client.emojis.resolve(str);
     if (resolved)
         return resolved.id;
+}
+async function registerSlashCommand(where, config) {
+    await clientReady;
+    const commandLocation = where === "global" ? client.application : client.guilds.resolve(where);
+    if (!commandLocation)
+        throw `couldn't resolve ${where} to a guild`;
+    // commandLocation.commands.cache('')
+    console.log("pretending to register a command named", config.name);
+    console.log("here:", commandLocation);
+    console.log("command count:", commandLocation.commands.cache.size);
 }

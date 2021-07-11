@@ -30,11 +30,15 @@ export interface TriggerParams extends IncitingParams {
 	/** the channel where this command was triggered */
 	channel: Message["channel"];
 }
-export interface SlashCommandParams extends IncitingParams {
+
+export interface SlashCommandParams<
+	// SelectedOptions extends Record<string, CommandInteractionOption["value"]>
+	SelectedOptions extends any
+> extends IncitingParams {
 	/** the channel, if any, where this command was triggered */
 	channel: CommandInteraction["channel"];
-	optionList: CommandInteractionOption[];
-	optionDict: NodeJS.Dict<CommandInteractionOption>;
+	optionList: [keyof SelectedOptions, CommandInteractionOption["value"]][];
+	optionDict: SelectedOptions;
 }
 
 /**
@@ -61,9 +65,12 @@ export type CommandResponse =
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the SlashCommandParams object
  */
-export type SlashCommandResponse =
+export type SlashCommandResponse<
+	SelectedOptions extends any
+	// SelectedOptions extends Record<string, CommandInteractionOption["value"]>
+> =
 	| ((
-			params: SlashCommandParams
+			params: SlashCommandParams<SelectedOptions>
 	  ) => Sendable | undefined | void | Promise<Sendable | undefined | void>)
 	| Sendable;
 

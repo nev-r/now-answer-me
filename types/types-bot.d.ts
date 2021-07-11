@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { CommandInteraction, CommandInteractionOption, Emoji, Message, Snowflake, User } from "discord.js";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
@@ -22,11 +21,11 @@ export interface TriggerParams extends IncitingParams {
     /** the channel where this command was triggered */
     channel: Message["channel"];
 }
-export interface SlashCommandParams extends IncitingParams {
+export interface SlashCommandParams<SelectedOptions extends any> extends IncitingParams {
     /** the channel, if any, where this command was triggered */
     channel: CommandInteraction["channel"];
-    optionList: CommandInteractionOption[];
-    optionDict: NodeJS.Dict<CommandInteractionOption>;
+    optionList: [keyof SelectedOptions, CommandInteractionOption["value"]][];
+    optionDict: SelectedOptions;
 }
 /**
  * basic discord metadata about who and where a command was triggered
@@ -46,7 +45,7 @@ export declare type CommandResponse = ((params: CommandParams) => Sendable | und
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the SlashCommandParams object
  */
-export declare type SlashCommandResponse = ((params: SlashCommandParams) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
+export declare type SlashCommandResponse<SelectedOptions extends any> = ((params: SlashCommandParams<SelectedOptions>) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
 /**
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
