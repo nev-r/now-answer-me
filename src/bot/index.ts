@@ -3,7 +3,11 @@ import {
 	Client,
 	CommandInteraction,
 	CommandInteractionOption,
+	GuildChannel,
+	GuildMember,
 	GuildResolvable,
+	Role,
+	User,
 } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
@@ -383,18 +387,14 @@ async function routeSlashCommand(interaction: CommandInteraction) {
 		let results: Sendable | Message | undefined;
 		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
-			const optionList = [
-				...interaction.options.map(
-					(o) => [o.name, o.value] as [string, CommandInteractionOption["value"]]
-				),
-			];
-			const optionDict = optionList.reduce<NodeJS.Dict<CommandInteractionOption["value"]>>(
-				(a, [optionName, optionValue]) => {
-					a[optionName] = optionValue;
-					return a;
-				},
-				{}
-			);
+			const optionDict = createDictFromOptions([...interaction.options.values()]);
+			const optionList = Object.entries(optionDict);
+			// const optionList = [
+			// 	...interaction.options.map(
+			// 		(o) => [o.name, o.value] as [string, CommandInteractionOption["value"]]
+			// 	),
+			// ];
+
 			results =
 				(await handler({
 					channel,
@@ -441,4 +441,37 @@ async function registerSlashCommand(where: "global" | GuildResolvable, config: S
 	console.log("pretending to register a command named", config.name);
 	console.log("here:", commandLocation);
 	console.log("command count:", commandLocation.commands.cache.size);
+}
+
+function createDictFromOptions(
+	options: CommandInteractionOption[],
+	dict: Record<
+		string,
+		| string
+		| number
+		| boolean
+		| CommandInteractionOption["user"]
+		| CommandInteractionOption["member"]
+		| CommandInteractionOption["role"]
+		| CommandInteractionOption["channel"]
+		| undefined
+	> = {}
+) {
+	for (const opt of options) {
+		if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP")
+			createDictFromOptions(opt.options ? [...opt.options.values()] : []);
+		else {
+			dict[opt.name] =
+				opt.type === "CHANNEL"
+					? opt.channel
+					: opt.type === "USER"
+					? opt.member ?? opt.user
+					: opt.type === "ROLE"
+					? opt.role
+					: opt.type === "MENTIONABLE"
+					? undefined
+					: opt.value;
+		}
+	}
+	return dict;
 }

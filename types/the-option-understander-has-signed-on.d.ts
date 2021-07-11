@@ -40,10 +40,7 @@ declare type TypeByIdentifier<Identifier, Option, Choices> = Identifier extends 
     value: string;
 }[] ? Choices[number]["value"] : string : Identifier extends "INTEGER" ? Choices extends readonly {
     value: number;
-}[] ? Choices[number]["value"] : number : Identifier extends "BOOLEAN" ? boolean : Identifier extends "USER" ? {
-    user: User;
-    member?: GuildMember;
-} : Identifier extends "CHANNEL" ? GuildChannel : Identifier extends "ROLE" ? Role : never;
+}[] ? Choices[number]["value"] : number : Identifier extends "BOOLEAN" ? boolean : Identifier extends "USER" ? User | GuildMember : Identifier extends "CHANNEL" ? GuildChannel : Identifier extends "ROLE" ? Role : never;
 declare type OptionAsDict<Option> = Option extends {
     name: infer Name;
     type: infer Identifier;

@@ -37,7 +37,7 @@ export interface SlashCommandParams<
 > extends IncitingParams {
 	/** the channel, if any, where this command was triggered */
 	channel: CommandInteraction["channel"];
-	optionList: [keyof SelectedOptions, CommandInteractionOption["value"]][];
+	optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
 	optionDict: SelectedOptions;
 }
 

@@ -1,4 +1,4 @@
-import { CommandInteraction, CommandInteractionOption, Emoji, Message, Snowflake, User } from "discord.js";
+import { CommandInteraction, Emoji, Message, Snowflake, User } from "discord.js";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 /**
@@ -24,7 +24,7 @@ export interface TriggerParams extends IncitingParams {
 export interface SlashCommandParams<SelectedOptions extends any> extends IncitingParams {
     /** the channel, if any, where this command was triggered */
     channel: CommandInteraction["channel"];
-    optionList: [keyof SelectedOptions, CommandInteractionOption["value"]][];
+    optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
     optionDict: SelectedOptions;
 }
 /**

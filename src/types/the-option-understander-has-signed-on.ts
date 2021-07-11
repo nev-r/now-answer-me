@@ -97,7 +97,7 @@ type TypeByIdentifier<Identifier, Option, Choices> = Identifier extends "SUB_COM
 	: Identifier extends "BOOLEAN"
 	? boolean
 	: Identifier extends "USER"
-	? { user: User; member?: GuildMember }
+	? User | GuildMember
 	: Identifier extends "CHANNEL"
 	? GuildChannel
 	: Identifier extends "ROLE"

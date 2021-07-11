@@ -294,13 +294,13 @@ async function routeSlashCommand(interaction) {
         let results;
         if (typeof handler === "function") {
             const { guild, channel, user } = interaction;
-            const optionList = [
-                ...interaction.options.map((o) => [o.name, o.value]),
-            ];
-            const optionDict = optionList.reduce((a, [optionName, optionValue]) => {
-                a[optionName] = optionValue;
-                return a;
-            }, {});
+            const optionDict = createDictFromOptions([...interaction.options.values()]);
+            const optionList = Object.entries(optionDict);
+            // const optionList = [
+            // 	...interaction.options.map(
+            // 		(o) => [o.name, o.value] as [string, CommandInteractionOption["value"]]
+            // 	),
+            // ];
             results =
                 (await handler({
                     channel,
@@ -352,4 +352,24 @@ async function registerSlashCommand(where, config) {
     console.log("pretending to register a command named", config.name);
     console.log("here:", commandLocation);
     console.log("command count:", commandLocation.commands.cache.size);
+}
+function createDictFromOptions(options, dict = {}) {
+    var _a;
+    for (const opt of options) {
+        if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP")
+            createDictFromOptions(opt.options ? [...opt.options.values()] : []);
+        else {
+            dict[opt.name] =
+                opt.type === "CHANNEL"
+                    ? opt.channel
+                    : opt.type === "USER"
+                        ? (_a = opt.member) !== null && _a !== void 0 ? _a : opt.user
+                        : opt.type === "ROLE"
+                            ? opt.role
+                            : opt.type === "MENTIONABLE"
+                                ? undefined
+                                : opt.value;
+        }
+    }
+    return dict;
 }
