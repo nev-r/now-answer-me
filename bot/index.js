@@ -206,7 +206,8 @@ export function addSlashCommand(command) {
     if (hasConnected)
         registerSlashCommand(command.where, command.config);
     else
-        slashCommands[command.config.name] = command;
+        needRegistering.push(command.config.name);
+    slashCommands[command.config.name] = command;
 }
 const triggers = [];
 /**

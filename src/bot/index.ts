@@ -281,7 +281,8 @@ export function addSlashCommand<
 	deferIfLong?: boolean;
 }) {
 	if (hasConnected) registerSlashCommand(command.where, command.config);
-	else slashCommands[command.config.name] = command;
+	else needRegistering.push(command.config.name);
+	slashCommands[command.config.name] = command;
 }
 
 const triggers: ({
