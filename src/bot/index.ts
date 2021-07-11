@@ -191,6 +191,17 @@ export function init(token: string) {
 		})
 		.once("ready", () => {
 			startActivityUpkeep();
+
+			while (needRegistering.length) {
+				const nameToRegister = needRegistering.pop();
+				if (nameToRegister) {
+					const toRegister = slashCommands[nameToRegister];
+					if (toRegister) {
+						registerSlashCommand(toRegister.where, toRegister.config);
+					}
+				}
+			}
+
 			onConnects.forEach((fnc) => fnc(client));
 
 			// set `clientReady` in 1s, so reconnect events don't fire the first time
@@ -249,6 +260,7 @@ export function addCommand(...commands_: typeof commands) {
 const slashCommands: Record<
 	string,
 	{
+		where: "global" | GuildResolvable;
 		config: StrictCommand;
 		handler: SlashCommandResponse<any>;
 		ephemeral?: boolean;
@@ -256,6 +268,7 @@ const slashCommands: Record<
 		deferIfLong?: boolean;
 	}
 > = {};
+const needRegistering: string[] = [];
 
 export function addSlashCommand<
 	Config extends StrictCommand // Command<VagueOption>
@@ -267,10 +280,8 @@ export function addSlashCommand<
 	defer?: boolean;
 	deferIfLong?: boolean;
 }) {
-	if (hasConnected) {
-		registerSlashCommand(command.where, command.config);
-	}
-	slashCommands[command.config.name] = command;
+	if (hasConnected) registerSlashCommand(command.where, command.config);
+	else slashCommands[command.config.name] = command;
 }
 
 const triggers: ({

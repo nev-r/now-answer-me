@@ -145,6 +145,15 @@ export function init(token) {
     })
         .once("ready", () => {
         startActivityUpkeep();
+        while (needRegistering.length) {
+            const nameToRegister = needRegistering.pop();
+            if (nameToRegister) {
+                const toRegister = slashCommands[nameToRegister];
+                if (toRegister) {
+                    registerSlashCommand(toRegister.where, toRegister.config);
+                }
+            }
+        }
         onConnects.forEach((fnc) => fnc(client));
         // set `clientReady` in 1s, so reconnect events don't fire the first time
         setTimeout(() => {
@@ -192,11 +201,12 @@ export function addCommand(...commands_) {
     commands.push(...commands_);
 }
 const slashCommands = {};
+const needRegistering = [];
 export function addSlashCommand(command) {
-    if (hasConnected) {
+    if (hasConnected)
         registerSlashCommand(command.where, command.config);
-    }
-    slashCommands[command.config.name] = command;
+    else
+        slashCommands[command.config.name] = command;
 }
 const triggers = [];
 /**
