@@ -191,7 +191,7 @@ export function init(token: string) {
 				});
 			}
 		})
-		.once("ready", () => {
+		.once("ready", async () => {
 			hasConnected = true;
 			startActivityUpkeep();
 
@@ -200,7 +200,7 @@ export function init(token: string) {
 				if (nameToRegister) {
 					const toRegister = slashCommands[nameToRegister];
 					if (toRegister) {
-						registerSlashCommand(toRegister.where, toRegister.config);
+						await registerSlashCommand(toRegister.where, toRegister.config);
 					}
 				}
 			}
@@ -452,10 +452,11 @@ async function registerSlashCommand(where: "global" | GuildResolvable, config: S
 	await clientReady;
 	const commandLocation = where === "global" ? client.application : client.guilds.resolve(where);
 	if (!commandLocation) throw `couldn't resolve ${where} to a guild`;
-	// commandLocation.commands.cache('')
+	if (!commandLocation.commands.cache.size) await commandLocation.commands.fetch();
 	console.log("pretending to register a command named", config.name);
-	console.log("here:", commandLocation);
-	console.log("command count:", commandLocation.commands.cache.size);
+	console.log("here:", commandLocation.name);
+	console.log("current command count:", commandLocation.commands.cache.size);
+	console.log("current commands:", [...commandLocation.commands.cache.values()].map(c=>c.name));
 }
 
 function createDictFromOptions(
