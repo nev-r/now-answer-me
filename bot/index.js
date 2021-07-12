@@ -139,10 +139,13 @@ export function init(token) {
         if (interaction.isCommand()) {
             routeSlashCommand(interaction);
         }
-        else if (interaction.isButton()) {
-            interaction.update({
-                content: (parseFloat(interaction.message.content) + (interaction.customId === "abc" ? -1 : 1)).toString(),
-            });
+        else if (interaction.isMessageComponent()) {
+            routeComponentInteraction(interaction);
+            // interaction.update({
+            // 	content: (
+            // 		parseFloat(interaction.message.content) + (interaction.customId === "abc" ? -1 : 1)
+            // 	).toString(),
+            // });
         }
     })
         .once("ready", async () => {
@@ -318,11 +321,6 @@ async function routeSlashCommand(interaction) {
             const { guild, channel, user } = interaction;
             const optionDict = createDictFromOptions([...interaction.options.values()]);
             const optionList = Object.entries(optionDict);
-            // const optionList = [
-            // 	...interaction.options.map(
-            // 		(o) => [o.name, o.value] as [string, CommandInteractionOption["value"]]
-            // 	),
-            // ];
             results =
                 (await handler({
                     channel,
@@ -346,6 +344,15 @@ async function routeSlashCommand(interaction) {
     }
     if (!interaction.replied)
         await interaction.reply({ content: "☑", ephemeral: true });
+}
+// given a command string, find and run the appropriate function
+async function routeComponentInteraction(interaction) {
+    if (interaction.isButton()) {
+        interaction.deferUpdate();
+    }
+    else if (interaction.isSelectMenu()) {
+        interaction.deferUpdate();
+    }
 }
 function getReactionEmojiFromString(str) {
     var _a;
@@ -379,15 +386,16 @@ async function registerSlashCommands(where, config) {
         const matchingConfig = cache.find((c) => {
             return c.name === conf.name && configDoesMatch(c, conf);
         });
+        console.log("need to register this:");
+        console.log(conf);
         if (matchingConfig) {
-            console.log("nothing matched this:");
-            console.log(conf);
-            console.log(matchingConfig);
+            console.log("it command already exists:");
+            console.log({ ...matchingConfig, guild: undefined, permissions: undefined });
             continue;
         }
         else {
-            console.log("nothing matched this:");
-            console.log(conf);
+            console.log("and nothing matched it");
+            await destination.commands.create(conf);
         }
     }
 }
