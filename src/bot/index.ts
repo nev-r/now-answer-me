@@ -32,6 +32,7 @@ import { sleep } from "one-stone/promise";
 import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
+import { escMarkdown } from "one-stone/string";
 
 export const startupTimestamp = new Date();
 export const client = new Client({
@@ -448,8 +449,19 @@ async function routeSlashCommand(interaction: CommandInteraction) {
 async function routeComponentInteraction(interaction: MessageComponentInteraction) {
 	if (interaction.isButton()) {
 		interaction.deferUpdate();
+		interaction.reply({
+			ephemeral: true,
+			content: `component interaction received :)
+id: ${interaction.customId}`,
+		});
 	} else if (interaction.isSelectMenu()) {
 		interaction.deferUpdate();
+		interaction.reply({
+			ephemeral: true,
+			content: `component interaction received :)
+id: ${interaction.customId}
+values submitted: ${interaction.values.map((v) => `${escMarkdown(v)}`).join(" ")}`,
+		});
 	}
 }
 
@@ -481,22 +493,16 @@ async function registerSlashCommands(
 	if (!destination.commands.cache.size) await destination.commands.fetch();
 	const cache = [...destination.commands.cache.values()];
 
-	// console.log(`registering to ${destination.name}. commands:\n${configs.map(c=>c.name)}`);
-
 	for (const conf of configs.map(standardizeConfig)) {
 		const matchingConfig = cache.find((c) => {
 			return c.name === conf.name && configDoesMatch(c, conf);
 		});
-		console.log("need to register this:");
-		console.log(conf);
-		if (matchingConfig) {
-			console.log("it command already exists:");
-			console.log({ ...matchingConfig, guild: undefined, permissions: undefined });
-			continue;
-		} else {
-			console.log("and nothing matched it");
-			await destination.commands.create(conf);
-		}
+		console.log(
+			`registering ${conf.name}: ${
+				matchingConfig ? "already exists" : (await destination.commands.create(conf)) && "done!"
+			}`
+		);
+		// console.log({ ...matchingConfig, guild: undefined, permissions: undefined });
 	}
 }
 type ApplicationCommandDataNoEnums = Pick<
