@@ -1,5 +1,9 @@
 import {
+	ApplicationCommand,
 	ApplicationCommandData,
+	ApplicationCommandOption,
+	ApplicationCommandOptionChoice,
+	ApplicationCommandOptionData,
 	Client,
 	CommandInteraction,
 	CommandInteractionOption,
@@ -32,6 +36,7 @@ import { sleep } from "one-stone/promise";
 import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
+import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
 
 export const startupTimestamp = new Date();
 export const client = new Client({
@@ -200,7 +205,7 @@ export function init(token: string) {
 				if (nameToRegister) {
 					const toRegister = slashCommands[nameToRegister];
 					if (toRegister) {
-						await registerSlashCommand(toRegister.where, toRegister.config);
+						await registerSlashCommands(toRegister.where, [toRegister.config]);
 					}
 				}
 			}
@@ -264,7 +269,7 @@ const slashCommands: Record<
 	string,
 	{
 		where: "global" | GuildResolvable;
-		config: StrictCommand;
+		config: ApplicationCommandDataNoEnums;
 		handler: SlashCommandResponse<any>;
 		ephemeral?: boolean;
 		defer?: boolean;
@@ -275,7 +280,14 @@ const needRegistering: string[] = [];
 
 export function addSlashCommand<
 	Config extends StrictCommand // Command<VagueOption>
->(command: {
+>({
+	where,
+	config,
+	handler,
+	ephemeral,
+	defer,
+	deferIfLong,
+}: {
 	where: "global" | GuildResolvable;
 	config: Config;
 	handler: SlashCommandResponse<CommandOptions<Config>>;
@@ -283,9 +295,17 @@ export function addSlashCommand<
 	defer?: boolean;
 	deferIfLong?: boolean;
 }) {
-	if (hasConnected) registerSlashCommand(command.where, command.config);
-	else needRegistering.push(command.config.name);
-	slashCommands[command.config.name] = command;
+	const standardConfig = standardizeConfig(config);
+	if (hasConnected) registerSlashCommands(where, [standardConfig]);
+	else needRegistering.push(config.name);
+	slashCommands[config.name] = {
+		where,
+		config: standardConfig,
+		handler,
+		ephemeral,
+		defer,
+		deferIfLong,
+	};
 }
 
 const triggers: ({
@@ -448,16 +468,121 @@ function getReactionEmojiFromString(str: string) {
 	if (resolved) return resolved.id;
 }
 
-async function registerSlashCommand(where: "global" | GuildResolvable, config: StrictCommand) {
+async function registerSlashCommands(
+	where: "global" | GuildResolvable,
+	config: ApplicationCommandDataNoEnums[]
+) {
+	const configs = arrayify(config);
 	await clientReady;
-	const commandLocation = where === "global" ? client.application : client.guilds.resolve(where);
-	if (!commandLocation) throw `couldn't resolve ${where} to a guild`;
-	if (!commandLocation.commands.cache.size) await commandLocation.commands.fetch();
-	console.log("pretending to register a command named", config.name);
-	console.log("here:", commandLocation.name);
-	console.log("current command count:", commandLocation.commands.cache.size);
-	console.log("current commands:", [...commandLocation.commands.cache.values()].map(c=>c.name));
+	const destination = where === "global" ? client.application : client.guilds.resolve(where);
+	if (!destination) throw `couldn't resolve ${where} to a guild`;
+
+	if (!destination.commands.cache.size) await destination.commands.fetch();
+	const cache = [...destination.commands.cache.values()];
+
+	// console.log(`registering to ${destination.name}. commands:\n${configs.map(c=>c.name)}`);
+	for (const conf of configs.map(standardizeConfig)) {
+		const matchingConfig = cache.find((c) => {
+			return c.name === conf.name && configDoesMatch(c, conf);
+		});
+		if (matchingConfig) {
+			console.log("nothing matched this:");
+			console.log(conf);
+			console.log(matchingConfig);
+			continue;}
+		else {
+			console.log("nothing matched this:");
+			console.log(conf);
+		}
+	}
 }
+type ApplicationCommandDataNoEnums = Pick<
+	ApplicationCommandData,
+	"defaultPermission" | "description" | "name"
+> & { options?: ApplicationCommandOption[] };
+
+function configDoesMatch(
+	conf1: ApplicationCommandDataNoEnums,
+	conf2: ApplicationCommandDataNoEnums
+) {
+	return (
+		conf1.name === conf2.name &&
+		conf1.description === conf2.description &&
+		conf1.defaultPermission === conf2.defaultPermission &&
+		allOptionsDoMatch(conf1.options, conf2.options)
+	);
+}
+
+function allOptionsDoMatch(
+	options1?: ApplicationCommandOption[],
+	options2?: ApplicationCommandOption[]
+) {
+	return Boolean(
+		options1 === options2 ||
+			(options1 &&
+				options2 &&
+				[...options1.keys()].every((k) => optionDoesMatch(options1[k], options2[k])))
+	);
+}
+
+function optionDoesMatch(
+	option1: ApplicationCommandOption,
+	option2: ApplicationCommandOption
+): boolean {
+	return (
+		option1.name === option2.name &&
+		option1.description === option2.description &&
+		option1.required === option2.required &&
+		option1.type === option2.type &&
+		(option1.options === option2.options ||
+			(!option1.options?.length && !option2.options?.length) ||
+			allOptionsDoMatch(option1.options ?? [], option2.options ?? []))
+	);
+}
+
+function standardizeConfig({
+	name,
+	description,
+	defaultPermission = true,
+	options = [],
+}: StrictCommand | ApplicationCommandData): ApplicationCommandDataNoEnums {
+	return { name, description, defaultPermission, options: options.map(standardizeOption) };
+}
+
+function standardizeOption<
+	D extends NonNullable<StrictCommand["options"]>[number] | ApplicationCommandOptionData
+>({
+	type,
+	name,
+	description,
+	required,
+	choices, //
+	options,
+}: D): ApplicationCommandOption {
+	type =
+		typeof type === "string"
+			? type
+			: (ApplicationCommandOptionTypes[type] as ApplicationCommandOption["type"]);
+	return {
+		type,
+		name,
+		description,
+		required,
+		choices: choices as ApplicationCommandOptionChoice[],
+		options: options?.map(standardizeOption),
+	};
+}
+// async function registerSlashCommand(where: "global" | GuildResolvable, config: StrictCommand) {
+// 	await clientReady;
+// 	const commandLocation = where === "global" ? client.application : client.guilds.resolve(where);
+// 	if (!commandLocation) throw `couldn't resolve ${where} to a guild`;
+// 	if (!commandLocation.commands.cache.size) await commandLocation.commands.fetch();
+
+// 	console.log("pretending to register a command named", config.name);
+// 	console.log("here:", commandLocation.name);
+// 	console.log("current command count:", commandLocation.commands.cache.size);
+// 	console.log("current commands:", [...commandLocation.commands.cache.values()].map(c=>c.name));
+// }
 
 function createDictFromOptions(
 	options: CommandInteractionOption[],

@@ -61,7 +61,7 @@ declare const commands: ({
  * if it's a function, it's passed the TriggerParams object
  */
 export declare function addCommand(...commands_: typeof commands): void;
-export declare function addSlashCommand<Config extends StrictCommand>(command: {
+export declare function addSlashCommand<Config extends StrictCommand>({ where, config, handler, ephemeral, defer, deferIfLong, }: {
     where: "global" | GuildResolvable;
     config: Config;
     handler: SlashCommandResponse<CommandOptions<Config>>;

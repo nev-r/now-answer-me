@@ -29,13 +29,16 @@ type StrictOption = Readonly<
 					| "SUB_COMMAND_GROUP"
 					| ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
 				options?: readonly StrictOption[];
+				choices?: undefined;
 		  }
 		| {
 				type: "STRING" | ApplicationCommandOptionTypes.STRING;
+				options?: undefined;
 				choices?: readonly Choice<string>[];
 		  }
 		| {
 				type: "INTEGER" | ApplicationCommandOptionTypes.INTEGER;
+				options?: undefined;
 				choices?: readonly Choice<number>[];
 		  }
 		| {
@@ -49,6 +52,8 @@ type StrictOption = Readonly<
 					| "CHANNEL"
 					| ApplicationCommandOptionTypes.CHANNEL
 					| ApplicationCommandOptionTypes.MENTIONABLE;
+				options?: undefined;
+				choices?: undefined;
 		  }
 	)
 >;
