@@ -1,23 +1,14 @@
-import { Client, GuildResolvable } from "discord.js";
+import { Client } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
-import type { CommandResponse, Constraints, Extras, SlashCommandResponse, TriggerResponse } from "../types/types-bot.js";
-import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
 export declare const startupTimestamp: Date;
 export declare const client: Client;
 /** resolves when the client has connected */
 export declare let clientReady: Promise<Client>;
-/**
- * set the command prefix (i.e. "!"" or "?"" or whatever)
- *
- * @param prefix a string will be used literally. a regex can be used instead,
- * but it needs to be carefully formatted, including (likely) a `^`, and needs
- * named `(<command>` and `(<args>` subpatterns
- *
- * ideally, use a string prefix because it's going to be a lot faster to check
- * startsWith, instead of executing a regex on every message that goes by
- */
-export declare function setPrefix(prefix: string | RegExp): void;
+export declare const clientStatus: {
+    hasConnected: boolean;
+    performReconnects: boolean;
+};
 declare let activities: ActivityOptions[];
 /**
  * add 1 or more discord presence statuses to cycle through
@@ -52,30 +43,4 @@ export declare function addMessageFilter(...messageFilter: MessageFilter[]): voi
 export declare function ignoreDms(setting?: boolean): void;
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export declare function init(token: string): Promise<Client>;
-declare const commands: ({
-    command: string | string[];
-    response: CommandResponse;
-} & Constraints & Extras)[];
-/**
- * either a Sendable, or a function that generates a Sendable.
- * if it's a function, it's passed the TriggerParams object
- */
-export declare function addCommand(...commands_: typeof commands): void;
-export declare function addSlashCommand<Config extends StrictCommand>({ where, config, handler, ephemeral, defer, deferIfLong, }: {
-    where: "global" | GuildResolvable;
-    config: Config;
-    handler: SlashCommandResponse<CommandOptions<Config>>;
-    ephemeral?: boolean;
-    defer?: boolean;
-    deferIfLong?: boolean;
-}): void;
-declare const triggers: ({
-    trigger: RegExp;
-    response: TriggerResponse;
-} & Constraints & Extras)[];
-/**
- * either a Sendable, or a function that generates a Sendable.
- * if it's a function, it's passed the TriggerParams object
- */
-export declare function addTrigger(...triggers_: typeof triggers): void;
 export {};

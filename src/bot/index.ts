@@ -1,38 +1,10 @@
-import {
-	ApplicationCommandData,
-	ApplicationCommandOption,
-	ApplicationCommandOptionChoice,
-	ApplicationCommandOptionData,
-	Client,
-	CommandInteraction,
-	CommandInteractionOption,
-	GuildResolvable,
-	MessageComponentInteraction,
-} from "discord.js";
+import { Client } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
-import type {
-	CommandResponse,
-	Constraints,
-	Extras,
-	Sendable,
-	SlashCommandResponse,
-	TriggerResponse,
-} from "../types/types-bot.js";
-import { makeTrashable } from "../utils/message-actions.js";
-import {
-	enforceWellStructuredCommand,
-	enforceWellStructuredResponse,
-	enforceWellStructuredTrigger,
-	escapeRegExp,
-	mixedIncludes,
-	meetsConstraints,
-} from "./checkers.js";
-import { sleep } from "one-stone/promise";
-import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
-import { escMarkdown } from "one-stone/string";
+import { registerCommandsOnConnect, routeSlashCommand } from "./slash-commands.js";
+import { routeComponentInteraction } from "./message-components.js";
+import { routeMessageCommand } from "./message-commands.js";
 
 export const startupTimestamp = new Date();
 export const client = new Client({
@@ -52,39 +24,16 @@ let _clientReadyResolve: (value: Client | PromiseLike<Client>) => void;
 export let clientReady: Promise<Client> = new Promise((resolve) => {
 	_clientReadyResolve = resolve;
 });
-
-// whether the client has completed its first connection
-let hasConnected = false;
-// whether the client has completed its onConnects
-let performReconnects = false;
+export const clientStatus = {
+	// whether the client has completed its first connection
+	hasConnected: false,
+	// whether the client has completed its onConnects
+	performReconnects: false,
+};
 
 //
 // bot functionality stuff
 //
-
-let prefixCheck: (s: string) => ReturnType<string["match"]>;
-
-/**
- * set the command prefix (i.e. "!"" or "?"" or whatever)
- *
- * @param prefix a string will be used literally. a regex can be used instead,
- * but it needs to be carefully formatted, including (likely) a `^`, and needs
- * named `(<command>` and `(<args>` subpatterns
- *
- * ideally, use a string prefix because it's going to be a lot faster to check
- * startsWith, instead of executing a regex on every message that goes by
- */
-export function setPrefix(prefix: string | RegExp) {
-	if (typeof prefix === "string") {
-		const newRegex = new RegExp(
-			`^(${escapeRegExp(prefix).replace(/^\^+/, "")})(?<command>\\S*)(?: (?<args>.+))?$`
-		);
-		prefixCheck = (s) => (s.startsWith(prefix) ? s.match(newRegex) : null);
-	} else {
-		prefixCheck = (s) => s.match(prefix);
-	}
-}
-setPrefix("!");
 
 // list of statuses for the bot to cycle through
 let activities: ActivityOptions[] = [];
@@ -195,29 +144,20 @@ export function init(token: string) {
 			}
 		})
 		.once("ready", async () => {
-			hasConnected = true;
+			clientStatus.hasConnected = true;
 			startActivityUpkeep();
 
-			while (needRegistering.length) {
-				const nameToRegister = needRegistering.pop();
-				if (nameToRegister) {
-					const toRegister = slashCommands[nameToRegister];
-					if (toRegister) {
-						await registerSlashCommands(toRegister.where, [toRegister.config]);
-					}
-				}
-			}
-
+			registerCommandsOnConnect();
 			onConnects.forEach((fnc) => fnc(client));
 
-			// set `clientReady` in 1s, so reconnect events don't fire the first time
+			// set `performReconnects` in 1s, so reconnect events don't fire the first time
 			setTimeout(() => {
-				performReconnects = true;
+				clientStatus.performReconnects = true;
 			}, 1000);
 			_clientReadyResolve(client);
 		})
 		.on("ready", () => {
-			performReconnects && onReconnects.forEach((fnc) => fnc(client));
+			clientStatus.performReconnects && onReconnects.forEach((fnc) => fnc(client));
 		})
 		.login(token);
 	return clientReady;
@@ -243,394 +183,4 @@ function startActivityUpkeep() {
 		currentlySetActivity = newActivity;
 		client.user?.setActivity(activities[currentActivityIndex]);
 	}, 90000);
-}
-
-const commands: ({
-	command: string | string[];
-	response: CommandResponse;
-} & Constraints &
-	Extras)[] = [];
-
-/**
- * either a Sendable, or a function that generates a Sendable.
- * if it's a function, it's passed the TriggerParams object
- */
-export function addCommand(...commands_: typeof commands) {
-	commands_.forEach((c) => {
-		enforceWellStructuredCommand(c.command);
-		enforceWellStructuredResponse(c.response);
-	});
-	commands.push(...commands_);
-}
-
-const slashCommands: Record<
-	string,
-	{
-		where: "global" | GuildResolvable;
-		config: ApplicationCommandDataNoEnums;
-		handler: SlashCommandResponse<any>;
-		ephemeral?: boolean;
-		defer?: boolean;
-		deferIfLong?: boolean;
-	}
-> = {};
-const needRegistering: string[] = [];
-
-export function addSlashCommand<
-	Config extends StrictCommand // Command<VagueOption>
->({
-	where,
-	config,
-	handler,
-	ephemeral,
-	defer,
-	deferIfLong,
-}: {
-	where: "global" | GuildResolvable;
-	config: Config;
-	handler: SlashCommandResponse<CommandOptions<Config>>;
-	ephemeral?: boolean;
-	defer?: boolean;
-	deferIfLong?: boolean;
-}) {
-	const standardConfig = standardizeConfig(config);
-	if (hasConnected) registerSlashCommands(where, [standardConfig]);
-	else needRegistering.push(config.name);
-	slashCommands[config.name] = {
-		where,
-		config: standardConfig,
-		handler,
-		ephemeral,
-		defer,
-		deferIfLong,
-	};
-}
-
-const triggers: ({
-	trigger: RegExp;
-	response: TriggerResponse;
-} & Constraints &
-	Extras)[] = [];
-
-/**
- * either a Sendable, or a function that generates a Sendable.
- * if it's a function, it's passed the TriggerParams object
- */
-export function addTrigger(...triggers_: typeof triggers) {
-	triggers_.forEach((t) => {
-		enforceWellStructuredTrigger(t.trigger);
-		enforceWellStructuredResponse(t.response);
-	});
-	triggers.push(...triggers_);
-}
-
-// given a command string, find and run the appropriate function
-async function routeMessageCommand(msg: Message) {
-	const commandMatch = prefixCheck(msg.content);
-	let foundRoute =
-		(commandMatch &&
-			commands.find((r) => mixedIncludes(r.command, commandMatch.groups!.command))) ||
-		triggers.find((t) => t.trigger.test(msg.content));
-
-	if (foundRoute) {
-		let {
-			response: responseGenerator,
-			trashable,
-			selfDestructSeconds,
-			reportViaReaction,
-		} = foundRoute;
-		if (!meetsConstraints(msg, foundRoute)) {
-			console.log(
-				`constraints suppressed a response to ${msg.author.username} requesting ${
-					(foundRoute as any).command ?? (foundRoute as any).trigger.source
-				}`
-			);
-			return;
-		}
-
-		try {
-			let results: Sendable | Message | undefined;
-			if (typeof responseGenerator === "function") {
-				const { guild, channel, author: user } = msg;
-				results =
-					(await responseGenerator({
-						msg,
-						command: commandMatch?.groups?.command ?? "",
-						args: commandMatch?.groups?.args?.trim() ?? "",
-						content: msg.content.trim(),
-						channel,
-						guild,
-						user,
-					})) || "";
-			} else {
-				results = responseGenerator;
-			}
-			if (reportViaReaction) {
-				let reactionEmoji: string | undefined;
-				if (typeof results === "string") reactionEmoji = getReactionEmojiFromString(results);
-				if (!reactionEmoji) {
-					reactionEmoji = results === false ? "🚫" : "☑";
-				}
-				await msg.react(reactionEmoji);
-				return;
-			}
-			if (results) {
-				let sentMessage: Message | undefined;
-				// if the command already sent and returned a message
-				if (results instanceof Message) sentMessage = results;
-				else {
-					sentMessage = await msg.channel.send(sendableToMessageOptions(results));
-				}
-				if (sentMessage) {
-					if (trashable)
-						makeTrashable(sentMessage, trashable === "requestor" ? msg.author.id : undefined);
-					if (selfDestructSeconds) {
-						sleep(selfDestructSeconds * 1000).then(() => delMsg(sentMessage));
-					}
-				}
-			}
-		} catch (e) {
-			if (reportViaReaction) {
-				await msg.react("⚠");
-			}
-			console.log(e);
-		}
-	}
-}
-
-// given a command string, find and run the appropriate function
-async function routeSlashCommand(interaction: CommandInteraction) {
-	const slashCommand = slashCommands[interaction.commandName];
-	if (!slashCommand) {
-		console.log(`unrecognized slash command received: ${interaction.commandName}`);
-		return;
-	}
-
-	let { handler, ephemeral, defer, deferIfLong } = slashCommand;
-	let deferalCountdown: undefined | NodeJS.Timeout;
-	if (defer || deferIfLong) {
-		deferalCountdown = setTimeout(
-			() => {
-				interaction.defer({ ephemeral });
-			},
-			defer ? 0 : 2300
-		);
-	}
-	try {
-		let results: Sendable | Message | undefined;
-		if (typeof handler === "function") {
-			const { guild, channel, user } = interaction;
-			const optionDict = createDictFromOptions([...interaction.options.values()]);
-			const optionList = Object.entries(optionDict);
-
-			results =
-				(await handler({
-					channel,
-					guild,
-					user,
-					optionList,
-					optionDict,
-				})) || "";
-		} else {
-			results = handler;
-		}
-		deferalCountdown && clearTimeout(deferalCountdown);
-		if (results && !interaction.replied) {
-			await interaction.reply({ ...sendableToMessageOptions(results), ephemeral });
-		}
-	} catch (e) {
-		await interaction.reply({ content: "⚠", ephemeral: true });
-		console.log(e);
-	}
-	if (!interaction.replied) await interaction.reply({ content: "☑", ephemeral: true });
-}
-
-// given a command string, find and run the appropriate function
-async function routeComponentInteraction(interaction: MessageComponentInteraction) {
-	if (interaction.isButton()) {
-		interaction.deferUpdate();
-		interaction.reply({
-			ephemeral: true,
-			content: `component interaction received :)
-id: ${interaction.customId}`,
-		});
-	} else if (interaction.isSelectMenu()) {
-		interaction.deferUpdate();
-		interaction.reply({
-			ephemeral: true,
-			content: `component interaction received :)
-id: ${interaction.customId}
-values submitted: ${interaction.values.map((v) => `${escMarkdown(v)}`).join(" ")}`,
-		});
-	}
-}
-
-function getReactionEmojiFromString(str: string) {
-	// string manip
-	str = str.replace(/\uFE0F|\u20E3/g, "");
-	if ([...str].length === 1) {
-		if (/^[\d*#]$/.test(str)) return str + "\uFE0F\u20E3";
-		if (/^\p{Emoji}$/u.test(str)) return str;
-	}
-
-	const matched = str.match(/^<a?:(\w+):(?<snowflake>\d+)>$/);
-	if (matched?.groups?.snowflake) str = matched.groups.snowflake;
-
-	// try resolving
-	const resolved = client.emojis.resolve(str as `${bigint}`);
-	if (resolved) return resolved.id;
-}
-
-async function registerSlashCommands(
-	where: "global" | GuildResolvable,
-	config: ApplicationCommandDataNoEnums[]
-) {
-	const configs = arrayify(config);
-	await clientReady;
-	const destination = where === "global" ? client.application : client.guilds.resolve(where);
-	if (!destination) throw `couldn't resolve ${where} to a guild`;
-
-	if (!destination.commands.cache.size) await destination.commands.fetch();
-	const cache = [...destination.commands.cache.values()];
-
-	for (const conf of configs.map(standardizeConfig)) {
-		const matchingConfig = cache.find((c) => {
-			return c.name === conf.name && configDoesMatch(c, conf);
-		});
-		console.log(
-			`registering ${conf.name}: ${
-				matchingConfig ? "already exists" : (await destination.commands.create(conf)) && "done!"
-			}`
-		);
-		// console.log({ ...matchingConfig, guild: undefined, permissions: undefined });
-	}
-}
-type ApplicationCommandDataNoEnums = Pick<
-	ApplicationCommandData,
-	"defaultPermission" | "description" | "name"
-> & { options?: ApplicationCommandOption[] };
-
-function configDoesMatch(
-	conf1: ApplicationCommandDataNoEnums,
-	conf2: ApplicationCommandDataNoEnums
-) {
-	return (
-		conf1.name === conf2.name &&
-		conf1.description === conf2.description &&
-		conf1.defaultPermission === conf2.defaultPermission &&
-		allOptionsDoMatch(conf1.options, conf2.options)
-	);
-}
-
-function allOptionsDoMatch(
-	options1?: ApplicationCommandOption[],
-	options2?: ApplicationCommandOption[]
-) {
-	return Boolean(
-		options1 === options2 ||
-			(options1 &&
-				options2 &&
-				[...options1.keys()].every((k) => optionDoesMatch(options1[k], options2[k])))
-	);
-}
-
-function optionDoesMatch(
-	option1: ApplicationCommandOption,
-	option2: ApplicationCommandOption
-): boolean {
-	return (
-		option1.name === option2.name &&
-		option1.description === option2.description &&
-		option1.required === option2.required &&
-		option1.type === option2.type &&
-		(option1.options === option2.options ||
-			(!option1.options?.length && !option2.options?.length) ||
-			allOptionsDoMatch(option1.options ?? [], option2.options ?? []))
-	);
-}
-
-function standardizeConfig({
-	name,
-	description,
-	defaultPermission = true,
-	options = [],
-}: StrictCommand | ApplicationCommandData): ApplicationCommandDataNoEnums {
-	return { name, description, defaultPermission, options: options.map(standardizeOption) };
-}
-
-const enumToString = [
-	null,
-	"SUB_COMMAND",
-	"SUB_COMMAND_GROUP",
-	"STRING",
-	"INTEGER",
-	"BOOLEAN",
-	"USER",
-	"CHANNEL",
-	"ROLE",
-	"MENTIONABLE",
-] as const;
-function standardizeOption<
-	D extends NonNullable<StrictCommand["options"]>[number] | ApplicationCommandOptionData
->({
-	type,
-	name,
-	description,
-	required,
-	choices, //
-	options,
-}: D): ApplicationCommandOption {
-	type = typeof type === "string" ? type : (enumToString[type] as ApplicationCommandOption["type"]);
-	return {
-		type,
-		name,
-		description,
-		required,
-		choices: choices as ApplicationCommandOptionChoice[],
-		options: options?.map(standardizeOption),
-	};
-}
-// async function registerSlashCommand(where: "global" | GuildResolvable, config: StrictCommand) {
-// 	await clientReady;
-// 	const commandLocation = where === "global" ? client.application : client.guilds.resolve(where);
-// 	if (!commandLocation) throw `couldn't resolve ${where} to a guild`;
-// 	if (!commandLocation.commands.cache.size) await commandLocation.commands.fetch();
-
-// 	console.log("pretending to register a command named", config.name);
-// 	console.log("here:", commandLocation.name);
-// 	console.log("current command count:", commandLocation.commands.cache.size);
-// 	console.log("current commands:", [...commandLocation.commands.cache.values()].map(c=>c.name));
-// }
-
-function createDictFromOptions(
-	options: CommandInteractionOption[],
-	dict: Record<
-		string,
-		| string
-		| number
-		| boolean
-		| CommandInteractionOption["user"]
-		| CommandInteractionOption["member"]
-		| CommandInteractionOption["role"]
-		| CommandInteractionOption["channel"]
-		| undefined
-	> = {}
-) {
-	for (const opt of options) {
-		if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP")
-			createDictFromOptions(opt.options ? [...opt.options.values()] : []);
-		else {
-			dict[opt.name] =
-				opt.type === "CHANNEL"
-					? opt.channel
-					: opt.type === "USER"
-					? opt.member ?? opt.user
-					: opt.type === "ROLE"
-					? opt.role
-					: opt.type === "MENTIONABLE"
-					? undefined
-					: opt.value;
-		}
-	}
-	return dict;
 }
