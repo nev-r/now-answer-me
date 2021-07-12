@@ -5,7 +5,6 @@ import { enforceWellStructuredCommand, enforceWellStructuredResponse, enforceWel
 import { sleep } from "one-stone/promise";
 import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
 export const startupTimestamp = new Date();
 export const client = new Client({
     intents: [
@@ -417,12 +416,21 @@ function optionDoesMatch(option1, option2) {
 function standardizeConfig({ name, description, defaultPermission = true, options = [], }) {
     return { name, description, defaultPermission, options: options.map(standardizeOption) };
 }
+const enumToString = [
+    null,
+    "SUB_COMMAND",
+    "SUB_COMMAND_GROUP",
+    "STRING",
+    "INTEGER",
+    "BOOLEAN",
+    "USER",
+    "CHANNEL",
+    "ROLE",
+    "MENTIONABLE",
+];
 function standardizeOption({ type, name, description, required, choices, //
 options, }) {
-    type =
-        typeof type === "string"
-            ? type
-            : ApplicationCommandOptionTypes[type];
+    type = typeof type === "string" ? type : enumToString[type];
     return {
         type,
         name,

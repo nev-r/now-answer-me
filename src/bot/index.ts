@@ -1,5 +1,4 @@
 import {
-	ApplicationCommand,
 	ApplicationCommandData,
 	ApplicationCommandOption,
 	ApplicationCommandOptionChoice,
@@ -7,11 +6,7 @@ import {
 	Client,
 	CommandInteraction,
 	CommandInteractionOption,
-	GuildChannel,
-	GuildMember,
 	GuildResolvable,
-	Role,
-	User,
 } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
@@ -36,7 +31,6 @@ import { sleep } from "one-stone/promise";
 import { delMsg, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
-import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
 
 export const startupTimestamp = new Date();
 export const client = new Client({
@@ -489,8 +483,8 @@ async function registerSlashCommands(
 			console.log("nothing matched this:");
 			console.log(conf);
 			console.log(matchingConfig);
-			continue;}
-		else {
+			continue;
+		} else {
 			console.log("nothing matched this:");
 			console.log(conf);
 		}
@@ -549,6 +543,18 @@ function standardizeConfig({
 	return { name, description, defaultPermission, options: options.map(standardizeOption) };
 }
 
+const enumToString = [
+	null,
+	"SUB_COMMAND",
+	"SUB_COMMAND_GROUP",
+	"STRING",
+	"INTEGER",
+	"BOOLEAN",
+	"USER",
+	"CHANNEL",
+	"ROLE",
+	"MENTIONABLE",
+] as const;
 function standardizeOption<
 	D extends NonNullable<StrictCommand["options"]>[number] | ApplicationCommandOptionData
 >({
@@ -559,10 +565,7 @@ function standardizeOption<
 	choices, //
 	options,
 }: D): ApplicationCommandOption {
-	type =
-		typeof type === "string"
-			? type
-			: (ApplicationCommandOptionTypes[type] as ApplicationCommandOption["type"]);
+	type = typeof type === "string" ? type : (enumToString[type] as ApplicationCommandOption["type"]);
 	return {
 		type,
 		name,
