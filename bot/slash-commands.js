@@ -133,6 +133,7 @@ function allOptionsDoMatch(options1, options2) {
     return Boolean(options1 === options2 ||
         (options1 &&
             options2 &&
+            options1.length === options2.length &&
             [...options1.keys()].every((k) => optionDoesMatch(options1[k], options2[k]))));
 }
 function optionDoesMatch(option1, option2) {
