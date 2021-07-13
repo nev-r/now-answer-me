@@ -1,4 +1,4 @@
-import { CommandInteraction, Emoji, Message, Snowflake, User } from "discord.js";
+import { CommandInteraction, Emoji, InteractionReplyOptions, Message, MessageEmbed, Snowflake, User } from "discord.js";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 /**
@@ -47,7 +47,7 @@ export declare type CommandResponse = ((params: CommandParams) => Sendable | und
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the SlashCommandParams object
  */
-export declare type SlashCommandResponse<SelectedOptions extends any> = ((params: SlashCommandParams<SelectedOptions>) => Sendable | undefined | void | Promise<Sendable | undefined | void>) | Sendable;
+export declare type SlashCommandResponse<SelectedOptions extends any> = ((params: SlashCommandParams<SelectedOptions>) => InteractionReplyOptions | MessageEmbed | string | undefined | void | Promise<InteractionReplyOptions | MessageEmbed | string | undefined | void>) | Sendable;
 /**
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object

@@ -40,6 +40,14 @@ export function sendableToMessageOptions(sendable) {
     else
         return sendable;
 }
+export function sendableToInteractionReplyOptions(sendable) {
+    if (sendable instanceof MessageEmbed)
+        return { embeds: [sendable] };
+    else if (typeof sendable === "string")
+        return { content: sendable };
+    else
+        return sendable;
+}
 export function boolFilter(arr) {
     return arr.filter(Boolean);
 }

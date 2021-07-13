@@ -2,7 +2,7 @@
 // delayed resolvers
 //
 
-import { Message, MessageEmbed, MessageOptions } from "discord.js";
+import { InteractionReplyOptions, Message, MessageEmbed, MessageOptions } from "discord.js";
 import { Sendable } from "../types/types-discord.js";
 
 /** try to do whatever func wants to do, but delete msg if there's an error */
@@ -38,6 +38,13 @@ export async function sendMsg(channel: Message["channel"], sendable: Sendable) {
 }
 
 export function sendableToMessageOptions(sendable: Sendable) {
+	if (sendable instanceof MessageEmbed) return { embeds: [sendable] };
+	else if (typeof sendable === "string") return { content: sendable };
+	else return sendable;
+}
+export function sendableToInteractionReplyOptions(
+	sendable: InteractionReplyOptions | MessageEmbed | string
+) {
 	if (sendable instanceof MessageEmbed) return { embeds: [sendable] };
 	else if (typeof sendable === "string") return { content: sendable };
 	else return sendable;

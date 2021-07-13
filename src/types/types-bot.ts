@@ -2,7 +2,9 @@ import {
 	CommandInteraction,
 	CommandInteractionOption,
 	Emoji,
+	InteractionReplyOptions,
 	Message,
+	MessageEmbed,
 	Snowflake,
 	User,
 } from "discord.js";
@@ -73,7 +75,13 @@ export type SlashCommandResponse<
 > =
 	| ((
 			params: SlashCommandParams<SelectedOptions>
-	  ) => Sendable | undefined | void | Promise<Sendable | undefined | void>)
+	  ) =>
+			| InteractionReplyOptions
+			| MessageEmbed
+			| string
+			| undefined
+			| void
+			| Promise<InteractionReplyOptions | MessageEmbed | string | undefined | void>)
 	| Sendable;
 
 /**

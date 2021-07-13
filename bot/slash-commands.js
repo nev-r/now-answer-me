@@ -1,4 +1,4 @@
-import { sendableToMessageOptions } from "../utils/misc.js";
+import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { client, clientReady, clientStatus } from "./index.js";
 const slashCommands = {};
@@ -67,7 +67,7 @@ export async function routeSlashCommand(interaction) {
         }
         deferalCountdown && clearTimeout(deferalCountdown);
         if (results && !interaction.replied) {
-            await interaction.reply({ ...sendableToMessageOptions(results), ephemeral });
+            await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
         }
     }
     catch (e) {

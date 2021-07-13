@@ -10,7 +10,7 @@ import {
 } from "discord.js";
 import { Message } from "discord.js";
 import type { Sendable, SlashCommandResponse } from "../types/types-bot.js";
-import { sendableToMessageOptions } from "../utils/misc.js";
+import { sendableToInteractionReplyOptions, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
 import { escMarkdown } from "one-stone/string";
@@ -108,7 +108,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		}
 		deferalCountdown && clearTimeout(deferalCountdown);
 		if (results && !interaction.replied) {
-			await interaction.reply({ ...sendableToMessageOptions(results), ephemeral });
+			await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
 		}
 	} catch (e) {
 		await interaction.reply({ content: "⚠", ephemeral: true });
