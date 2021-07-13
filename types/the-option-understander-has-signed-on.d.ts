@@ -59,12 +59,12 @@ declare type OptionAsDict<Option> = Option extends {
 } : {
     [k in Name]?: TypeByIdentifier<Identifier, Option, Choices>;
 } : never : never;
-declare type SubOptions<O> = O extends readonly any[] ? ObjectIntersectionFromObjectUnion<OptionAsDict<O[number]>> : never;
+declare type SubOptions<O> = O extends readonly any[] ? ObjectIntersectionFromObjectUnion<OptionAsDict<O[number]>> : {};
 export declare type CommandOptions<C extends StrictCommand> = C extends StrictCommand & {
     options: readonly StrictOption[];
 } ? ObjectFromObjectIntersection<ObjectIntersectionFromObjectUnion<OptionAsDict<C["options"][number]>>> : unknown;
 declare type ObjectIntersectionFromObjectUnion<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 declare type ObjectFromObjectIntersection<T> = T extends unknown ? {
-    [K in keyof T]: T[K];
+    [K in keyof T]: T[K] extends {} ? ObjectFromObjectIntersection<T[K]> : T[K];
 } : T;
 export {};

@@ -127,7 +127,7 @@ type OptionAsDict<Option> = Option extends {
 
 type SubOptions<O> = O extends readonly any[]
 	? ObjectIntersectionFromObjectUnion<OptionAsDict<O[number]>>
-	: never;
+	: {};
 
 export type CommandOptions<C extends StrictCommand> = C extends StrictCommand & {
 	options: readonly StrictOption[];
@@ -143,7 +143,9 @@ type ObjectIntersectionFromObjectUnion<U> = (U extends any ? (k: U) => void : ne
 	? I
 	: never;
 
-type ObjectFromObjectIntersection<T> = T extends unknown ? { [K in keyof T]: T[K] } : T;
+type ObjectFromObjectIntersection<T> = T extends unknown
+	? { [K in keyof T]: T[K] extends {} ? ObjectFromObjectIntersection<T[K]> : T[K] }
+	: T;
 // type ObjectFromObjectIntersection<T> = T extends unknown
 // 	? { [K in keyof T]: ObjectFromObjectIntersection<T[K]> }
 // 	: T;
@@ -158,24 +160,21 @@ type ObjectFromObjectIntersection<T> = T extends unknown ? { [K in keyof T]: T[K
 // 	choices?: infer Choices;
 // } []?:'';
 
-
-// const x ={
-// 	name: "test",
-// 	description: "pbbbbbbt",
-// 	options: [
-// 		{ name: "abc", description: "ewjrhbgwjhrg", type: "SUB_COMMAND" },
-// 		{
-// 			name: "def",
-// 			description: "fkjerngwikrtjnh",
-// 			type: "SUB_COMMAND_GROUP",
-// 			options: [
-// 				{ name: "subsub1", description: "34624563456", type: "SUB_COMMAND" },
-// 				{ name: "subsub2", description: "ije4nhfw45gjh", type: "SUB_COMMAND" },
-// 			],
-// 		},
-// 	],
-// } as const
-// type X = typeof x;
-// type Y = CommandOptions<X>;
-
-
+const x = {
+	name: "test",
+	description: "pbbbbbbt",
+	options: [
+		{ name: "abc", description: "ewjrhbgwjhrg", type: "SUB_COMMAND" },
+		{
+			name: "def",
+			description: "fkjerngwikrtjnh",
+			type: "SUB_COMMAND_GROUP",
+			options: [
+				{ name: "subsub1", description: "34624563456", type: "SUB_COMMAND" },
+				{ name: "subsub2", description: "ije4nhfw45gjh", type: "USER" },
+			],
+		},
+	],
+} as const;
+type X = typeof x;
+type Y = CommandOptions<X>;
