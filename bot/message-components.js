@@ -1,18 +1,19 @@
 import { escMarkdown } from "one-stone/string";
 export async function routeComponentInteraction(interaction) {
-    if (interaction.isButton()) {
-        interaction.reply({
-            ephemeral: true,
-            content: `unhandled component interaction 🙂
-id: \`${escMarkdown(interaction.customId)}\``,
-        });
+    if (false) {
+        ("something");
     }
-    else if (interaction.isSelectMenu()) {
-        interaction.reply({
-            ephemeral: true,
-            content: `unhandled component interaction 🙂
-id: \`${escMarkdown(interaction.customId)}\`
-values submitted: ${interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ")}`,
-        });
+    else
+        unhandledInteraction(interaction);
+}
+function unhandledInteraction(interaction) {
+    let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
+    if (interaction.isSelectMenu()) {
+        const values = interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ");
+        content += `\nvalues submitted: ${values}`;
     }
+    interaction.reply({
+        ephemeral: true,
+        content,
+    });
 }

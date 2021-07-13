@@ -16,8 +16,7 @@ import { CommandOptions, StrictCommand } from "../types/the-option-understander-
 import { escMarkdown } from "one-stone/string";
 import { client, clientReady, clientStatus } from "./index.js";
 
-const slashCommands: Record<
-	string,
+const slashCommands: NodeJS.Dict<
 	{
 		where: "global" | GuildResolvable;
 		config: ApplicationCommandDataNoEnums;
@@ -91,7 +90,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		let results: Sendable | Message | undefined;
 		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
-			const optionDict = createDictFromOptions([...interaction.options.values()]);
+			const {optionDict,subCommand,subCommandGroup} = createDictFromOptions([...interaction.options.values()]);
 			const optionList = Object.entries(optionDict);
 
 			results =
@@ -100,7 +99,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 					guild,
 					user,
 					optionList,
-					optionDict,
+					optionDict,subCommand,subCommandGroup
 				})) || "";
 		} else {
 			results = handler;
@@ -141,42 +140,27 @@ async function registerSlashCommands(
 	}
 }
 
-async function routeComponentInteraction(interaction: MessageComponentInteraction) {
-	if (interaction.isButton()) {
-		interaction.reply({
-			ephemeral: true,
-			content: `unhandled component interaction 🙂
-id: \`${escMarkdown(interaction.customId)}\``,
-		});
-	} else if (interaction.isSelectMenu()) {
-		interaction.reply({
-			ephemeral: true,
-			content: `unhandled component interaction 🙂
-id: \`${escMarkdown(interaction.customId)}\`
-values submitted: ${interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ")}`,
-		});
-	}
-}
-
 function createDictFromOptions(
-	options: CommandInteractionOption[],
-	dict: Record<
-		string,
-		| string
-		| number
-		| boolean
-		| CommandInteractionOption["user"]
-		| CommandInteractionOption["member"]
-		| CommandInteractionOption["role"]
-		| CommandInteractionOption["channel"]
-		| undefined
-	> = {}
+	originalOptions: CommandInteractionOption[],
+	meta: {
+		subCommandGroup?: string;
+		subCommand?: string;
+		optionDict: any;
+	} = {
+		subCommandGroup: undefined,
+		subCommand: undefined,
+		optionDict: {},
+	}
 ) {
-	for (const opt of options) {
-		if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP")
-			createDictFromOptions(opt.options ? [...opt.options.values()] : []);
-		else {
-			dict[opt.name] =
+	for (const opt of originalOptions) {
+		if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP") {
+			if (opt.type === "SUB_COMMAND") meta.subCommand = opt.name;
+			if (opt.type === "SUB_COMMAND_GROUP") meta.subCommandGroup = opt.name;
+			meta.optionDict[opt.name] = createDictFromOptions(
+				opt.options ? [...opt.options.values()] : []
+			);
+		} else {
+			meta.optionDict[opt.name] =
 				opt.type === "CHANNEL"
 					? opt.channel
 					: opt.type === "USER"
@@ -188,7 +172,7 @@ function createDictFromOptions(
 					: opt.value;
 		}
 	}
-	return dict;
+	return meta;
 }
 
 type ApplicationCommandDataNoEnums = Pick<

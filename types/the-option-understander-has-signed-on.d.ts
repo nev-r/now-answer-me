@@ -65,6 +65,6 @@ export declare type CommandOptions<C extends StrictCommand> = C extends StrictCo
 } ? ObjectFromObjectIntersection<ObjectIntersectionFromObjectUnion<OptionAsDict<C["options"][number]>>> : unknown;
 declare type ObjectIntersectionFromObjectUnion<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 declare type ObjectFromObjectIntersection<T> = T extends unknown ? {
-    [K in keyof T]: ObjectFromObjectIntersection<T[K]>;
+    [K in keyof T]: T[K];
 } : T;
 export {};

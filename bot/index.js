@@ -117,17 +117,10 @@ export function init(token) {
         routeMessageCommand(msg);
     })
         .on("interactionCreate", async (interaction) => {
-        if (interaction.isCommand()) {
+        if (interaction.isCommand())
             routeSlashCommand(interaction);
-        }
-        else if (interaction.isMessageComponent()) {
+        else if (interaction.isMessageComponent())
             routeComponentInteraction(interaction);
-            // interaction.update({
-            // 	content: (
-            // 		parseFloat(interaction.message.content) + (interaction.customId === "abc" ? -1 : 1)
-            // 	).toString(),
-            // });
-        }
     })
         .once("ready", async () => {
         clientStatus.hasConnected = true;

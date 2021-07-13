@@ -26,6 +26,8 @@ export interface SlashCommandParams<SelectedOptions extends any> extends Incitin
     channel: CommandInteraction["channel"];
     optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
     optionDict: SelectedOptions;
+    subCommand: string | undefined;
+    subCommandGroup: string | undefined;
 }
 /**
  * basic discord metadata about who and where a command was triggered
