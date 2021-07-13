@@ -16,16 +16,14 @@ import { CommandOptions, StrictCommand } from "../types/the-option-understander-
 import { escMarkdown } from "one-stone/string";
 import { client, clientReady, clientStatus } from "./index.js";
 
-const slashCommands: NodeJS.Dict<
-	{
-		where: "global" | GuildResolvable;
-		config: ApplicationCommandDataNoEnums;
-		handler: SlashCommandResponse<any>;
-		ephemeral?: boolean;
-		defer?: boolean;
-		deferIfLong?: boolean;
-	}
-> = {};
+const slashCommands: NodeJS.Dict<{
+	where: "global" | GuildResolvable;
+	config: ApplicationCommandDataNoEnums;
+	handler: SlashCommandResponse<any>;
+	ephemeral?: boolean;
+	defer?: boolean;
+	deferIfLong?: boolean;
+}> = {};
 export const needRegistering: string[] = [];
 
 export async function registerCommandsOnConnect() {
@@ -90,7 +88,9 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		let results: Sendable | Message | undefined;
 		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
-			const {optionDict,subCommand,subCommandGroup} = createDictFromOptions([...interaction.options.values()]);
+			const { optionDict, subCommand, subCommandGroup } = createDictFromSelectedOptions([
+				...interaction.options.values(),
+			]);
 			const optionList = Object.entries(optionDict);
 
 			results =
@@ -99,7 +99,9 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 					guild,
 					user,
 					optionList,
-					optionDict,subCommand,subCommandGroup
+					optionDict,
+					subCommand,
+					subCommandGroup,
 				})) || "";
 		} else {
 			results = handler;
@@ -140,7 +142,7 @@ async function registerSlashCommands(
 	}
 }
 
-function createDictFromOptions(
+function createDictFromSelectedOptions(
 	originalOptions: CommandInteractionOption[],
 	meta: {
 		subCommandGroup?: string;
@@ -156,9 +158,10 @@ function createDictFromOptions(
 		if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP") {
 			if (opt.type === "SUB_COMMAND") meta.subCommand = opt.name;
 			if (opt.type === "SUB_COMMAND_GROUP") meta.subCommandGroup = opt.name;
-			meta.optionDict[opt.name] = createDictFromOptions(
-				opt.options ? [...opt.options.values()] : []
-			);
+			meta.optionDict[opt.name] = createDictFromSelectedOptions(
+				opt.options ? [...opt.options.values()] : [],
+				meta
+			).optionDict;
 		} else {
 			meta.optionDict[opt.name] =
 				opt.type === "CHANNEL"

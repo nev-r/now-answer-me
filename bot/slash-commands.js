@@ -47,7 +47,9 @@ export async function routeSlashCommand(interaction) {
         let results;
         if (typeof handler === "function") {
             const { guild, channel, user } = interaction;
-            const { optionDict, subCommand, subCommandGroup } = createDictFromOptions([...interaction.options.values()]);
+            const { optionDict, subCommand, subCommandGroup } = createDictFromSelectedOptions([
+                ...interaction.options.values(),
+            ]);
             const optionList = Object.entries(optionDict);
             results =
                 (await handler({
@@ -55,7 +57,9 @@ export async function routeSlashCommand(interaction) {
                     guild,
                     user,
                     optionList,
-                    optionDict, subCommand, subCommandGroup
+                    optionDict,
+                    subCommand,
+                    subCommandGroup,
                 })) || "";
         }
         else {
@@ -90,7 +94,7 @@ async function registerSlashCommands(where, config) {
         // console.log({ ...matchingConfig, guild: undefined, permissions: undefined });
     }
 }
-function createDictFromOptions(originalOptions, meta = {
+function createDictFromSelectedOptions(originalOptions, meta = {
     subCommandGroup: undefined,
     subCommand: undefined,
     optionDict: {},
@@ -102,7 +106,7 @@ function createDictFromOptions(originalOptions, meta = {
                 meta.subCommand = opt.name;
             if (opt.type === "SUB_COMMAND_GROUP")
                 meta.subCommandGroup = opt.name;
-            meta.optionDict[opt.name] = createDictFromOptions(opt.options ? [...opt.options.values()] : []);
+            meta.optionDict[opt.name] = createDictFromSelectedOptions(opt.options ? [...opt.options.values()] : [], meta).optionDict;
         }
         else {
             meta.optionDict[opt.name] =
