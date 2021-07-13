@@ -147,23 +147,22 @@ function createDictFromSelectedOptions(
 	meta: {
 		subCommandGroup?: string;
 		subCommand?: string;
-		optionDict: any;
 	} = {
 		subCommandGroup: undefined,
 		subCommand: undefined,
-		optionDict: {},
 	}
 ) {
+	const optionDict: NodeJS.Dict<any> = {};
 	for (const opt of originalOptions) {
 		if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP") {
 			if (opt.type === "SUB_COMMAND") meta.subCommand = opt.name;
 			if (opt.type === "SUB_COMMAND_GROUP") meta.subCommandGroup = opt.name;
-			meta.optionDict[opt.name] = createDictFromSelectedOptions(
+			optionDict[opt.name] = createDictFromSelectedOptions(
 				opt.options ? [...opt.options.values()] : [],
 				meta
 			).optionDict;
 		} else {
-			meta.optionDict[opt.name] =
+			optionDict[opt.name] =
 				opt.type === "CHANNEL"
 					? opt.channel
 					: opt.type === "USER"
@@ -175,7 +174,7 @@ function createDictFromSelectedOptions(
 					: opt.value;
 		}
 	}
-	return meta;
+	return { ...meta, optionDict };
 }
 
 type ApplicationCommandDataNoEnums = Pick<

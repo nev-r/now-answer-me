@@ -97,19 +97,19 @@ async function registerSlashCommands(where, config) {
 function createDictFromSelectedOptions(originalOptions, meta = {
     subCommandGroup: undefined,
     subCommand: undefined,
-    optionDict: {},
 }) {
     var _a;
+    const optionDict = {};
     for (const opt of originalOptions) {
         if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP") {
             if (opt.type === "SUB_COMMAND")
                 meta.subCommand = opt.name;
             if (opt.type === "SUB_COMMAND_GROUP")
                 meta.subCommandGroup = opt.name;
-            meta.optionDict[opt.name] = createDictFromSelectedOptions(opt.options ? [...opt.options.values()] : [], meta).optionDict;
+            optionDict[opt.name] = createDictFromSelectedOptions(opt.options ? [...opt.options.values()] : [], meta).optionDict;
         }
         else {
-            meta.optionDict[opt.name] =
+            optionDict[opt.name] =
                 opt.type === "CHANNEL"
                     ? opt.channel
                     : opt.type === "USER"
@@ -121,7 +121,7 @@ function createDictFromSelectedOptions(originalOptions, meta = {
                                 : opt.value;
         }
     }
-    return meta;
+    return { ...meta, optionDict };
 }
 function configDoesMatch(conf1, conf2) {
     return (conf1.name === conf2.name &&
