@@ -6,20 +6,23 @@ import {
 	CommandInteraction,
 	CommandInteractionOption,
 	GuildResolvable,
-	MessageComponentInteraction,
 } from "discord.js";
 import { Message } from "discord.js";
 import type { Sendable, SlashCommandResponse } from "../types/types-bot.js";
 import { sendableToInteractionReplyOptions, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-import { CommandOptions, StrictCommand } from "../types/the-option-understander-has-signed-on.js";
-import { escMarkdown } from "one-stone/string";
+import {
+	CommandOptionsMap,
+	StrictCommand,
+	SubCommandGroupsOf,
+	SubCommandsOf,
+} from "../types/the-option-understander-has-signed-on.js";
 import { client, clientReady, clientStatus } from "./index.js";
 
 const slashCommands: NodeJS.Dict<{
 	where: "global" | GuildResolvable;
 	config: ApplicationCommandDataNoEnums;
-	handler: SlashCommandResponse<any>;
+	handler: SlashCommandResponse<any, any, any>;
 	ephemeral?: boolean;
 	defer?: boolean;
 	deferIfLong?: boolean;
@@ -48,7 +51,11 @@ export function addSlashCommand<Config extends StrictCommand>({
 }: {
 	where: "global" | GuildResolvable;
 	config: Config;
-	handler: SlashCommandResponse<CommandOptions<Config>>;
+	handler: SlashCommandResponse<
+		CommandOptionsMap<Config>,
+		SubCommandsOf<Config>,
+		SubCommandGroupsOf<Config>
+	>;
 	ephemeral?: boolean;
 	defer?: boolean;
 	deferIfLong?: boolean;

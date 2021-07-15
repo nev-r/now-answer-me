@@ -1,8 +1,13 @@
 import type { GuildChannel, GuildMember, Role, User } from "discord.js";
 import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
+import {
+	CleanUpObjectIntersectionRecursive,
+	IntersectionFromUnion,
+	KeyObjectUnionBy,
+	UnionFromArray,
+} from "./utility-types.js";
 
 export type StrictCommand = Command<StrictOption>;
-export type VagueCommand = Command<VagueOption>;
 
 type Command<O> = Readonly<{
 	name: string;
@@ -11,10 +16,10 @@ type Command<O> = Readonly<{
 	defaultPermission?: boolean;
 }>;
 
-type Choice<T extends string | number> = Readonly<{
+type Choice<T extends string | number> = readonly Readonly<{
 	name: string;
 	value: T;
-}>;
+}>[];
 
 type StrictOption = Readonly<
 	{
@@ -34,12 +39,12 @@ type StrictOption = Readonly<
 		| {
 				type: "STRING" | ApplicationCommandOptionTypes.STRING;
 				options?: undefined;
-				choices?: readonly Choice<string>[];
+				choices?: Choice<string>;
 		  }
 		| {
 				type: "INTEGER" | ApplicationCommandOptionTypes.INTEGER;
 				options?: undefined;
-				choices?: readonly Choice<number>[];
+				choices?: Choice<number>;
 		  }
 		| {
 				type:
@@ -58,34 +63,7 @@ type StrictOption = Readonly<
 	)
 >;
 
-type VagueOption = Readonly<
-	{
-		name: string;
-		description: string;
-		required?: boolean;
-	} & {
-		type:
-			| "SUB_COMMAND"
-			| ApplicationCommandOptionTypes.SUB_COMMAND
-			| "SUB_COMMAND_GROUP"
-			| ApplicationCommandOptionTypes.SUB_COMMAND_GROUP
-			| "STRING"
-			| ApplicationCommandOptionTypes.STRING
-			| "INTEGER"
-			| ApplicationCommandOptionTypes.INTEGER
-			| "BOOLEAN"
-			| ApplicationCommandOptionTypes.BOOLEAN
-			| "USER"
-			| ApplicationCommandOptionTypes.USER
-			| "ROLE"
-			| ApplicationCommandOptionTypes.ROLE
-			| "CHANNEL"
-			| ApplicationCommandOptionTypes.CHANNEL
-			| "MENTIONABLE"
-			| ApplicationCommandOptionTypes.MENTIONABLE;
-		choices?: readonly StrictOption[] | readonly Choice<string | number>[];
-	}
->;
+type SubOptions<O> = O extends readonly any[] ? IntersectionFromUnion<OptionAsDict<O[number]>> : {};
 
 type TypeByIdentifier<Identifier, Option, Choices> = Identifier extends "SUB_COMMAND"
 	? SubOptions<Option>
@@ -125,28 +103,61 @@ type OptionAsDict<Option> = Option extends {
 		: never
 	: never;
 
-type SubOptions<O> = O extends readonly any[]
-	? ObjectIntersectionFromObjectUnion<OptionAsDict<O[number]>>
-	: {};
-
-export type CommandOptions<C extends StrictCommand> = C extends StrictCommand & {
+export type CommandOptionsMap<C extends StrictCommand> = C extends StrictCommand & {
 	options: readonly StrictOption[];
 }
-	? ObjectFromObjectIntersection<
-			ObjectIntersectionFromObjectUnion<OptionAsDict<C["options"][number]>>
+	? CleanUpObjectIntersectionRecursive<
+			IntersectionFromUnion<OptionAsDict<UnionFromArray<C["options"]>>>
 	  >
 	: unknown;
 
-type ObjectIntersectionFromObjectUnion<U> = (U extends any ? (k: U) => void : never) extends (
-	k: infer I
-) => void
-	? I
-	: never;
+type CommandWithSubs = Readonly<{
+	options: SubcommandList;
+}>;
 
-type ObjectFromObjectIntersection<T> = T extends unknown
-	? { [K in keyof T]: T[K] extends {} ? ObjectFromObjectIntersection<T[K]> : T[K] }
-	: T;
+type SubcommandList = readonly {
+	name: string;
+	type: "SUB_COMMAND" | "SUB_COMMAND_GROUP";
+	options?: SubcommandList;
+}[];
 
-// type ObjectFromObjectIntersection<T> = T extends unknown
-// 	? { [K in keyof T]: ObjectFromObjectIntersection<T[K]> }
-// 	: T;
+export type SubCommandsOf<Command> = Command extends CommandWithSubs
+	? SubCommandsFromOptions<Command["options"]>
+	: undefined;
+
+type SubCommandsFromOptions<Options extends SubcommandList> = OptionMapToSubcommandNames<
+	OptionsMappedByName<Options>
+>;
+
+type OptionMapToSubcommandNames<OptionsMap extends Record<string, SubcommandList[number]>> = {
+	// for every option whose type is SUB_COMMAND,
+	[Name in keyof OptionsMap]: OptionsMap[Name]["type"] extends "SUB_COMMAND"
+		? // return its name
+		  Name
+		: // and if it's a SUB_COMMAND_GROUP,
+		OptionsMap[Name]["type"] extends "SUB_COMMAND_GROUP"
+		? // and can itself be parsed
+		  OptionsMap[Name] extends CommandWithSubs
+			? // recurse to find those subcommand names
+			  SubCommandsOf<OptionsMap[Name]>
+			: never
+		: never;
+}[keyof OptionsMap];
+
+/////////////////////////////////////
+
+export type SubCommandGroupsOf<Command> = Command extends CommandWithSubs
+	? SubCommandGroupsFromOptions<Command["options"]>
+	: undefined;
+
+type SubCommandGroupsFromOptions<Options extends SubcommandList> = OptionMapToSubcommandGroupNames<
+	OptionsMappedByName<Options>
+>;
+
+type OptionMapToSubcommandGroupNames<A extends Record<string, SubcommandList[number]>> = {
+	[k in keyof A]: A[k]["type"] extends "SUB_COMMAND_GROUP" ? k : never;
+}[keyof A];
+
+type OptionsMappedByName<Options extends SubcommandList> = CleanUpObjectIntersectionRecursive<
+	IntersectionFromUnion<KeyObjectUnionBy<UnionFromArray<Options>, "name">>
+>;

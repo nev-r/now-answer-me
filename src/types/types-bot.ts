@@ -34,15 +34,16 @@ export interface TriggerParams extends IncitingParams {
 }
 
 export interface SlashCommandParams<
-	// SelectedOptions extends Record<string, CommandInteractionOption["value"]>
-	SelectedOptions extends any
+	SelectedOptions extends any,
+	SelectedSubcommand extends any,
+	selectedSubcommandGroup extends any
 > extends IncitingParams {
 	/** the channel, if any, where this command was triggered */
 	channel: CommandInteraction["channel"];
 	optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
 	optionDict: SelectedOptions;
-	subCommand: string | undefined;
-	subCommandGroup: string | undefined;
+	subCommand: SelectedSubcommand | undefined;
+	subCommandGroup: selectedSubcommandGroup | undefined;
 }
 
 /**
@@ -64,17 +65,18 @@ export type CommandResponse =
 			params: CommandParams
 	  ) => Sendable | undefined | void | Promise<Message | Sendable | undefined | void>)
 	| Sendable;
-
 /**
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the SlashCommandParams object
  */
 export type SlashCommandResponse<
-	SelectedOptions extends any
-	// SelectedOptions extends Record<string, CommandInteractionOption["value"]>
+	SelectedOptionMap extends any,
+	SelectedSubcommand extends any,
+	selectedSubcommandGroup extends any
+	// SelectedOptionMap extends Record<string, CommandInteractionOption["value"]>
 > =
 	| ((
-			params: SlashCommandParams<SelectedOptions>
+			params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, selectedSubcommandGroup>
 	  ) =>
 			| InteractionReplyOptions
 			| MessageEmbed
