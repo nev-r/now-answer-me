@@ -111,23 +111,31 @@ export type CommandOptionsMap<C extends StrictCommand> = C extends StrictCommand
 	  >
 	: unknown;
 
+type CommandWithSubsOrGroups = Readonly<{
+	options: SubcommandOrSubGroupList;
+}>;
+
+type SubcommandOrSubGroupList = readonly {
+	name: string;
+	type: "SUB_COMMAND" | "SUB_COMMAND_GROUP";
+	options?: any;
+}[];
+
 type CommandWithSubs = Readonly<{
 	options: SubcommandList;
 }>;
-
 type SubcommandList = readonly {
 	name: string;
-	type: "SUB_COMMAND" | "SUB_COMMAND_GROUP";
-	options?: SubcommandList;
+	type: "SUB_COMMAND";
+	options?: any;
 }[];
 
-export type SubCommandsOf<Command> = Command extends CommandWithSubs
-	? SubCommandsFromOptions<Command["options"]>
+export type SubCommandsOf<Command> = Command extends CommandWithSubsOrGroups
+	? SubCommandsFromTopLevelOptions<Command["options"]>
 	: undefined;
 
-type SubCommandsFromOptions<Options extends SubcommandList> = OptionMapToSubcommandNames<
-	OptionsMappedByName<Options>
->;
+type SubCommandsFromTopLevelOptions<Options extends SubcommandOrSubGroupList> =
+	OptionMapToSubcommandNames<OptionsMappedByName<Options>>;
 
 type OptionMapToSubcommandNames<OptionsMap extends Record<string, SubcommandList[number]>> = {
 	// for every option whose type is SUB_COMMAND,
@@ -139,11 +147,22 @@ type OptionMapToSubcommandNames<OptionsMap extends Record<string, SubcommandList
 		? // and can itself be parsed
 		  OptionsMap[Name] extends CommandWithSubs
 			? // recurse to find those subcommand names
-			  SubCommandsOf<OptionsMap[Name]>
+			  SubCommandsFromTopLevelOptions<OptionsMap[Name]["options"]>
 			: never
 		: never;
 }[keyof OptionsMap];
 
+type SubCommandsFromSecondLevelOptions<Options extends SubcommandList> =
+	SecondLevelOptionMapToSubcommandNames<OptionsMappedByName<Options>>;
+type SecondLevelOptionMapToSubcommandNames<
+	OptionsMap extends Record<string, SubcommandList[number]>
+> = {
+	// for every option whose type is SUB_COMMAND,
+	[Name in keyof OptionsMap]: OptionsMap[Name]["type"] extends "SUB_COMMAND"
+		? // return its name
+		  Name
+		: never;
+};
 /////////////////////////////////////
 
 export type SubCommandGroupsOf<Command> = Command extends CommandWithSubs
@@ -158,6 +177,7 @@ type OptionMapToSubcommandGroupNames<A extends Record<string, SubcommandList[num
 	[k in keyof A]: A[k]["type"] extends "SUB_COMMAND_GROUP" ? k : never;
 }[keyof A];
 
-type OptionsMappedByName<Options extends SubcommandList> = CleanUpObjectIntersectionRecursive<
-	IntersectionFromUnion<KeyObjectUnionBy<UnionFromArray<Options>, "name">>
->;
+type OptionsMappedByName<Options extends SubcommandOrSubGroupList> =
+	CleanUpObjectIntersectionRecursive<
+		IntersectionFromUnion<KeyObjectUnionBy<UnionFromArray<Options>, "name">>
+	>;

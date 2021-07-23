@@ -36,14 +36,14 @@ export interface TriggerParams extends IncitingParams {
 export interface SlashCommandParams<
 	SelectedOptions extends any,
 	SelectedSubcommand extends any,
-	selectedSubcommandGroup extends any
+	SelectedSubcommandGroup extends any
 > extends IncitingParams {
 	/** the channel, if any, where this command was triggered */
 	channel: CommandInteraction["channel"];
 	optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
 	optionDict: SelectedOptions;
 	subCommand: SelectedSubcommand | undefined;
-	subCommandGroup: selectedSubcommandGroup | undefined;
+	subCommandGroup: SelectedSubcommandGroup | undefined;
 }
 
 /**
@@ -72,11 +72,11 @@ export type CommandResponse =
 export type SlashCommandResponse<
 	SelectedOptionMap extends any,
 	SelectedSubcommand extends any,
-	selectedSubcommandGroup extends any
+	SelectedSubcommandGroup extends any
 	// SelectedOptionMap extends Record<string, CommandInteractionOption["value"]>
 > =
 	| ((
-			params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, selectedSubcommandGroup>
+			params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, SelectedSubcommandGroup>
 	  ) =>
 			| InteractionReplyOptions
 			| MessageEmbed

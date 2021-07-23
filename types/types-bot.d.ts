@@ -21,13 +21,13 @@ export interface TriggerParams extends IncitingParams {
     /** the channel where this command was triggered */
     channel: Message["channel"];
 }
-export interface SlashCommandParams<SelectedOptions extends any, SelectedSubcommand extends any, selectedSubcommandGroup extends any> extends IncitingParams {
+export interface SlashCommandParams<SelectedOptions extends any, SelectedSubcommand extends any, SelectedSubcommandGroup extends any> extends IncitingParams {
     /** the channel, if any, where this command was triggered */
     channel: CommandInteraction["channel"];
     optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
     optionDict: SelectedOptions;
     subCommand: SelectedSubcommand | undefined;
-    subCommandGroup: selectedSubcommandGroup | undefined;
+    subCommandGroup: SelectedSubcommandGroup | undefined;
 }
 /**
  * basic discord metadata about who and where a command was triggered
@@ -47,7 +47,7 @@ export declare type CommandResponse = ((params: CommandParams) => Sendable | und
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the SlashCommandParams object
  */
-export declare type SlashCommandResponse<SelectedOptionMap extends any, SelectedSubcommand extends any, selectedSubcommandGroup extends any> = ((params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, selectedSubcommandGroup>) => InteractionReplyOptions | MessageEmbed | string | undefined | void | Promise<InteractionReplyOptions | MessageEmbed | string | undefined | void>) | Sendable;
+export declare type SlashCommandResponse<SelectedOptionMap extends any, SelectedSubcommand extends any, SelectedSubcommandGroup extends any> = ((params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, SelectedSubcommandGroup>) => InteractionReplyOptions | MessageEmbed | string | undefined | void | Promise<InteractionReplyOptions | MessageEmbed | string | undefined | void>) | Sendable;
 /**
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object
