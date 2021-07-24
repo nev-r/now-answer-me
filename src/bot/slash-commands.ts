@@ -20,7 +20,7 @@ import {
 import { client, clientReady, clientStatus } from "./index.js";
 
 const slashCommands: NodeJS.Dict<{
-	where: "global" | GuildResolvable;
+	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
 	config: ApplicationCommandDataNoEnums;
 	handler: SlashCommandResponse<any, any, any>;
 	ephemeral?: boolean;
@@ -49,7 +49,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 	defer,
 	deferIfLong,
 }: {
-	where: "global" | GuildResolvable;
+	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
 	config: Config;
 	handler: SlashCommandResponse<
 		CommandOptionsMap<Config>,
@@ -125,27 +125,34 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 }
 
 async function registerSlashCommands(
-	where: "global" | GuildResolvable,
+	whereOrWheres: "global" | GuildResolvable | ("global" | GuildResolvable)[],
 	config: ApplicationCommandDataNoEnums[]
 ) {
+	const wheres = arrayify(whereOrWheres);
 	const configs = arrayify(config);
 	await clientReady;
-	const destination = where === "global" ? client.application : client.guilds.resolve(where);
-	if (!destination) throw `couldn't resolve ${where} to a guild`;
+	for (const where of wheres) {
+		const destination = where === "global" ? client.application : client.guilds.resolve(where);
+		if (!destination) throw `couldn't resolve ${where} to a guild`;
 
-	if (!destination.commands.cache.size) await destination.commands.fetch();
-	const cache = [...destination.commands.cache.values()];
+		if (!destination.commands.cache.size) await destination.commands.fetch();
+		const cache = [...destination.commands.cache.values()];
 
-	for (const conf of configs.map(standardizeConfig)) {
-		const matchingConfig = cache.find((c) => {
-			return c.name === conf.name && configDoesMatch(c, conf);
-		});
-		console.log(
-			`registering ${conf.name}: ${
-				matchingConfig ? "already exists" : (await destination.commands.create(conf)) && "done!"
-			}`
-		);
-		// console.log({ ...matchingConfig, guild: undefined, permissions: undefined });
+		for (const conf of configs.map(standardizeConfig)) {
+			process.stdout.write(`registering ${conf.name}: `);
+			const matchingConfig = cache.find((c) => {
+				return c.name === conf.name && configDoesMatch(c, conf);
+			});
+			if (matchingConfig) console.log("already set up");
+			else
+				try {
+					await destination.commands.create(conf);
+					console.log("done");
+				} catch (e) {
+					console.log("failed..");
+					console.log(e);
+				}
+		}
 	}
 }
 

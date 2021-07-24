@@ -4,7 +4,7 @@ import { CommandOptionsMap, StrictCommand, SubCommandGroupsOf, SubCommandsOf } f
 export declare const needRegistering: string[];
 export declare function registerCommandsOnConnect(): Promise<void>;
 export declare function addSlashCommand<Config extends StrictCommand>({ where, config, handler, ephemeral, defer, deferIfLong, }: {
-    where: "global" | GuildResolvable;
+    where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
     config: Config;
     handler: SlashCommandResponse<CommandOptionsMap<Config>, SubCommandsOf<Config>, SubCommandGroupsOf<Config>>;
     ephemeral?: boolean;

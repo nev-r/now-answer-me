@@ -77,21 +77,34 @@ export async function routeSlashCommand(interaction) {
     if (!interaction.replied)
         await interaction.reply({ content: "☑", ephemeral: true });
 }
-async function registerSlashCommands(where, config) {
+async function registerSlashCommands(whereOrWheres, config) {
+    const wheres = arrayify(whereOrWheres);
     const configs = arrayify(config);
     await clientReady;
-    const destination = where === "global" ? client.application : client.guilds.resolve(where);
-    if (!destination)
-        throw `couldn't resolve ${where} to a guild`;
-    if (!destination.commands.cache.size)
-        await destination.commands.fetch();
-    const cache = [...destination.commands.cache.values()];
-    for (const conf of configs.map(standardizeConfig)) {
-        const matchingConfig = cache.find((c) => {
-            return c.name === conf.name && configDoesMatch(c, conf);
-        });
-        console.log(`registering ${conf.name}: ${matchingConfig ? "already exists" : (await destination.commands.create(conf)) && "done!"}`);
-        // console.log({ ...matchingConfig, guild: undefined, permissions: undefined });
+    for (const where of wheres) {
+        const destination = where === "global" ? client.application : client.guilds.resolve(where);
+        if (!destination)
+            throw `couldn't resolve ${where} to a guild`;
+        if (!destination.commands.cache.size)
+            await destination.commands.fetch();
+        const cache = [...destination.commands.cache.values()];
+        for (const conf of configs.map(standardizeConfig)) {
+            process.stdout.write(`registering ${conf.name}: `);
+            const matchingConfig = cache.find((c) => {
+                return c.name === conf.name && configDoesMatch(c, conf);
+            });
+            if (matchingConfig)
+                console.log("already set up");
+            else
+                try {
+                    await destination.commands.create(conf);
+                    console.log("done");
+                }
+                catch (e) {
+                    console.log("failed..");
+                    console.log(e);
+                }
+        }
     }
 }
 function createDictFromSelectedOptions(originalOptions, meta = {
