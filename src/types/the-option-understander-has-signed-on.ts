@@ -1,5 +1,5 @@
 import type { GuildChannel, GuildMember, Role, User } from "discord.js";
-import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes } from "discord.js/typings/enums";
 import {
 	CleanUpObjectIntersectionRecursive,
 	IntersectionFromUnion,
@@ -11,6 +11,7 @@ export type StrictCommand = Command<StrictOption>;
 
 type Command<O> = Readonly<{
 	name: string;
+	type?: "CHAT_INPUT";
 	description: string;
 	options?: readonly O[];
 	defaultPermission?: boolean;

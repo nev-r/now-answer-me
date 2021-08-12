@@ -4,7 +4,7 @@ import type { ActivityOptions } from "discord.js";
 export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
 export { addSlashCommand } from "./slash-commands.js";
 export declare const startupTimestamp: Date;
-export declare const client: Client;
+export declare const client: Client<boolean>;
 /** resolves when the client has connected */
 export declare let clientReady: Promise<Client>;
 export declare const clientStatus: {
@@ -44,4 +44,4 @@ declare type MessageFilter = (msg: Message) => boolean;
 export declare function addMessageFilter(...messageFilter: MessageFilter[]): void;
 export declare function ignoreDms(setting?: boolean): void;
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
-export declare function init(token: string): Promise<Client>;
+export declare function init(token: string): Promise<Client<boolean>>;

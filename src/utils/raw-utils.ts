@@ -45,7 +45,7 @@ export async function sendMessageUsingClient(
 	if (!resolvedChannel)
 		throw new Error(`${channel} could not be resolved to a channel this account has access to`);
 	if (!resolvedChannel.isText()) throw new Error(`channel ${channel} is not a text channel`);
-	if (publish && resolvedChannel.type !== "news")
+	if (publish && resolvedChannel.type !== "GUILD_NEWS")
 		throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
 	const sentMessage = await resolvedChannel.send(
 		typeof content === "string" ? content : { embeds: [content] }
@@ -90,7 +90,7 @@ export async function publishMessageUsingClient(
 
 	if (!resolvedChannel.isText()) throw new Error(`channel ${channel} is not a text channel`);
 
-	if (resolvedChannel.type !== "news")
+	if (resolvedChannel.type !== "GUILD_NEWS")
 		throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
 
 	const messageToPublish = await resolvedChannel.messages.fetch(normalizeID(message));
@@ -143,7 +143,7 @@ export function announceToChannels(
 	return arrayify(channelIds).map((channelId) => {
 		const channel = client.channels.cache.get(channelId);
 		return (
-			(channel?.type === "dm" || channel?.type === "text") &&
+			(channel?.type === "DM" || channel?.type === "GUILD_TEXT") &&
 			channel.isText() &&
 			channel.send(sendableToMessageOptions(message))
 		);

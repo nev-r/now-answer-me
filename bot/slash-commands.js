@@ -40,7 +40,7 @@ export async function routeSlashCommand(interaction) {
     let deferalCountdown;
     if (defer || deferIfLong) {
         deferalCountdown = setTimeout(() => {
-            interaction.defer({ ephemeral });
+            interaction.deferReply({ ephemeral });
         }, defer ? 0 : 2300);
     }
     try {
@@ -48,7 +48,7 @@ export async function routeSlashCommand(interaction) {
         if (typeof handler === "function") {
             const { guild, channel, user } = interaction;
             const { optionDict, subCommand, subCommandGroup } = createDictFromSelectedOptions([
-                ...interaction.options.values(),
+                ...interaction.options.data,
             ]);
             const optionList = Object.entries(optionDict);
             results =
@@ -91,7 +91,9 @@ async function registerSlashCommands(whereOrWheres, config) {
         for (const conf of configs.map(standardizeConfig)) {
             process.stdout.write(`registering ${conf.name}: `);
             const matchingConfig = cache.find((c) => {
-                return c.name === conf.name && configDoesMatch(c, conf);
+                return (c.name === conf.name &&
+                    c.type === "CHAT_INPUT" &&
+                    configDoesMatch(c, conf));
             });
             if (matchingConfig)
                 console.log("already set up");
@@ -159,8 +161,8 @@ function optionDoesMatch(option1, option2) {
             (!((_a = option1.options) === null || _a === void 0 ? void 0 : _a.length) && !((_b = option2.options) === null || _b === void 0 ? void 0 : _b.length)) ||
             allOptionsDoMatch((_c = option1.options) !== null && _c !== void 0 ? _c : [], (_d = option2.options) !== null && _d !== void 0 ? _d : [])));
 }
-function standardizeConfig({ name, description, defaultPermission = true, options = [], }) {
-    return { name, description, defaultPermission, options: options.map(standardizeOption) };
+function standardizeConfig({ name, type = "CHAT_INPUT", description, defaultPermission = true, options = [], }) {
+    return { name, type, description, defaultPermission, options: options.map(standardizeOption) };
 }
 const enumToString = [
     null,
@@ -173,6 +175,7 @@ const enumToString = [
     "CHANNEL",
     "ROLE",
     "MENTIONABLE",
+    "NUMBER",
 ];
 function standardizeOption({ type, name, description, required, choices, //
 options, }) {

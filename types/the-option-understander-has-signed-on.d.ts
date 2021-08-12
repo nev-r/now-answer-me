@@ -4,6 +4,7 @@ import { CleanUpObjectIntersectionRecursive, IntersectionFromUnion, KeyObjectUni
 export declare type StrictCommand = Command<StrictOption>;
 declare type Command<O> = Readonly<{
     name: string;
+    type?: "CHAT_INPUT";
     description: string;
     options?: readonly O[];
     defaultPermission?: boolean;

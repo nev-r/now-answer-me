@@ -10,6 +10,7 @@ import type {
 	User,
 	EmbedFieldData,
 	ThreadChannel,
+	TextBasedChannels,
 } from "discord.js";
 import { MessageEmbed } from "discord.js";
 import { sleep } from "one-stone/promise";
@@ -43,7 +44,7 @@ export async function _newPaginatedSelector_<T>({
 }: {
 	user?: User;
 	preexistingMessage?: Message;
-	channel?: TextChannel | DMChannel | NewsChannel | ThreadChannel;
+	channel?: TextBasedChannels;
 	cleanupReactions?: boolean;
 	optionRenderer?: (listItem: any, index: number) => EmbedFieldData;
 	selectables: (T | EmbedFieldData)[];
@@ -175,7 +176,7 @@ export async function _newPaginatedEmbed_({
 }: {
 	user?: User;
 	preexistingMessage?: Message;
-	channel?: TextChannel | DMChannel | NewsChannel | ThreadChannel;
+	channel?: TextBasedChannels;
 	pages: any[];
 	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
 	startPage?: number;

@@ -3,6 +3,7 @@ import {
 	ApplicationCommandOption,
 	ApplicationCommandOptionChoice,
 	ApplicationCommandOptionData,
+	ChatInputApplicationCommandData,
 	CommandInteraction,
 	CommandInteractionOption,
 	GuildResolvable,
@@ -86,7 +87,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 	if (defer || deferIfLong) {
 		deferalCountdown = setTimeout(
 			() => {
-				interaction.defer({ ephemeral });
+				interaction.deferReply({ ephemeral });
 			},
 			defer ? 0 : 2300
 		);
@@ -96,7 +97,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
 			const { optionDict, subCommand, subCommandGroup } = createDictFromSelectedOptions([
-				...interaction.options.values(),
+				...interaction.options.data,
 			]);
 			const optionList = Object.entries(optionDict);
 
@@ -135,13 +136,17 @@ async function registerSlashCommands(
 		const destination = where === "global" ? client.application : client.guilds.resolve(where);
 		if (!destination) throw `couldn't resolve ${where} to a guild`;
 
-		if (!destination.commands.cache.size) await destination.commands.fetch();
+		if (!destination.commands.cache.size) await (destination as any).commands.fetch();
 		const cache = [...destination.commands.cache.values()];
 
 		for (const conf of configs.map(standardizeConfig)) {
 			process.stdout.write(`registering ${conf.name}: `);
 			const matchingConfig = cache.find((c) => {
-				return c.name === conf.name && configDoesMatch(c, conf);
+				return (
+					c.name === conf.name &&
+					c.type === "CHAT_INPUT" &&
+					configDoesMatch(c as ApplicationCommandDataNoEnums, conf)
+				);
 			});
 			if (matchingConfig) console.log("already set up");
 			else
@@ -192,8 +197,8 @@ function createDictFromSelectedOptions(
 }
 
 type ApplicationCommandDataNoEnums = Pick<
-	ApplicationCommandData,
-	"defaultPermission" | "description" | "name"
+	ChatInputApplicationCommandData,
+	"defaultPermission" | "description" | "name" | "type"
 > & { options?: ApplicationCommandOption[] };
 
 function configDoesMatch(
@@ -238,11 +243,12 @@ function optionDoesMatch(
 
 function standardizeConfig({
 	name,
+	type = "CHAT_INPUT",
 	description,
 	defaultPermission = true,
 	options = [],
-}: StrictCommand | ApplicationCommandData): ApplicationCommandDataNoEnums {
-	return { name, description, defaultPermission, options: options.map(standardizeOption) };
+}: StrictCommand | ChatInputApplicationCommandData): ApplicationCommandDataNoEnums {
+	return { name, type, description, defaultPermission, options: options.map(standardizeOption) };
 }
 
 const enumToString = [
@@ -256,6 +262,7 @@ const enumToString = [
 	"CHANNEL",
 	"ROLE",
 	"MENTIONABLE",
+	"NUMBER",
 ] as const;
 
 function standardizeOption<

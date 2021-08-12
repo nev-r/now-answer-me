@@ -12,7 +12,7 @@ export const client = new Client({
         "GUILD_MESSAGES",
         "DIRECT_MESSAGES",
         "DIRECT_MESSAGE_REACTIONS",
-        "GUILD_EMOJIS",
+        "GUILD_EMOJIS_AND_STICKERS",
         "GUILD_MESSAGE_REACTIONS",
     ],
 });
@@ -110,7 +110,7 @@ export function init(token) {
             return;
         if (ignoredUserIds.has(msg.author.id))
             return;
-        if (doIgnoreDMs && msg.channel.type === "dm")
+        if (doIgnoreDMs && msg.channel.type === "DM")
             return;
         if (messageFilters.some((f) => f(msg) === false))
             return;
