@@ -142,11 +142,7 @@ async function registerSlashCommands(
 		for (const conf of configs.map(standardizeConfig)) {
 			process.stdout.write(`registering ${conf.name}: `);
 			const matchingConfig = cache.find((c) => {
-				return (
-					c.name === conf.name &&
-					c.type === "CHAT_INPUT" &&
-					configDoesMatch(c as ApplicationCommandDataNoEnums, conf)
-				);
+				return configDoesMatch(c as ApplicationCommandDataNoEnums, conf);
 			});
 			if (matchingConfig) console.log("already set up");
 			else
@@ -208,7 +204,7 @@ function configDoesMatch(
 	return (
 		conf1.name === conf2.name &&
 		conf1.description === conf2.description &&
-		conf1.defaultPermission === conf2.defaultPermission &&
+		(conf1.defaultPermission ?? true === conf2.defaultPermission ?? true) &&
 		allOptionsDoMatch(conf1.options, conf2.options)
 	);
 }
@@ -233,7 +229,7 @@ function optionDoesMatch(
 	return (
 		option1.name === option2.name &&
 		option1.description === option2.description &&
-		option1.required === option2.required &&
+		Boolean(option1.required) === Boolean(option2.required) &&
 		option1.type === option2.type &&
 		(option1.options === option2.options ||
 			(!option1.options?.length && !option2.options?.length) ||

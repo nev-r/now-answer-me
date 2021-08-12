@@ -42,6 +42,6 @@
 		"typescript": "^4.1.3"
 	},
 	"peerDependencies": {
-		"discord.js": "^13.0.1"
+		"discord.js": "discord.js@dev"
 	}
 }
