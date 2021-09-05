@@ -1,9 +1,11 @@
 import {
+	EmojiIdentifierResolvable,
 	Guild,
 	InteractionReplyOptions,
 	MessageActionRow,
 	MessageButton,
 	MessageButtonOptions,
+	MessageButtonStyleResolvable,
 	MessageComponentInteraction,
 	MessageEmbed,
 	TextBasedChannels,
@@ -15,6 +17,7 @@ import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
+import { MessageButtonStyles } from "discord.js/typings/enums";
 
 const nul = "␀";
 
@@ -46,11 +49,19 @@ export function createComponentInteraction({
 	buttons,
 	...handlingData
 }: {
-	buttons: MessageButtonOptions[] | MessageButtonOptions;
+	buttons: { disabled?: boolean; emoji?: EmojiIdentifierResolvable; label: string } & {
+		style: Exclude<MessageButtonStyleResolvable, "LINK" | MessageButtonStyles.LINK>;
+		value: string;
+	};
 	interactionID: string;
 } & ComponentInteractionHandlingData) {
 	componentInteractions[interactionID] = handlingData;
-	return new MessageActionRow({ components: arrayify(buttons).map((b) => new MessageButton(b)) });
+	const { value, ...rest } = buttons;
+	return new MessageActionRow({
+		components: arrayify(buttons).map(
+			(b) => new MessageButton({ customId: interactionID + nul + value, ...rest })
+		),
+	});
 }
 
 export async function routeComponentInteraction(interaction: MessageComponentInteraction) {

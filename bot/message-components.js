@@ -6,7 +6,10 @@ const nul = "␀";
 const componentInteractions = {};
 export function createComponentInteraction({ interactionID, buttons, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
-    return new MessageActionRow({ components: arrayify(buttons).map((b) => new MessageButton(b)) });
+    const { value, ...rest } = buttons;
+    return new MessageActionRow({
+        components: arrayify(buttons).map((b) => new MessageButton({ customId: interactionID + nul + value, ...rest })),
+    });
 }
 export async function routeComponentInteraction(interaction) {
     let [interactionID, controlID] = interaction.customId.split(nul);
