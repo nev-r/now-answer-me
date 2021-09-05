@@ -2,10 +2,10 @@ import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { client, clientReady, clientStatus } from "./index.js";
 const slashCommands = {};
-export const needRegistering = [];
+export const theseStillNeedRegistering = [];
 export async function registerCommandsOnConnect() {
-    while (needRegistering.length) {
-        const nameToRegister = needRegistering.pop();
+    while (theseStillNeedRegistering.length) {
+        const nameToRegister = theseStillNeedRegistering.pop();
         if (nameToRegister) {
             const toRegister = slashCommands[nameToRegister];
             if (toRegister) {
@@ -15,11 +15,7 @@ export async function registerCommandsOnConnect() {
     }
 }
 export function addSlashCommand({ where, config, handler, ephemeral, defer, deferIfLong, }) {
-    const standardConfig = standardizeConfig(config);
-    if (clientStatus.hasConnected)
-        registerSlashCommands(where, [standardConfig]);
-    else
-        needRegistering.push(config.name);
+    const standardConfig = unConst(config);
     slashCommands[config.name] = {
         where,
         config: standardConfig,
@@ -28,6 +24,10 @@ export function addSlashCommand({ where, config, handler, ephemeral, defer, defe
         defer,
         deferIfLong,
     };
+    if (clientStatus.hasConnected)
+        registerSlashCommands(where, [standardConfig]);
+    else
+        theseStillNeedRegistering.push(config.name);
 }
 // given a command string, find and run the appropriate function
 export async function routeSlashCommand(interaction) {
@@ -88,10 +88,10 @@ async function registerSlashCommands(whereOrWheres, config) {
         if (!destination.commands.cache.size)
             await destination.commands.fetch();
         const cache = [...destination.commands.cache.values()];
-        for (const conf of configs.map(standardizeConfig)) {
+        for (const conf of configs) {
             process.stdout.write(`registering ${conf.name}: `);
             const matchingConfig = cache.find((c) => {
-                return configDoesMatch(c, conf);
+                return c.equals(conf);
             });
             if (matchingConfig)
                 console.log("already set up");
@@ -136,54 +136,60 @@ function createDictFromSelectedOptions(originalOptions, meta = {
     }
     return { ...meta, optionDict };
 }
-function configDoesMatch(conf1, conf2) {
-    return (conf1.name === conf2.name &&
-        conf1.description === conf2.description &&
-        conf1.defaultPermission === conf2.defaultPermission &&
-        allOptionsDoMatch(conf1.options, conf2.options));
-}
-function allOptionsDoMatch(options1, options2) {
-    return Boolean(options1 === options2 ||
-        (options1 &&
-            options2 &&
-            options1.length === options2.length &&
-            [...options1.keys()].every((k) => optionDoesMatch(options1[k], options2[k]))));
-}
-function optionDoesMatch(option1, option2) {
-    var _a, _b, _c, _d;
-    return (option1.name === option2.name &&
-        option1.description === option2.description &&
-        Boolean(option1.required) === Boolean(option2.required) &&
-        option1.type === option2.type &&
-        (option1.options === option2.options ||
-            (!((_a = option1.options) === null || _a === void 0 ? void 0 : _a.length) && !((_b = option2.options) === null || _b === void 0 ? void 0 : _b.length)) ||
-            allOptionsDoMatch((_c = option1.options) !== null && _c !== void 0 ? _c : [], (_d = option2.options) !== null && _d !== void 0 ? _d : [])));
-}
-function standardizeConfig({ name, type = "CHAT_INPUT", description, defaultPermission = true, options = [], }) {
-    return { name, type, description, defaultPermission, options: options.map(standardizeOption) };
-}
-const enumToString = [
-    null,
-    "SUB_COMMAND",
-    "SUB_COMMAND_GROUP",
-    "STRING",
-    "INTEGER",
-    "BOOLEAN",
-    "USER",
-    "CHANNEL",
-    "ROLE",
-    "MENTIONABLE",
-    "NUMBER",
-];
-function standardizeOption({ type, name, description, required, choices, //
-options, }) {
-    type = typeof type === "string" ? type : enumToString[type];
-    return {
-        type,
-        name,
-        description,
-        required,
-        choices: choices,
-        options: options === null || options === void 0 ? void 0 : options.map(standardizeOption),
-    };
+// type ApplicationCommandDataNoEnums = Pick<
+// 	ChatInputApplicationCommandData,
+// 	"defaultPermission" | "description" | "name" | "type"
+// > & { options?: ApplicationCommandOption[] };
+// function configDoesMatch( 	conf1: ApplicationCommandDataNoEnums, 	conf2: ApplicationCommandDataNoEnums ) { 	return ( 		conf1.name === conf2.name && 		conf1.description === conf2.description && 		(conf1.defaultPermission ?? true === conf2.defaultPermission ?? true) && 		allOptionsDoMatch(conf1.options, conf2.options) 	); }
+// function allOptionsDoMatch( 	options1?: ApplicationCommandOption[], 	options2?: ApplicationCommandOption[] ) { 	return Boolean( 		options1 === options2 || 			(options1 && 				options2 && 				options1.length === options2.length && 				[...options1.keys()].every((k) => optionDoesMatch(options1[k], options2[k]))) 	); }
+// function optionDoesMatch( 	option1: ApplicationCommandOption, 	option2: ApplicationCommandOption ): boolean { 	return ( 		option1.name === option2.name && 		option1.description === option2.description && 		Boolean(option1.required) === Boolean(option2.required) && 		option1.type === option2.type && 		(option1.options === option2.options || 			(!option1.options?.length && !option2.options?.length) || 			allOptionsDoMatch(option1.options ?? [], option2.options ?? [])) 	); }
+// function standardizeConfig({ 	name, 	type = "CHAT_INPUT", 	description, 	defaultPermission = true, 	options = [], }: StrictCommand | ChatInputApplicationCommandData): ApplicationCommandDataNoEnums { 	return { name, type, description, defaultPermission, options: options.map(standardizeOption) }; }
+//  function standardizeConfig(config: StrictCommand | ChatInputApplicationCommandData): ChatInputApplicationCommandData {
+//  	return { ...config,options:config.options?[...config.options]:undefined};
+//  }
+// const enumToString = [
+// 	null,
+// 	"SUB_COMMAND",
+// 	"SUB_COMMAND_GROUP",
+// 	"STRING",
+// 	"INTEGER",
+// 	"BOOLEAN",
+// 	"USER",
+// 	"CHANNEL",
+// 	"ROLE",
+// 	"MENTIONABLE",
+// 	"NUMBER",
+// ] as const;
+// function standardizeOption<D extends StrictOption | APIApplicationCommandOption>({
+// 	type,
+// 	name,
+// 	description,
+// 	required,
+// 	choices, //
+// 	options,
+// }: D): ApplicationCommandOption {
+// 	type = typeof type === "string" ? type : (enumToString[type] as ApplicationCommandOption["type"]);
+// 	return {
+// 		type,
+// 		name,
+// 		description,
+// 		required,
+// 		choices: choices as ApplicationCommandOptionChoice[],
+// 		options: options?.map(standardizeOption),
+// 	};
+// }
+// function unfreezeObject<O extends Object>(o:Readonly<O>):O{}
+// function unConst(c: StrictOption): ApplicationCommandOptionData;
+// function unConst(c: StrictCommand): ChatInputApplicationCommandData;
+// function unConst(
+// 	c: StrictCommand | StrictOption
+// ): ApplicationCommandOptionData | ChatInputApplicationCommandData {
+// 	const { options, ...rest } = c;
+// 	return {
+// 		...rest,
+// 		options: options && ([...(options as any[]).map(unConst)] as any),
+// 	} as any;
+// }
+function unConst(c) {
+    return c;
 }

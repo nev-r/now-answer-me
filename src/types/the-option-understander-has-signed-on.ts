@@ -22,7 +22,7 @@ type Choice<T extends string | number> = readonly Readonly<{
 	value: T;
 }>[];
 
-type StrictOption = Readonly<
+export type StrictOption = Readonly<
 	{
 		name: string;
 		description: string;
@@ -112,7 +112,7 @@ export type CommandOptionsMap<C extends StrictCommand> = C extends StrictCommand
 	  >
 	: unknown;
 
-type CommandWithSubsOrGroups = Readonly<{
+type TopLevelCommandWithSubcommandsOrSubcommandGroups = Readonly<{
 	options: SubcommandOrSubGroupList;
 }>;
 
@@ -125,15 +125,17 @@ type SubcommandOrSubGroupList = readonly {
 type CommandWithSubs = Readonly<{
 	options: SubcommandList;
 }>;
+
 type SubcommandList = readonly {
 	name: string;
 	type: "SUB_COMMAND";
 	options?: any;
 }[];
 
-export type SubCommandsOf<Command> = Command extends CommandWithSubsOrGroups
-	? SubCommandsFromTopLevelOptions<Command["options"]>
-	: undefined;
+export type SubCommandsOf<Command> =
+	Command extends TopLevelCommandWithSubcommandsOrSubcommandGroups
+		? SubCommandsFromTopLevelOptions<Command["options"]>
+		: undefined;
 
 type SubCommandsFromTopLevelOptions<Options extends SubcommandOrSubGroupList> =
 	OptionMapToSubcommandNames<OptionsMappedByName<Options>>;
@@ -166,13 +168,13 @@ type SecondLevelOptionMapToSubcommandNames<
 };
 /////////////////////////////////////
 
-export type SubCommandGroupsOf<Command> = Command extends CommandWithSubs
-	? SubCommandGroupsFromOptions<Command["options"]>
-	: undefined;
+export type SubCommandGroupsOf<Command> =
+	Command extends TopLevelCommandWithSubcommandsOrSubcommandGroups
+		? SubCommandGroupsFromOptions<Command["options"]>
+		: unknown;
 
-type SubCommandGroupsFromOptions<Options extends SubcommandList> = OptionMapToSubcommandGroupNames<
-	OptionsMappedByName<Options>
->;
+type SubCommandGroupsFromOptions<Options extends SubcommandOrSubGroupList> =
+	OptionMapToSubcommandGroupNames<OptionsMappedByName<Options>>;
 
 type OptionMapToSubcommandGroupNames<A extends Record<string, SubcommandList[number]>> = {
 	[k in keyof A]: A[k]["type"] extends "SUB_COMMAND_GROUP" ? k : never;
@@ -182,3 +184,34 @@ type OptionsMappedByName<Options extends SubcommandOrSubGroupList> =
 	CleanUpObjectIntersectionRecursive<
 		IntersectionFromUnion<KeyObjectUnionBy<UnionFromArray<Options>, "name">>
 	>;
+
+const x = {
+	name: "test",
+	description: "pbbbbbbt",
+	options: [
+		{ name: "mysubA", description: "fkjwrngktrg", type: "SUB_COMMAND" },
+		{ name: "mysub0", description: "ewjrhbgwjhrg", type: "SUB_COMMAND" },
+		{
+			name: "my-sub-command-group-1",
+			description: "fkjerngwikrtjnh",
+			type: "SUB_COMMAND_GROUP",
+			options: [
+				{ name: "mysub1", description: "34624563456", type: "SUB_COMMAND" },
+				{ name: "mysub2", description: "ije4nhfw45gjh", type: "SUB_COMMAND" },
+			],
+		},
+		{
+			name: "my-sub-command-group-2",
+			description: "fkjerngwikrtjnh",
+			type: "SUB_COMMAND_GROUP",
+			options: [
+				{ name: "mysub1", description: "34624563456", type: "SUB_COMMAND" },
+				{ name: "mysub3", description: "ije4nhfw45gjh", type: "SUB_COMMAND" },
+			],
+		},
+	],
+} as const;
+
+type IDK = SubCommandGroupsOf<typeof x>;
+type IDK1 = SubCommandsOf<typeof x>;
+type IDK2 = CommandOptionsMap<typeof x>;

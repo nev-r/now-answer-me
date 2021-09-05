@@ -117,7 +117,7 @@ export function init(token) {
         routeMessageCommand(msg);
     })
         .on("interactionCreate", async (interaction) => {
-        if (interaction.isCommand())
+        if (interaction.isCommand() || interaction.isContextMenu())
             routeSlashCommand(interaction);
         else if (interaction.isMessageComponent())
             routeComponentInteraction(interaction);

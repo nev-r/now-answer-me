@@ -1,7 +1,7 @@
 import { CommandInteraction, GuildResolvable } from "discord.js";
 import type { SlashCommandResponse } from "../types/types-bot.js";
 import { CommandOptionsMap, StrictCommand, SubCommandGroupsOf, SubCommandsOf } from "../types/the-option-understander-has-signed-on.js";
-export declare const needRegistering: string[];
+export declare const theseStillNeedRegistering: string[];
 export declare function registerCommandsOnConnect(): Promise<void>;
 export declare function addSlashCommand<Config extends StrictCommand>({ where, config, handler, ephemeral, defer, deferIfLong, }: {
     where: "global" | GuildResolvable | ("global" | GuildResolvable)[];

@@ -13,7 +13,7 @@ declare type Choice<T extends string | number> = readonly Readonly<{
     name: string;
     value: T;
 }>[];
-declare type StrictOption = Readonly<{
+export declare type StrictOption = Readonly<{
     name: string;
     description: string;
     required?: boolean;
@@ -56,7 +56,7 @@ declare type OptionAsDict<Option> = Option extends {
 export declare type CommandOptionsMap<C extends StrictCommand> = C extends StrictCommand & {
     options: readonly StrictOption[];
 } ? CleanUpObjectIntersectionRecursive<IntersectionFromUnion<OptionAsDict<UnionFromArray<C["options"]>>>> : unknown;
-declare type CommandWithSubsOrGroups = Readonly<{
+declare type TopLevelCommandWithSubcommandsOrSubcommandGroups = Readonly<{
     options: SubcommandOrSubGroupList;
 }>;
 declare type SubcommandOrSubGroupList = readonly {
@@ -72,13 +72,13 @@ declare type SubcommandList = readonly {
     type: "SUB_COMMAND";
     options?: any;
 }[];
-export declare type SubCommandsOf<Command> = Command extends CommandWithSubsOrGroups ? SubCommandsFromTopLevelOptions<Command["options"]> : undefined;
+export declare type SubCommandsOf<Command> = Command extends TopLevelCommandWithSubcommandsOrSubcommandGroups ? SubCommandsFromTopLevelOptions<Command["options"]> : undefined;
 declare type SubCommandsFromTopLevelOptions<Options extends SubcommandOrSubGroupList> = OptionMapToSubcommandNames<OptionsMappedByName<Options>>;
 declare type OptionMapToSubcommandNames<OptionsMap extends Record<string, SubcommandList[number]>> = {
     [Name in keyof OptionsMap]: OptionsMap[Name]["type"] extends "SUB_COMMAND" ? Name : OptionsMap[Name]["type"] extends "SUB_COMMAND_GROUP" ? OptionsMap[Name] extends CommandWithSubs ? SubCommandsFromTopLevelOptions<OptionsMap[Name]["options"]> : never : never;
 }[keyof OptionsMap];
-export declare type SubCommandGroupsOf<Command> = Command extends CommandWithSubs ? SubCommandGroupsFromOptions<Command["options"]> : undefined;
-declare type SubCommandGroupsFromOptions<Options extends SubcommandList> = OptionMapToSubcommandGroupNames<OptionsMappedByName<Options>>;
+export declare type SubCommandGroupsOf<Command> = Command extends TopLevelCommandWithSubcommandsOrSubcommandGroups ? SubCommandGroupsFromOptions<Command["options"]> : unknown;
+declare type SubCommandGroupsFromOptions<Options extends SubcommandOrSubGroupList> = OptionMapToSubcommandGroupNames<OptionsMappedByName<Options>>;
 declare type OptionMapToSubcommandGroupNames<A extends Record<string, SubcommandList[number]>> = {
     [k in keyof A]: A[k]["type"] extends "SUB_COMMAND_GROUP" ? k : never;
 }[keyof A];

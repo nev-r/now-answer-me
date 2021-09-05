@@ -133,7 +133,7 @@ export function init(token: string) {
 			routeMessageCommand(msg);
 		})
 		.on("interactionCreate", async (interaction) => {
-			if (interaction.isCommand()) routeSlashCommand(interaction);
+			if (interaction.isCommand()||interaction.isContextMenu()) routeSlashCommand(interaction);
 			else if (interaction.isMessageComponent()) routeComponentInteraction(interaction);
 		})
 		.once("ready", async () => {
