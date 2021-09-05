@@ -19,10 +19,9 @@ export declare function createComponentInteraction({ interactionID, buttons, ...
         disabled?: boolean;
         emoji?: EmojiIdentifierResolvable;
         label: string;
-    } & {
         style: Exclude<MessageButtonStyleResolvable, "LINK" | MessageButtonStyles.LINK>;
         value: string;
-    };
+    }[];
     interactionID: string;
 } & ComponentInteractionHandlingData): MessageActionRow;
 export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<void>;

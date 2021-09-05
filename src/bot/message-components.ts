@@ -49,18 +49,22 @@ export function createComponentInteraction({
 	buttons,
 	...handlingData
 }: {
-	buttons: { disabled?: boolean; emoji?: EmojiIdentifierResolvable; label: string } & {
+	buttons: {
+		disabled?: boolean;
+		emoji?: EmojiIdentifierResolvable;
+		label: string;
 		style: Exclude<MessageButtonStyleResolvable, "LINK" | MessageButtonStyles.LINK>;
 		value: string;
-	};
+	}[];
 	interactionID: string;
 } & ComponentInteractionHandlingData) {
 	componentInteractions[interactionID] = handlingData;
-	const { value, ...rest } = buttons;
+
 	return new MessageActionRow({
-		components: arrayify(buttons).map(
-			(b) => new MessageButton({ customId: interactionID + nul + value, ...rest })
-		),
+		components: arrayify(buttons).map((b) => {
+			const { value, ...rest } = b;
+			return new MessageButton({ customId: interactionID + nul + value, ...rest });
+		}),
 	});
 }
 
