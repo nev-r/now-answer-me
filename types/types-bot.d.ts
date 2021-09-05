@@ -1,4 +1,5 @@
 import { CommandInteraction, Emoji, InteractionReplyOptions, Message, MessageEmbed, Snowflake, User } from "discord.js";
+import { Awaitable } from "one-stone/types";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 /**
@@ -47,7 +48,7 @@ export declare type CommandResponse = ((params: CommandParams) => Sendable | und
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the SlashCommandParams object
  */
-export declare type SlashCommandResponse<SelectedOptionMap extends any, SelectedSubcommand extends any, SelectedSubcommandGroup extends any> = ((params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, SelectedSubcommandGroup>) => InteractionReplyOptions | MessageEmbed | string | undefined | void | Promise<InteractionReplyOptions | MessageEmbed | string | undefined | void>) | Sendable;
+export declare type SlashCommandResponse<SelectedOptionMap extends any, SelectedSubcommand extends any, SelectedSubcommandGroup extends any> = ((params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, SelectedSubcommandGroup>) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>) | Sendable;
 /**
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the TriggerParams object

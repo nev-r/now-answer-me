@@ -8,6 +8,7 @@ import {
 	Snowflake,
 	User,
 } from "discord.js";
+import { Awaitable } from "one-stone/types";
 import { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 
@@ -77,13 +78,7 @@ export type SlashCommandResponse<
 > =
 	| ((
 			params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, SelectedSubcommandGroup>
-	  ) =>
-			| InteractionReplyOptions
-			| MessageEmbed
-			| string
-			| undefined
-			| void
-			| Promise<InteractionReplyOptions | MessageEmbed | string | undefined | void>)
+	  ) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>)
 	| Sendable;
 
 /**

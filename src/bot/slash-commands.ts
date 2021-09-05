@@ -27,7 +27,7 @@ const slashCommands: NodeJS.Dict<{
 	config: ChatInputApplicationCommandData;
 	handler: SlashCommandResponse<any, any, any>;
 	ephemeral?: boolean;
-	defer?: boolean;
+	deferImmediately?: boolean;
 	deferIfLong?: boolean;
 }> = {};
 export const theseStillNeedRegistering: string[] = [];
@@ -49,7 +49,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 	config,
 	handler,
 	ephemeral,
-	defer,
+	deferImmediately,
 	deferIfLong,
 }: {
 	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
@@ -60,7 +60,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 		SubCommandGroupsOf<Config>
 	>;
 	ephemeral?: boolean;
-	defer?: boolean;
+	deferImmediately?: boolean;
 	deferIfLong?: boolean;
 }) {
 	const standardConfig = unConst(config);
@@ -69,7 +69,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 		config: standardConfig,
 		handler,
 		ephemeral,
-		defer,
+		deferImmediately,
 		deferIfLong,
 	};
 
@@ -85,14 +85,12 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		return;
 	}
 
-	let { handler, ephemeral, defer, deferIfLong } = slashCommand;
+	let { handler, ephemeral, deferImmediately, deferIfLong } = slashCommand;
 	let deferalCountdown: undefined | NodeJS.Timeout;
-	if (defer || deferIfLong) {
+	if (deferImmediately || deferIfLong) {
 		deferalCountdown = setTimeout(
-			() => {
-				interaction.deferReply({ ephemeral });
-			},
-			defer ? 0 : 2300
+			() => interaction.deferReply({ ephemeral }),
+			deferImmediately ? 0 : 2300
 		);
 	}
 	try {
