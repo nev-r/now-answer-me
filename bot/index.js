@@ -5,7 +5,7 @@ import { routeComponentInteraction } from "./message-components.js";
 import { routeMessageCommand } from "./message-commands.js";
 export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
 export { addSlashCommand } from "./slash-commands.js";
-export { createComponentInteraction } from "./message-components.js";
+export { createComponentButtons } from "./message-components.js";
 export const startupTimestamp = new Date();
 export const client = new Client({
     intents: [

@@ -8,6 +8,8 @@ import {
 	MessageButtonStyleResolvable,
 	MessageComponentInteraction,
 	MessageEmbed,
+	MessageSelectMenu,
+	MessageSelectOptionData,
 	TextBasedChannels,
 	User,
 } from "discord.js";
@@ -24,18 +26,13 @@ const nul = "␀";
 type ComponentInteractionHandlingData = {
 	handler:
 		| Sendable
-		| (({
-				guild,
-				channel,
-				user,
-				interactionID,
-				controlID,
-		  }: {
+		| ((_: {
 				guild: Guild | null;
 				channel: TextBasedChannels | null;
 				user: User;
 				interactionID: string;
 				controlID: string;
+				values?: string[];
 		  }) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>);
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
@@ -44,28 +41,71 @@ type ComponentInteractionHandlingData = {
 
 const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData> = {};
 
-export function createComponentInteraction({
+type InteractionButton = {
+	disabled?: boolean;
+	emoji?: EmojiIdentifierResolvable;
+	label: string;
+	style: Exclude<MessageButtonStyleResolvable, "LINK" | MessageButtonStyles.LINK>;
+	value: string;
+};
+
+type InteractionSelect = {
+	controlID: string;
+	disabled?: boolean;
+	maxValues?: number;
+	minValues?: number;
+	options?: MessageSelectOptionData[];
+	placeholder?: string;
+};
+
+export function createComponentButtons({
 	interactionID,
 	buttons,
 	...handlingData
 }: {
-	buttons: {
-		disabled?: boolean;
-		emoji?: EmojiIdentifierResolvable;
-		label: string;
-		style: Exclude<MessageButtonStyleResolvable, "LINK" | MessageButtonStyles.LINK>;
-		value: string;
-	}[];
+	buttons: InteractionButton | InteractionButton[] | InteractionButton[][];
 	interactionID: string;
 } & ComponentInteractionHandlingData) {
 	componentInteractions[interactionID] = handlingData;
+	const nestedButtons: InteractionButton[][] = Array.isArray(buttons)
+		? Array.isArray(buttons[0])
+			? (buttons as InteractionButton[][])
+			: [buttons as InteractionButton[]]
+		: [[buttons]];
+	return nestedButtons.map(
+		(r) =>
+			new MessageActionRow({
+				components: r.map((b) => {
+					const { value, ...rest } = b;
+					return new MessageButton({ customId: interactionID + nul + value, ...rest });
+				}),
+			})
+	);
+}
 
-	return new MessageActionRow({
-		components: arrayify(buttons).map((b) => {
-			const { value, ...rest } = b;
-			return new MessageButton({ customId: interactionID + nul + value, ...rest });
-		}),
-	});
+export function createComponentSelects({
+	interactionID,
+	selects,
+	...handlingData
+}: {
+	selects: InteractionSelect | InteractionSelect[] | InteractionSelect[][];
+	interactionID: string;
+} & ComponentInteractionHandlingData) {
+	componentInteractions[interactionID] = handlingData;
+	const nestedSelects: InteractionSelect[][] = Array.isArray(selects)
+		? Array.isArray(selects[0])
+			? (selects as InteractionSelect[][])
+			: [selects as InteractionSelect[]]
+		: [[selects]];
+	return nestedSelects.map(
+		(r) =>
+			new MessageActionRow({
+				components: r.map((b) => {
+					const { controlID, ...rest } = b;
+					return new MessageSelectMenu({ customId: interactionID + nul + controlID, ...rest });
+				}),
+			})
+	);
 }
 
 export async function routeComponentInteraction(interaction: MessageComponentInteraction) {
@@ -85,7 +125,7 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 			let results: Sendable | Message | undefined;
 			if (typeof handler === "function") {
 				const { guild, channel, user } = interaction;
-
+				const values = interaction.isSelectMenu() ? interaction.values : undefined;
 				results =
 					(await handler({
 						channel,
@@ -93,6 +133,7 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 						user,
 						interactionID,
 						controlID,
+						values,
 					})) || "";
 			} else {
 				results = handler;

@@ -1,17 +1,35 @@
-import { MessageActionRow, MessageButton, } from "discord.js";
+import { MessageActionRow, MessageButton, MessageSelectMenu, } from "discord.js";
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
-import { arrayify } from "one-stone/array";
 const nul = "␀";
 const componentInteractions = {};
-export function createComponentInteraction({ interactionID, buttons, ...handlingData }) {
+export function createComponentButtons({ interactionID, buttons, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
-    return new MessageActionRow({
-        components: arrayify(buttons).map((b) => {
+    const nestedButtons = Array.isArray(buttons)
+        ? Array.isArray(buttons[0])
+            ? buttons
+            : [buttons]
+        : [[buttons]];
+    return nestedButtons.map((r) => new MessageActionRow({
+        components: r.map((b) => {
             const { value, ...rest } = b;
             return new MessageButton({ customId: interactionID + nul + value, ...rest });
         }),
-    });
+    }));
+}
+export function createComponentSelects({ interactionID, selects, ...handlingData }) {
+    componentInteractions[interactionID] = handlingData;
+    const nestedSelects = Array.isArray(selects)
+        ? Array.isArray(selects[0])
+            ? selects
+            : [selects]
+        : [[selects]];
+    return nestedSelects.map((r) => new MessageActionRow({
+        components: r.map((b) => {
+            const { controlID, ...rest } = b;
+            return new MessageSelectMenu({ customId: interactionID + nul + controlID, ...rest });
+        }),
+    }));
 }
 export async function routeComponentInteraction(interaction) {
     let [interactionID, controlID] = interaction.customId.split(nul);
@@ -28,6 +46,7 @@ export async function routeComponentInteraction(interaction) {
             let results;
             if (typeof handler === "function") {
                 const { guild, channel, user } = interaction;
+                const values = interaction.isSelectMenu() ? interaction.values : undefined;
                 results =
                     (await handler({
                         channel,
@@ -35,6 +54,7 @@ export async function routeComponentInteraction(interaction) {
                         user,
                         interactionID,
                         controlID,
+                        values,
                     })) || "";
             }
             else {
