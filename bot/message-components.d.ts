@@ -15,6 +15,7 @@ export declare type ComponentInteractionHandlingData = {
     ephemeral?: boolean;
     deferImmediately?: boolean;
     deferIfLong?: boolean;
+    update?: boolean;
 };
 export declare const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData>;
 declare type InteractionButton = {

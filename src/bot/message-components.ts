@@ -37,6 +37,7 @@ export type ComponentInteractionHandlingData = {
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
 	deferIfLong?: boolean;
+	update?: boolean;
 };
 
 export const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData> = {};
@@ -119,11 +120,11 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
 	else {
-		let { handler, ephemeral, deferImmediately, deferIfLong } = handlingData;
+		let { handler, ephemeral, deferImmediately, deferIfLong, update } = handlingData;
 		let deferalCountdown: undefined | NodeJS.Timeout;
 		if (deferImmediately || deferIfLong) {
 			deferalCountdown = setTimeout(
-				() => interaction.deferReply({ ephemeral }),
+				() => (update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral })),
 				deferImmediately ? 0 : 2300
 			);
 		}
@@ -146,8 +147,11 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 			}
 			deferalCountdown && clearTimeout(deferalCountdown);
 
-			if (results && !interaction.replied) {
+			if (results && !update && !interaction.replied) {
 				await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
+			}
+			if (results && update) {
+				await interaction.update(sendableToInteractionReplyOptions(results));
 			}
 		} catch (e) {
 			await interaction.reply({ content: "⚠", ephemeral: true });

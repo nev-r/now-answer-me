@@ -40,10 +40,10 @@ export async function routeComponentInteraction(interaction) {
     if (!handlingData)
         unhandledInteraction(interaction);
     else {
-        let { handler, ephemeral, deferImmediately, deferIfLong } = handlingData;
+        let { handler, ephemeral, deferImmediately, deferIfLong, update } = handlingData;
         let deferalCountdown;
         if (deferImmediately || deferIfLong) {
-            deferalCountdown = setTimeout(() => interaction.deferReply({ ephemeral }), deferImmediately ? 0 : 2300);
+            deferalCountdown = setTimeout(() => (update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral })), deferImmediately ? 0 : 2300);
         }
         try {
             let results;
@@ -64,8 +64,11 @@ export async function routeComponentInteraction(interaction) {
                 results = handler;
             }
             deferalCountdown && clearTimeout(deferalCountdown);
-            if (results && !interaction.replied) {
+            if (results && !update && !interaction.replied) {
                 await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
+            }
+            if (results && update) {
+                await interaction.update(sendableToInteractionReplyOptions(results));
             }
         }
         catch (e) {
