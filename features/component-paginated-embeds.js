@@ -2,50 +2,25 @@ import { MessageActionRow, MessageButton } from "discord.js";
 import { componentInteractions, } from "../bot/message-components.js";
 const paginationHandler = {
     handler: (asdf) => {
-        const [paginationScheme, operation, arg] = asdf.controlID.split("␟");
-        const getPageData = paginationSchemes[paginationScheme];
+        const [paginatorName, operation, arg] = asdf.controlID.split("␟");
+        const getPageData = paginationSchemes[paginatorName];
         if (!getPageData)
-            throw "invalid paginationScheme: " + paginationScheme;
+            throw ("invalid paginator name: " +
+                paginatorName +
+                "\navailable paginators: " +
+                Object.keys(paginationSchemes));
         if (operation === "page") {
-            const targetPageNum = parseInt(arg);
-            const [requestedPage, totalPages] = getPageData(targetPageNum);
-            const lastPossiblePage = totalPages - 1;
-            const nextPageNum = targetPageNum === lastPossiblePage ? 0 : targetPageNum + 1;
-            const prevPageNum = targetPageNum === 0 ? lastPossiblePage : targetPageNum - 1;
-            return {
-                embeds: [requestedPage],
-                components: [
-                    new MessageActionRow({
-                        components: [
-                            new MessageButton({
-                                style: "PRIMARY",
-                                customId: "␉" + "␞" + paginationScheme + "␟" + "page" + "␟" + prevPageNum,
-                                emoji: "⬅️",
-                            }),
-                            new MessageButton({
-                                style: "SECONDARY",
-                                customId: " ",
-                                label: `${targetPageNum + 1} / ${totalPages}`,
-                                disabled: true,
-                            }),
-                            new MessageButton({
-                                style: "PRIMARY",
-                                customId: "␉" + "␞" + paginationScheme + "␟" + "page" + "␟" + nextPageNum,
-                                emoji: "➡️",
-                            }),
-                        ],
-                    }),
-                ],
-            };
+            const requestedPageNum = parseInt(arg);
+            const [requestedPage, totalPages] = getPageData(requestedPageNum, arg);
+            return generatePage(paginatorName, requestedPageNum, requestedPage, totalPages);
         }
     },
     update: true,
 };
-componentInteractions["␉"] = paginationHandler;
-const paginationSchemes = {};
-export function createPaginator({ id, getPageData, }) {
-    paginationSchemes[id] = getPageData;
-    const [requestedPage, totalPages] = getPageData(0);
+function generatePage(paginatorName, requestedPageNum, requestedPage, totalPages) {
+    const lastPossiblePage = totalPages - 1;
+    const nextPageNum = requestedPageNum === lastPossiblePage ? 0 : requestedPageNum + 1;
+    const prevPageNum = requestedPageNum === 0 ? lastPossiblePage : requestedPageNum - 1;
     return {
         embeds: [requestedPage],
         components: [
@@ -53,22 +28,37 @@ export function createPaginator({ id, getPageData, }) {
                 components: [
                     new MessageButton({
                         style: "PRIMARY",
-                        customId: "␉" + "␞" + id + "␟" + "page" + "␟" + (totalPages - 1),
+                        customId: "␉" + "␞" + paginatorName + "␟" + "page" + "␟" + prevPageNum,
                         emoji: "⬅️",
                     }),
                     new MessageButton({
                         style: "SECONDARY",
                         customId: " ",
-                        label: `1 / ${totalPages}`,
+                        label: `${requestedPageNum + 1} / ${totalPages}`,
                         disabled: true,
                     }),
                     new MessageButton({
                         style: "PRIMARY",
-                        customId: "␉" + "␞" + id + "␟" + "page" + "␟" + 1,
+                        customId: "␉" + "␞" + paginatorName + "␟" + "page" + "␟" + nextPageNum,
                         emoji: "➡️",
                     }),
                 ],
             }),
         ],
     };
+}
+componentInteractions["␉"] = paginationHandler;
+const paginationSchemes = {};
+export function registerPaginator({ paginatorName, getPageData, }) {
+    paginationSchemes[paginatorName] = getPageData;
+}
+export function generateInitialPagination(paginatorName, arg) {
+    const getPageData = paginationSchemes[paginatorName];
+    if (!getPageData)
+        throw ("invalid paginator name: " +
+            paginatorName +
+            "\navailable paginators: " +
+            Object.keys(paginationSchemes));
+    const [requestedPage, totalPages] = getPageData(0, arg);
+    return generatePage(paginatorName, 0, requestedPage, totalPages);
 }
