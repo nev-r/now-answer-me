@@ -27,7 +27,7 @@ declare type InteractionSelect = {
     disabled?: boolean;
     maxValues?: number;
     minValues?: number;
-    options?: MessageSelectOptionData[];
+    options: MessageSelectOptionData[];
     placeholder?: string;
 };
 export declare function createComponentButtons({ interactionID, buttons, ...handlingData }: {

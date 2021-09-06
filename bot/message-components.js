@@ -1,7 +1,7 @@
 import { MessageActionRow, MessageButton, MessageSelectMenu, } from "discord.js";
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
-const nul = "␀";
+const separator = "␞";
 const componentInteractions = {};
 export function createComponentButtons({ interactionID, buttons, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
@@ -13,7 +13,7 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
     return nestedButtons.map((r) => new MessageActionRow({
         components: r.map((b) => {
             const { value, ...rest } = b;
-            return new MessageButton({ customId: interactionID + nul + value, ...rest });
+            return new MessageButton({ customId: interactionID + separator + value, ...rest });
         }),
     }));
 }
@@ -27,12 +27,15 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     return nestedSelects.map((r) => new MessageActionRow({
         components: r.map((b) => {
             const { controlID, ...rest } = b;
-            return new MessageSelectMenu({ customId: interactionID + nul + controlID, ...rest });
+            return new MessageSelectMenu({
+                customId: interactionID + separator + controlID,
+                ...rest,
+            });
         }),
     }));
 }
 export async function routeComponentInteraction(interaction) {
-    let [interactionID, controlID] = interaction.customId.split(nul);
+    let [interactionID, controlID] = interaction.customId.split(separator);
     const handlingData = componentInteractions[interactionID];
     if (!handlingData)
         unhandledInteraction(interaction);

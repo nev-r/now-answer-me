@@ -3,7 +3,7 @@ import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
 export { addSlashCommand } from "./slash-commands.js";
-export { createComponentButtons } from "./message-components.js";
+export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export declare const startupTimestamp: Date;
 export declare const client: Client<boolean>;
 /** resolves when the client has connected */

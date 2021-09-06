@@ -21,7 +21,7 @@ import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 
-const nul = "␀";
+const separator = "␞";
 
 type ComponentInteractionHandlingData = {
 	handler:
@@ -54,7 +54,7 @@ type InteractionSelect = {
 	disabled?: boolean;
 	maxValues?: number;
 	minValues?: number;
-	options?: MessageSelectOptionData[];
+	options: MessageSelectOptionData[];
 	placeholder?: string;
 };
 
@@ -77,7 +77,7 @@ export function createComponentButtons({
 			new MessageActionRow({
 				components: r.map((b) => {
 					const { value, ...rest } = b;
-					return new MessageButton({ customId: interactionID + nul + value, ...rest });
+					return new MessageButton({ customId: interactionID + separator + value, ...rest });
 				}),
 			})
 	);
@@ -102,14 +102,17 @@ export function createComponentSelects({
 			new MessageActionRow({
 				components: r.map((b) => {
 					const { controlID, ...rest } = b;
-					return new MessageSelectMenu({ customId: interactionID + nul + controlID, ...rest });
+					return new MessageSelectMenu({
+						customId: interactionID + separator + controlID,
+						...rest,
+					});
 				}),
 			})
 	);
 }
 
 export async function routeComponentInteraction(interaction: MessageComponentInteraction) {
-	let [interactionID, controlID] = interaction.customId.split(nul);
+	let [interactionID, controlID] = interaction.customId.split(separator);
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
 	else {
