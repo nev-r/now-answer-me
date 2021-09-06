@@ -6,7 +6,7 @@ const paginationHandler = {
         return JSON.stringify({ paginationScheme, operation, arg }, null, 2);
     },
 };
-componentInteractions["␉"] = paginationHandler;
+componentInteractions[""] = paginationHandler;
 const paginationSchemes = {};
 export function createPaginator({ id, getPageData, }) {
     paginationSchemes[id] = getPageData;
@@ -18,7 +18,7 @@ export function createPaginator({ id, getPageData, }) {
                 components: [
                     new MessageButton({
                         style: "PRIMARY",
-                        customId: id + "␟" + "page" + "␟" + (totalPages - 1),
+                        customId: "␉" + "␞" + id + "␟" + "page" + "␟" + (totalPages - 1),
                         emoji: "⬅️",
                     }),
                     new MessageButton({
@@ -29,7 +29,7 @@ export function createPaginator({ id, getPageData, }) {
                     }),
                     new MessageButton({
                         style: "PRIMARY",
-                        customId: id + "␟" + "page" + "␟" + 2,
+                        customId: "␉" + "␞" + id + "␟" + "page" + "␟" + 1,
                         emoji: "➡️",
                     }),
                 ],

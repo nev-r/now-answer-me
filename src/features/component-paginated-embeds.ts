@@ -11,7 +11,7 @@ const paginationHandler: ComponentInteractionHandlingData = {
 	},
 };
 
-componentInteractions["␉"] = paginationHandler;
+componentInteractions[""] = paginationHandler;
 
 const paginationSchemes: NodeJS.Dict<
 	(pageNum: number) => [requestedPage: MessageEmbed, totalPages: number]
@@ -34,7 +34,7 @@ export function createPaginator({
 				components: [
 					new MessageButton({
 						style: "PRIMARY",
-						customId: id + "␟" + "page" + "␟" + (totalPages - 1),
+						customId: "␉" + "␞" + id + "␟" + "page" + "␟" + (totalPages - 1),
 						emoji: "⬅️",
 					}),
 					new MessageButton({
@@ -45,7 +45,7 @@ export function createPaginator({
 					}),
 					new MessageButton({
 						style: "PRIMARY",
-						customId: id + "␟" + "page" + "␟" + 2,
+						customId: "␉" + "␞" + id + "␟" + "page" + "␟" + 1,
 						emoji: "➡️",
 					}),
 				],
