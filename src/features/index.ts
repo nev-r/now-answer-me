@@ -9,3 +9,6 @@ export {
 	sendRerollableEmbed,
 	sendRerollableStackEmbed,
 } from "./interactive-embeds.js";
+export {
+	createPaginator,
+} from "./component-paginated-embeds.js";
