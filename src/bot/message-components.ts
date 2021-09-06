@@ -23,7 +23,7 @@ import { MessageButtonStyles } from "discord.js/typings/enums";
 
 const separator = "␞";
 
-type ComponentInteractionHandlingData = {
+export type ComponentInteractionHandlingData = {
 	handler:
 		| Sendable
 		| ((_: {
@@ -39,15 +39,20 @@ type ComponentInteractionHandlingData = {
 	deferIfLong?: boolean;
 };
 
-const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData> = {};
+export const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData> = {};
 
 type InteractionButton = {
 	disabled?: boolean;
-	emoji?: EmojiIdentifierResolvable;
-	label: string;
 	style: Exclude<MessageButtonStyleResolvable, "LINK" | MessageButtonStyles.LINK>;
 	value: string;
-};
+} & (
+	| { emoji: EmojiIdentifierResolvable; label: string }
+	| { emoji?: undefined; label: string }
+	| {
+			emoji: EmojiIdentifierResolvable;
+			label?: undefined;
+	  }
+);
 
 type InteractionSelect = {
 	controlID: string;
@@ -72,6 +77,7 @@ export function createComponentButtons({
 			? (buttons as InteractionButton[][])
 			: [buttons as InteractionButton[]]
 		: [[buttons]];
+
 	return nestedButtons.map(
 		(r) =>
 			new MessageActionRow({
@@ -88,27 +94,24 @@ export function createComponentSelects({
 	selects,
 	...handlingData
 }: {
-	selects: InteractionSelect | InteractionSelect[] | InteractionSelect[][];
+	selects: InteractionSelect | InteractionSelect[];
 	interactionID: string;
 } & ComponentInteractionHandlingData) {
 	componentInteractions[interactionID] = handlingData;
-	const nestedSelects: InteractionSelect[][] = Array.isArray(selects)
-		? Array.isArray(selects[0])
-			? (selects as InteractionSelect[][])
-			: [selects as InteractionSelect[]]
-		: [[selects]];
-	return nestedSelects.map(
-		(r) =>
-			new MessageActionRow({
-				components: r.map((b) => {
-					const { controlID, ...rest } = b;
-					return new MessageSelectMenu({
-						customId: interactionID + separator + controlID,
-						...rest,
-					});
+	const nestedSelects = arrayify(selects);
+
+	return nestedSelects.map((s) => {
+		const { controlID, ...rest } = s;
+		const customId = interactionID + separator + controlID;
+		return new MessageActionRow({
+			components: [
+				new MessageSelectMenu({
+					customId,
+					...rest,
 				}),
-			})
-	);
+			],
+		});
+	});
 }
 
 export async function routeComponentInteraction(interaction: MessageComponentInteraction) {

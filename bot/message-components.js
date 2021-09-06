@@ -1,8 +1,9 @@
 import { MessageActionRow, MessageButton, MessageSelectMenu, } from "discord.js";
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
+import { arrayify } from "one-stone/array";
 const separator = "␞";
-const componentInteractions = {};
+export const componentInteractions = {};
 export function createComponentButtons({ interactionID, buttons, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
     const nestedButtons = Array.isArray(buttons)
@@ -19,20 +20,19 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
 }
 export function createComponentSelects({ interactionID, selects, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
-    const nestedSelects = Array.isArray(selects)
-        ? Array.isArray(selects[0])
-            ? selects
-            : [selects]
-        : [[selects]];
-    return nestedSelects.map((r) => new MessageActionRow({
-        components: r.map((b) => {
-            const { controlID, ...rest } = b;
-            return new MessageSelectMenu({
-                customId: interactionID + separator + controlID,
-                ...rest,
-            });
-        }),
-    }));
+    const nestedSelects = arrayify(selects);
+    return nestedSelects.map((s) => {
+        const { controlID, ...rest } = s;
+        const customId = interactionID + separator + controlID;
+        return new MessageActionRow({
+            components: [
+                new MessageSelectMenu({
+                    customId,
+                    ...rest,
+                }),
+            ],
+        });
+    });
 }
 export async function routeComponentInteraction(interaction) {
     let [interactionID, controlID] = interaction.customId.split(separator);
