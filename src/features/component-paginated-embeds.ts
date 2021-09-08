@@ -121,6 +121,10 @@ export function generateInitialPagination(paginatorName: string, seed?: string) 
 	return generatePage(paginatorName, 0, seed);
 }
 
+export function generateInitialPaginatedSelector(paginatorName: string, seed?: string) {
+	return generatePage(paginatorName, 0, seed);
+}
+
 const paginationHandler: ComponentInteractionHandlingData = {
 	handler: ({ controlID, values }) => {
 		const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);

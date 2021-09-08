@@ -82,6 +82,9 @@ function generateSelectorControls(paginatorName, options, seed) {
 export function generateInitialPagination(paginatorName, seed) {
     return generatePage(paginatorName, 0, seed);
 }
+export function generateInitialPaginatedSelector(paginatorName, seed) {
+    return generatePage(paginatorName, 0, seed);
+}
 const paginationHandler = {
     handler: ({ controlID, values }) => {
         const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);

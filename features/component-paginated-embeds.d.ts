@@ -3,6 +3,10 @@ export declare function generateInitialPagination(paginatorName: string, seed?: 
     embeds: MessageEmbed[];
     components: MessageActionRow[];
 };
+export declare function generateInitialPaginatedSelector(paginatorName: string, seed?: string): {
+    embeds: MessageEmbed[];
+    components: MessageActionRow[];
+};
 export declare function registerPaginator({ paginatorName, getPageData, }: {
     paginatorName: string;
     getPageData: (pageNum: number, seed?: string) => [requestedPage: MessageEmbed, totalPages: number];
