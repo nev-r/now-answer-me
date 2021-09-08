@@ -11,12 +11,12 @@ export declare function registerPaginator({ paginatorName, getPageData, }: {
     paginatorName: string;
     getPageData: (pageNum: number, seed?: string) => [requestedPage: MessageEmbed, totalPages: number];
 }): void;
-export declare function registerPaginatedSelector({ paginatorName, getPageData, }: {
+export declare function registerPaginatedSelector({ paginatorName, getPageData, finalizer, }: {
     paginatorName: string;
     getPageData: (pageNum: number, seed?: string) => [
         requestedPage: MessageEmbed,
         totalPages: number,
         selectorOptions: MessageSelectOptionData[]
     ];
-    finalize: (selectionNumber: string, seed?: string) => MessageEmbed;
+    finalizer: (selectionNumber: string, seed?: string) => MessageEmbed;
 }): void;

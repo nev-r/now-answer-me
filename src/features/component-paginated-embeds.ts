@@ -171,6 +171,7 @@ export function registerPaginator({
 export function registerPaginatedSelector({
 	paginatorName,
 	getPageData,
+	finalizer,
 }: {
 	paginatorName: string;
 	getPageData: (
@@ -181,9 +182,10 @@ export function registerPaginatedSelector({
 		totalPages: number,
 		selectorOptions: MessageSelectOptionData[]
 	];
-	finalize: (selectionNumber: string, seed?: string) => MessageEmbed;
+	finalizer: (selectionNumber: string, seed?: string) => MessageEmbed;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationIdentifier] = paginationHandler;
+	finalizers[paginationIdentifier] = finalizer;
 	paginationSchemes[paginatorName] = getPageData;
 }

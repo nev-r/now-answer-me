@@ -108,8 +108,9 @@ export function registerPaginator({ paginatorName, getPageData, }) {
     componentInteractions[paginationIdentifier] = paginationHandler;
     paginationSchemes[paginatorName] = getPageData;
 }
-export function registerPaginatedSelector({ paginatorName, getPageData, }) {
+export function registerPaginatedSelector({ paginatorName, getPageData, finalizer, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
     componentInteractions[paginationIdentifier] = paginationHandler;
+    finalizers[paginationIdentifier] = finalizer;
     paginationSchemes[paginatorName] = getPageData;
 }
