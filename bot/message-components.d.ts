@@ -3,6 +3,7 @@ import { EmojiIdentifierResolvable, Guild, InteractionReplyOptions, MessageActio
 import { Sendable } from "../types/types-bot.js";
 import { Awaitable } from "one-stone/types";
 import { MessageButtonStyles } from "discord.js/typings/enums";
+export declare const interactionIdSeparator = "\u241E";
 export declare type ComponentInteractionHandlingData = {
     handler: Sendable | ((_: {
         guild: Guild | null;
