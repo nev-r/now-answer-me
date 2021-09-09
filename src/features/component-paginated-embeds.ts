@@ -1,4 +1,5 @@
 import {
+	InteractionReplyOptions,
 	MessageActionRow,
 	MessageButton,
 	MessageEmbed,
@@ -52,8 +53,8 @@ function generatePage(paginatorName: string, currentPageNum: number, seed?: stri
 function finalizeContent(paginatorName: string, selectionNumber: string, seed?: string) {
 	const finalizer = getFinalizer(paginatorName);
 	const finalContent = finalizer(selectionNumber, seed);
-
-	return { embeds: [finalContent], components: [] };
+	if (finalContent instanceof MessageEmbed) return { embeds: [finalContent], components: [] };
+	return finalContent;
 }
 
 function generatePageControls(
@@ -89,7 +90,8 @@ function generatePageControls(
 			}),
 			new MessageButton({
 				style: "PRIMARY",
-				customId: customIdPrefix + nextPageNum + customIdSuffix,
+				customId:
+					customIdPrefix + (prevPageNum === nextPageNum ? "0" : "") + nextPageNum + customIdSuffix,
 				emoji: "➡️",
 			}),
 		],
@@ -153,7 +155,9 @@ const paginationSchemes: NodeJS.Dict<
 	]
 > = {};
 
-const finalizers: NodeJS.Dict<(selectionNumber: string, seed?: string) => MessageEmbed> = {};
+const finalizers: NodeJS.Dict<
+	(selectionNumber: string, seed?: string) => InteractionReplyOptions | MessageEmbed
+> = {};
 
 export function registerPaginator({
 	paginatorName,
@@ -184,7 +188,7 @@ export function registerPaginatedSelector({
 		totalPages: number,
 		selectorOptions: MessageSelectOptionData[]
 	];
-	finalizer: (selectionNumber: string, seed?: string) => MessageEmbed;
+	finalizer: (selectionNumber: string, seed?: string) => InteractionReplyOptions | MessageEmbed;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationIdentifier] = paginationHandler;

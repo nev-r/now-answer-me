@@ -1,4 +1,4 @@
-import { MessageActionRow, MessageButton, MessageSelectMenu, } from "discord.js";
+import { MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu, } from "discord.js";
 import { componentInteractions, interactionIdSeparator, } from "../bot/message-components.js";
 const paginationIdentifier = "␉";
 const paginationArgsSeparator = "␟";
@@ -31,7 +31,9 @@ function generatePage(paginatorName, currentPageNum, seed) {
 function finalizeContent(paginatorName, selectionNumber, seed) {
     const finalizer = getFinalizer(paginatorName);
     const finalContent = finalizer(selectionNumber, seed);
-    return { embeds: [finalContent], components: [] };
+    if (finalContent instanceof MessageEmbed)
+        return { embeds: [finalContent], components: [] };
+    return finalContent;
 }
 function generatePageControls(paginatorName, currentPageNum, totalPages, seed) {
     const lastPossiblePage = totalPages - 1;
@@ -59,7 +61,7 @@ function generatePageControls(paginatorName, currentPageNum, totalPages, seed) {
             }),
             new MessageButton({
                 style: "PRIMARY",
-                customId: customIdPrefix + nextPageNum + customIdSuffix,
+                customId: customIdPrefix + (prevPageNum === nextPageNum ? "0" : "") + nextPageNum + customIdSuffix,
                 emoji: "➡️",
             }),
         ],
