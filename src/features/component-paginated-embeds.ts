@@ -40,7 +40,9 @@ function generatePage(paginatorName: string, currentPageNum: number, seed?: stri
 	const paginator = getPaginator(paginatorName);
 	const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
 
-	const components = [generatePageControls(paginatorName, currentPageNum, totalPages, seed)];
+	const components: MessageActionRow[] = [];
+	if (totalPages > 1)
+		components.push(generatePageControls(paginatorName, currentPageNum, totalPages, seed));
 	if (selectorOptions)
 		components.push(generateSelectorControls(paginatorName, selectorOptions, seed));
 
@@ -186,6 +188,6 @@ export function registerPaginatedSelector({
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationIdentifier] = paginationHandler;
-	finalizers[paginationIdentifier] = finalizer;
+	finalizers[paginatorName] = finalizer;
 	paginationSchemes[paginatorName] = getPageData;
 }

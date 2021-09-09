@@ -21,7 +21,9 @@ function getFinalizer(paginatorName) {
 function generatePage(paginatorName, currentPageNum, seed) {
     const paginator = getPaginator(paginatorName);
     const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
-    const components = [generatePageControls(paginatorName, currentPageNum, totalPages, seed)];
+    const components = [];
+    if (totalPages > 1)
+        components.push(generatePageControls(paginatorName, currentPageNum, totalPages, seed));
     if (selectorOptions)
         components.push(generateSelectorControls(paginatorName, selectorOptions, seed));
     return { embeds: [requestedPage], components };
@@ -111,6 +113,6 @@ export function registerPaginator({ paginatorName, getPageData, }) {
 export function registerPaginatedSelector({ paginatorName, getPageData, finalizer, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
     componentInteractions[paginationIdentifier] = paginationHandler;
-    finalizers[paginationIdentifier] = finalizer;
+    finalizers[paginatorName] = finalizer;
     paginationSchemes[paginatorName] = getPageData;
 }
