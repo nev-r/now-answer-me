@@ -57,11 +57,18 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     });
 }
 export async function routeComponentInteraction(interaction) {
+    var _a;
     const { interactionID, controlID } = decodeCustomId(interaction.customId);
     const handlingData = componentInteractions[interactionID];
     if (!handlingData)
         unhandledInteraction(interaction);
     else {
+        const originalUser = (_a = interaction.message.interaction) === null || _a === void 0 ? void 0 : _a.user.id;
+        if (originalUser && interaction.user.id !== originalUser) {
+            await interaction.deferUpdate();
+            console.log("this isnt your control");
+            return;
+        }
         let { handler, ephemeral, deferImmediately, deferIfLong, update } = handlingData;
         let deferalCountdown;
         if (deferImmediately || deferIfLong) {

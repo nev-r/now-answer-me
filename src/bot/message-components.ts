@@ -144,6 +144,13 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
 	else {
+		const originalUser = interaction.message.interaction?.user.id;
+		if (originalUser && interaction.user.id !== originalUser) {
+			await interaction.deferUpdate();
+			console.log("this isnt your control");
+			return;
+		}
+
 		let { handler, ephemeral, deferImmediately, deferIfLong, update } = handlingData;
 		let deferalCountdown: undefined | NodeJS.Timeout;
 		if (deferImmediately || deferIfLong) {
