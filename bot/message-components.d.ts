@@ -20,7 +20,7 @@ export declare type ComponentInteractionHandlingData = {
     }) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>);
     ephemeral?: boolean;
     deferImmediately?: boolean;
-    deferIfLong?: boolean;
+    allowTimeout?: boolean;
     update?: boolean;
 };
 export declare const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData>;

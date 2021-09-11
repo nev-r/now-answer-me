@@ -57,7 +57,7 @@ export type ComponentInteractionHandlingData = {
 		  }) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>);
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
-	deferIfLong?: boolean;
+	allowTimeout?: boolean;
 	update?: boolean;
 };
 
@@ -75,6 +75,8 @@ type InteractionButton = {
 			label?: undefined;
 	  }
 );
+
+// isnt it cooler to NOT unwrap a starburst in your mouth? just eat it. wax paper and all. badass 
 
 type InteractionSelect = {
 	controlID: string;
@@ -151,14 +153,22 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 			return;
 		}
 
-		let { handler, ephemeral, deferImmediately, deferIfLong, update } = handlingData;
+		let { handler, ephemeral, deferImmediately, allowTimeout, update } = handlingData;
+
 		let deferalCountdown: undefined | NodeJS.Timeout;
-		if (deferImmediately || deferIfLong) {
-			deferalCountdown = setTimeout(
-				() => (update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral })),
-				deferImmediately ? 0 : 2300
-			);
+
+		// idk why we would want to timeout (shows an error message in discord), but..
+		if (!allowTimeout) {
+			// schedule a deferral. deferImmediately makes the button stop spinning right away.
+			// which is probably bad UX.
+			// otherwise, defer in 2.3 seconds if it looks like the function
+			// might run past the 3 second response window
+			const deferralDelay = deferImmediately ? 0 : 2300;
+			const deferralMethod = () =>
+				update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral });
+			deferalCountdown = setTimeout(deferralMethod, deferralDelay);
 		}
+
 		try {
 			let results: Sendable | Message | undefined;
 			if (typeof handler === "function") {
@@ -176,7 +186,8 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 			} else {
 				results = handler;
 			}
-			deferalCountdown && clearTimeout(deferalCountdown);
+			// the response function finished. we can cancel the scheduled deferral
+			deferalCountdown !== undefined && clearTimeout(deferalCountdown);
 
 			if (results && !update && !interaction.replied) {
 				await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
