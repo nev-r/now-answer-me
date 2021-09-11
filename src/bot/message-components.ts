@@ -22,6 +22,28 @@ import { MessageButtonStyles } from "discord.js/typings/enums";
 
 export const interactionIdSeparator = "␞";
 
+function decodeCustomId(customId: string) {
+	let [interactionID, controlID] = customId.split(interactionIdSeparator);
+	// these are the bare minimum that must decode properly
+	if (!interactionID || !controlID)
+		throw `invalid! interactionID:${interactionID} controlID:${controlID}`;
+	return {
+		/** lookup key for how to handle this interaction */
+		interactionID,
+		/** which control (button/select) was submitted */
+		controlID,
+	};
+}
+
+export function encodeCustomID(
+	/** lookup key for how to handle this interaction */
+	interactionID: string,
+	/** a unique id for the control (button/select) */
+	controlID: string
+) {
+	return interactionID + interactionIdSeparator + controlID;
+}
+
 export type ComponentInteractionHandlingData = {
 	handler:
 		| Sendable
@@ -84,7 +106,7 @@ export function createComponentButtons({
 				components: r.map((b) => {
 					const { value, ...rest } = b;
 					return new MessageButton({
-						customId: interactionID + interactionIdSeparator + value,
+						customId: encodeCustomID(interactionID, value),
 						...rest,
 					});
 				}),
@@ -105,7 +127,7 @@ export function createComponentSelects({
 
 	return nestedSelects.map((s) => {
 		const { controlID, ...rest } = s;
-		const customId = interactionID + interactionIdSeparator + controlID;
+		const customId = encodeCustomID(interactionID, controlID);
 		return new MessageActionRow({
 			components: [
 				new MessageSelectMenu({
@@ -118,7 +140,7 @@ export function createComponentSelects({
 }
 
 export async function routeComponentInteraction(interaction: MessageComponentInteraction) {
-	let [interactionID, controlID] = interaction.customId.split(interactionIdSeparator);
+	const { interactionID, controlID } = decodeCustomId(interaction.customId);
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
 	else {

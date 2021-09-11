@@ -4,6 +4,11 @@ import { Sendable } from "../types/types-bot.js";
 import { Awaitable } from "one-stone/types";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 export declare const interactionIdSeparator = "\u241E";
+export declare function encodeCustomID(
+/** lookup key for how to handle this interaction */
+interactionID: string, 
+/** a unique id for the control (button/select) */
+controlID: string): string;
 export declare type ComponentInteractionHandlingData = {
     handler: Sendable | ((_: {
         guild: Guild | null;

@@ -3,6 +3,25 @@ import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 export const interactionIdSeparator = "␞";
+function decodeCustomId(customId) {
+    let [interactionID, controlID] = customId.split(interactionIdSeparator);
+    // these are the bare minimum that must decode properly
+    if (!interactionID || !controlID)
+        throw `invalid! interactionID:${interactionID} controlID:${controlID}`;
+    return {
+        /** lookup key for how to handle this interaction */
+        interactionID,
+        /** which control (button/select) was submitted */
+        controlID,
+    };
+}
+export function encodeCustomID(
+/** lookup key for how to handle this interaction */
+interactionID, 
+/** a unique id for the control (button/select) */
+controlID) {
+    return interactionID + interactionIdSeparator + controlID;
+}
 export const componentInteractions = {};
 export function createComponentButtons({ interactionID, buttons, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
@@ -15,7 +34,7 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
         components: r.map((b) => {
             const { value, ...rest } = b;
             return new MessageButton({
-                customId: interactionID + interactionIdSeparator + value,
+                customId: encodeCustomID(interactionID, value),
                 ...rest,
             });
         }),
@@ -26,7 +45,7 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     const nestedSelects = arrayify(selects);
     return nestedSelects.map((s) => {
         const { controlID, ...rest } = s;
-        const customId = interactionID + interactionIdSeparator + controlID;
+        const customId = encodeCustomID(interactionID, controlID);
         return new MessageActionRow({
             components: [
                 new MessageSelectMenu({
@@ -38,7 +57,7 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     });
 }
 export async function routeComponentInteraction(interaction) {
-    let [interactionID, controlID] = interaction.customId.split(interactionIdSeparator);
+    const { interactionID, controlID } = decodeCustomId(interaction.customId);
     const handlingData = componentInteractions[interactionID];
     if (!handlingData)
         unhandledInteraction(interaction);

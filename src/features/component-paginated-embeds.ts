@@ -9,12 +9,33 @@ import {
 import {
 	ComponentInteractionHandlingData,
 	componentInteractions,
+	encodeCustomID,
 	interactionIdSeparator,
 } from "../bot/message-components.js";
 
 const paginationIdentifier = "␉";
 const paginationArgsSeparator = "␟";
 const operationSeparator = "␌";
+
+function decodeControlID(controlID: string) {
+	const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);
+	const [operator, operand] = operation.split(operationSeparator);
+	return { paginatorName, seed, operator, operand };
+}
+
+function encodeControlID(
+	paginatorName: string,
+	seed: string | undefined,
+	operator: string,
+	operand?: string
+) {
+	const operation = [operator, operand].filter(Boolean).join(operationSeparator);
+	return [paginatorName, operation, seed].filter(Boolean).join(paginationArgsSeparator);
+}
+
+function encodePaginationCustomID(controlID: string) {
+	return encodeCustomID(paginationIdentifier, controlID);
+}
 
 function getPaginator(paginatorName: string) {
 	const paginator = paginationSchemes[paginatorName];
@@ -64,36 +85,21 @@ function generatePageControls(
 	seed?: string
 ) {
 	const lastPossiblePage = totalPages - 1;
-	const nextPageNum = currentPageNum === lastPossiblePage ? 0 : currentPageNum + 1;
-	const prevPageNum = currentPageNum === 0 ? lastPossiblePage : currentPageNum - 1;
+	let prevPageNum = `${currentPageNum === 0 ? lastPossiblePage : currentPageNum - 1}`;
+	const nextPageNum = `${currentPageNum === lastPossiblePage ? 0 : currentPageNum + 1}`;
+	if (prevPageNum === nextPageNum) prevPageNum = "0" + prevPageNum;
 
-	const customIdPrefix =
-		paginationIdentifier +
-		interactionIdSeparator +
-		paginatorName +
-		paginationArgsSeparator +
-		"page" +
-		operationSeparator;
-	const customIdSuffix = seed ? paginationArgsSeparator + seed : "";
+	const prevControlID = encodeControlID(paginatorName, seed, "page", prevPageNum);
+	const nextControlID = encodeControlID(paginatorName, seed, "page", nextPageNum);
+
+	const prevCustomID = encodePaginationCustomID(prevControlID);
+	const nextCustomID = encodePaginationCustomID(nextControlID);
+	const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
 	return new MessageActionRow({
 		components: [
-			new MessageButton({
-				style: "PRIMARY",
-				customId: customIdPrefix + prevPageNum + customIdSuffix,
-				emoji: "⬅️",
-			}),
-			new MessageButton({
-				style: "SECONDARY",
-				customId: " ",
-				label: `${currentPageNum + 1} / ${totalPages}`,
-				disabled: true,
-			}),
-			new MessageButton({
-				style: "PRIMARY",
-				customId:
-					customIdPrefix + (prevPageNum === nextPageNum ? "0" : "") + nextPageNum + customIdSuffix,
-				emoji: "➡️",
-			}),
+			new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: "⬅️" }),
+			new MessageButton({ style: "SECONDARY", customId: " ", label: pageLabel, disabled: true }),
+			new MessageButton({ style: "PRIMARY", customId: nextCustomID, emoji: "➡️" }),
 		],
 	});
 }
@@ -103,13 +109,8 @@ function generateSelectorControls(
 	options: MessageSelectOptionData[],
 	seed?: string
 ) {
-	const customId =
-		paginationIdentifier +
-		interactionIdSeparator +
-		paginatorName +
-		paginationArgsSeparator +
-		"pick" +
-		(seed ? paginationArgsSeparator + seed : "");
+	const controlID = encodeControlID(paginatorName, seed, "pick");
+	const customId = encodeCustomID(paginationIdentifier, controlID);
 
 	return new MessageActionRow({
 		components: [
@@ -131,8 +132,7 @@ export function generateInitialPaginatedSelector(paginatorName: string, seed?: s
 
 const paginationHandler: ComponentInteractionHandlingData = {
 	handler: ({ controlID, values }) => {
-		const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);
-		const [operator, operand] = operation.split(operationSeparator);
+		const { paginatorName, seed, operator, operand } = decodeControlID(controlID);
 		if (operator === "page") {
 			const requestedPageNum = parseInt(operand);
 			return generatePage(paginatorName, requestedPageNum, seed);
@@ -192,6 +192,8 @@ export function registerPaginatedSelector({
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationIdentifier] = paginationHandler;
+
+	// register this specific paginator and finalizer
 	finalizers[paginatorName] = finalizer;
 	paginationSchemes[paginatorName] = getPageData;
 }
