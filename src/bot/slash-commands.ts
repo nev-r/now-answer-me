@@ -116,8 +116,14 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 			results = handler;
 		}
 		deferalCountdown && clearTimeout(deferalCountdown);
-		if (results && !interaction.replied) {
-			await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
+		if (results) {
+			if (interaction.replied)
+				console.log(`${interaction.commandName}: this interaction was already replied to??`);
+			else
+				await interaction[interaction.deferred ? "editReply" : "reply"]({
+					ephemeral,
+					...sendableToInteractionReplyOptions(results),
+				});
 		}
 	} catch (e) {
 		await interaction.reply({ content: "⚠", ephemeral: true });
