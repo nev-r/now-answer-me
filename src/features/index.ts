@@ -9,9 +9,5 @@ export {
 	sendRerollableEmbed,
 	sendRerollableStackEmbed,
 } from "./interactive-embeds.js";
-export {
-	registerPaginator,
-	registerPaginatedSelector,
-	generateInitialPagination,
-	generateInitialPaginatedSelector,
-} from "./component-paginated-embeds.js";
+
+export { createPaginator, createPaginatedSelector } from "./component-paginated-embeds.js";

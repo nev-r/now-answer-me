@@ -10,7 +10,6 @@ import {
 	ComponentInteractionHandlingData,
 	componentInteractions,
 	encodeCustomID,
-	interactionIdSeparator,
 } from "../bot/message-components.js";
 
 const paginationIdentifier = "␉";
@@ -122,11 +121,11 @@ function generateSelectorControls(
 	});
 }
 
-export function generateInitialPagination(paginatorName: string, seed?: string) {
+function generateInitialPagination(paginatorName: string, seed?: string) {
 	return generatePage(paginatorName, 0, seed);
 }
 
-export function generateInitialPaginatedSelector(paginatorName: string, seed?: string) {
+function generateInitialPaginatedSelector(paginatorName: string, seed?: string) {
 	return generatePage(paginatorName, 0, seed);
 }
 
@@ -159,7 +158,7 @@ const finalizers: NodeJS.Dict<
 	(selectionNumber: string, seed?: string) => InteractionReplyOptions | MessageEmbed
 > = {};
 
-export function registerPaginator({
+export function createPaginator({
 	paginatorName,
 	getPageData,
 }: {
@@ -172,9 +171,12 @@ export function registerPaginator({
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationIdentifier] = paginationHandler;
 	paginationSchemes[paginatorName] = getPageData;
+
+	// return the function that initiates this paginator
+	return (seed?: string) => generateInitialPagination(paginatorName, seed);
 }
 
-export function registerPaginatedSelector({
+export function createPaginatedSelector({
 	paginatorName,
 	getPageData,
 	finalizer,
@@ -196,4 +198,7 @@ export function registerPaginatedSelector({
 	// register this specific paginator and finalizer
 	finalizers[paginatorName] = finalizer;
 	paginationSchemes[paginatorName] = getPageData;
+
+	// return the function that initiates this selector
+	return (seed?: string) => generateInitialPaginatedSelector(paginatorName, seed);
 }

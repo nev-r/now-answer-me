@@ -1,17 +1,12 @@
 import { InteractionReplyOptions, MessageActionRow, MessageEmbed, MessageSelectOptionData } from "discord.js";
-export declare function generateInitialPagination(paginatorName: string, seed?: string): {
-    embeds: MessageEmbed[];
-    components: MessageActionRow[];
-};
-export declare function generateInitialPaginatedSelector(paginatorName: string, seed?: string): {
-    embeds: MessageEmbed[];
-    components: MessageActionRow[];
-};
-export declare function registerPaginator({ paginatorName, getPageData, }: {
+export declare function createPaginator({ paginatorName, getPageData, }: {
     paginatorName: string;
     getPageData: (pageNum: number, seed?: string) => [requestedPage: MessageEmbed, totalPages: number];
-}): void;
-export declare function registerPaginatedSelector({ paginatorName, getPageData, finalizer, }: {
+}): (seed?: string | undefined) => {
+    embeds: MessageEmbed[];
+    components: MessageActionRow[];
+};
+export declare function createPaginatedSelector({ paginatorName, getPageData, finalizer, }: {
     paginatorName: string;
     getPageData: (pageNum: number, seed?: string) => [
         requestedPage: MessageEmbed,
@@ -19,4 +14,7 @@ export declare function registerPaginatedSelector({ paginatorName, getPageData, 
         selectorOptions: MessageSelectOptionData[]
     ];
     finalizer: (selectionNumber: string, seed?: string) => InteractionReplyOptions | MessageEmbed;
-}): void;
+}): (seed?: string | undefined) => {
+    embeds: MessageEmbed[];
+    components: MessageActionRow[];
+};

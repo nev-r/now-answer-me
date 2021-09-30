@@ -78,10 +78,10 @@ function generateSelectorControls(paginatorName, options, seed) {
         ],
     });
 }
-export function generateInitialPagination(paginatorName, seed) {
+function generateInitialPagination(paginatorName, seed) {
     return generatePage(paginatorName, 0, seed);
 }
-export function generateInitialPaginatedSelector(paginatorName, seed) {
+function generateInitialPaginatedSelector(paginatorName, seed) {
     return generatePage(paginatorName, 0, seed);
 }
 const paginationHandler = {
@@ -101,15 +101,19 @@ const paginationHandler = {
 };
 const paginationSchemes = {};
 const finalizers = {};
-export function registerPaginator({ paginatorName, getPageData, }) {
+export function createPaginator({ paginatorName, getPageData, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
     componentInteractions[paginationIdentifier] = paginationHandler;
     paginationSchemes[paginatorName] = getPageData;
+    // return the function that initiates this paginator
+    return (seed) => generateInitialPagination(paginatorName, seed);
 }
-export function registerPaginatedSelector({ paginatorName, getPageData, finalizer, }) {
+export function createPaginatedSelector({ paginatorName, getPageData, finalizer, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
     componentInteractions[paginationIdentifier] = paginationHandler;
     // register this specific paginator and finalizer
     finalizers[paginatorName] = finalizer;
     paginationSchemes[paginatorName] = getPageData;
+    // return the function that initiates this selector
+    return (seed) => generateInitialPaginatedSelector(paginatorName, seed);
 }
