@@ -28,7 +28,7 @@ const slashCommands: NodeJS.Dict<{
 	handler: SlashCommandResponse<any, any, any>;
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
-	deferIfLong?: boolean;
+	failIfLong?: boolean;
 }> = {};
 export const theseStillNeedRegistering: string[] = [];
 
@@ -50,7 +50,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 	handler,
 	ephemeral,
 	deferImmediately,
-	deferIfLong,
+	failIfLong,
 }: {
 	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
 	config: Config;
@@ -61,7 +61,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 	>;
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
-	deferIfLong?: boolean;
+	failIfLong?: boolean;
 }) {
 	const standardConfig = unConst(config);
 	slashCommands[config.name] = {
@@ -70,7 +70,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 		handler,
 		ephemeral,
 		deferImmediately,
-		deferIfLong,
+		failIfLong,
 	};
 
 	if (clientStatus.hasConnected) registerSlashCommands(where, [standardConfig]);
@@ -85,9 +85,9 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		return;
 	}
 
-	let { handler, ephemeral, deferImmediately, deferIfLong } = slashCommand;
+	let { handler, ephemeral, deferImmediately, failIfLong } = slashCommand;
 	let deferalCountdown: undefined | NodeJS.Timeout;
-	if (deferImmediately || deferIfLong) {
+	if (!failIfLong) {
 		deferalCountdown = setTimeout(
 			() => interaction.deferReply({ ephemeral }),
 			deferImmediately ? 0 : 2300

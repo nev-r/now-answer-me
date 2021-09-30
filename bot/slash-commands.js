@@ -14,7 +14,7 @@ export async function registerCommandsOnConnect() {
         }
     }
 }
-export function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, deferIfLong, }) {
+export function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, }) {
     const standardConfig = unConst(config);
     slashCommands[config.name] = {
         where,
@@ -22,7 +22,7 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
         handler,
         ephemeral,
         deferImmediately,
-        deferIfLong,
+        failIfLong,
     };
     if (clientStatus.hasConnected)
         registerSlashCommands(where, [standardConfig]);
@@ -36,9 +36,9 @@ export async function routeSlashCommand(interaction) {
         console.log(`unrecognized slash command received: ${interaction.commandName}`);
         return;
     }
-    let { handler, ephemeral, deferImmediately, deferIfLong } = slashCommand;
+    let { handler, ephemeral, deferImmediately, failIfLong } = slashCommand;
     let deferalCountdown;
-    if (deferImmediately || deferIfLong) {
+    if (!failIfLong) {
         deferalCountdown = setTimeout(() => interaction.deferReply({ ephemeral }), deferImmediately ? 0 : 2300);
     }
     try {
