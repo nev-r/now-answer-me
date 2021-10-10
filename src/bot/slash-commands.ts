@@ -120,18 +120,18 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 			if (interaction.replied)
 				console.log(`${interaction.commandName}: this interaction was already replied to??`);
 			else
-				await feedback(interaction)({
+				await feedback(interaction, {
 					ephemeral,
 					...sendableToInteractionReplyOptions(results),
 				});
 		}
 	} catch (e) {
 		deferalCountdown && clearTimeout(deferalCountdown);
-		await feedback(interaction)({ content: `⚠ ${e}`, ephemeral: true });
+		await feedback(interaction, { content: `⚠ ${e}`, ephemeral: true });
 		console.log(e);
 	}
 	deferalCountdown && clearTimeout(deferalCountdown);
-	if (!interaction.replied) await feedback(interaction)({ content: "☑", ephemeral: true });
+	if (!interaction.replied) await feedback(interaction, { content: "☑", ephemeral: true });
 }
 
 async function registerSlashCommands(
@@ -265,7 +265,12 @@ function unConst(c: StrictCommand): ChatInputApplicationCommandData {
 	return c as ChatInputApplicationCommandData;
 }
 
-function feedback(interaction: CommandInteraction) {
+function feedback(
+	interaction: CommandInteraction,
+	content:
+		| Parameters<CommandInteraction["reply"]>[0]
+		| Parameters<CommandInteraction["editReply"]>[0]
+) {
 	if (interaction.replied)
 		return (
 			r: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]
@@ -273,5 +278,5 @@ function feedback(interaction: CommandInteraction) {
 			console.log(
 				`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`
 			);
-	return interaction[interaction.deferred ? "editReply" : "reply"];
+	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
 }
