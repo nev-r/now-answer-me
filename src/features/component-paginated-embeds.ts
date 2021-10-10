@@ -79,7 +79,7 @@ function generatePage(
 				currentPageNum,
 				totalPages,
 				seed,
-				includeLock,
+				!selectorOptions,
 				includeRemove
 			)
 		);
@@ -213,7 +213,7 @@ export function createPaginator({
 	paginationSchemes[paginatorName] = getPageData;
 
 	// return the function that initiates this paginator
-	return (seed?: string) => generateInitialPagination(paginatorName, seed, true);
+	return (seed?: string) => generateInitialPagination(paginatorName, seed, true, true);
 }
 
 export function createPaginatedSelector({
@@ -240,5 +240,5 @@ export function createPaginatedSelector({
 	paginationSchemes[paginatorName] = getPageData;
 
 	// return the function that initiates this selector
-	return (seed?: string) => generateInitialPaginatedSelector(paginatorName, seed, true);
+	return (seed?: string) => generateInitialPaginatedSelector(paginatorName, seed, false, true);
 }
