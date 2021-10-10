@@ -19,7 +19,7 @@ export declare type ComponentInteractionHandlingData = {
         user: User;
         message: MessageComponentInteraction["message"];
         interactionID: string;
-        controlID: string;
+        controlID: string | undefined;
         values?: string[];
     }) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>);
     ephemeral?: boolean;

@@ -170,6 +170,7 @@ function generateInitialPaginatedSelector(
 
 const paginationHandler: ComponentInteractionHandlingData = {
 	handler: ({ controlID, values }) => {
+		if (!controlID) throw "pagination was submitted with no controlID?? ";
 		const { paginatorName, seed, operator, operand } = decodeControlID(controlID);
 		if (operator === "page") {
 			const requestedPageNum = parseInt(operand);

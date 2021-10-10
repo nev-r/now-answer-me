@@ -7,8 +7,8 @@ export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // ⬅
 function decodeCustomId(customId) {
     let [interactionID, controlID] = customId.split(interactionIdSeparator);
-    // these are the bare minimum that must decode properly
-    if (!interactionID || !controlID)
+    // this is the bare minimum that must decode properly
+    if (!interactionID)
         throw `invalid! interactionID:${interactionID} controlID:${controlID}`;
     return {
         /** lookup key for how to handle this interaction */

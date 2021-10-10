@@ -93,6 +93,8 @@ function generateInitialPaginatedSelector(paginatorName, seed, includeLock, incl
 }
 const paginationHandler = {
     handler: ({ controlID, values }) => {
+        if (!controlID)
+            throw "pagination was submitted with no controlID?? ";
         const { paginatorName, seed, operator, operand } = decodeControlID(controlID);
         if (operator === "page") {
             const requestedPageNum = parseInt(operand);
