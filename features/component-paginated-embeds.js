@@ -115,7 +115,7 @@ export function createPaginator({ paginatorName, getPageData, }) {
     componentInteractions[paginationIdentifier] = paginationHandler;
     paginationSchemes[paginatorName] = getPageData;
     // return the function that initiates this paginator
-    return (seed) => generateInitialPagination(paginatorName, seed);
+    return (seed) => generateInitialPagination(paginatorName, seed, true);
 }
 export function createPaginatedSelector({ paginatorName, getPageData, finalizer, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
@@ -124,5 +124,5 @@ export function createPaginatedSelector({ paginatorName, getPageData, finalizer,
     finalizers[paginatorName] = finalizer;
     paginationSchemes[paginatorName] = getPageData;
     // return the function that initiates this selector
-    return (seed) => generateInitialPaginatedSelector(paginatorName, seed);
+    return (seed) => generateInitialPaginatedSelector(paginatorName, seed, true);
 }

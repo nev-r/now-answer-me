@@ -213,7 +213,7 @@ export function createPaginator({
 	paginationSchemes[paginatorName] = getPageData;
 
 	// return the function that initiates this paginator
-	return (seed?: string) => generateInitialPagination(paginatorName, seed);
+	return (seed?: string) => generateInitialPagination(paginatorName, seed, true);
 }
 
 export function createPaginatedSelector({
@@ -240,5 +240,5 @@ export function createPaginatedSelector({
 	paginationSchemes[paginatorName] = getPageData;
 
 	// return the function that initiates this selector
-	return (seed?: string) => generateInitialPaginatedSelector(paginatorName, seed);
+	return (seed?: string) => generateInitialPaginatedSelector(paginatorName, seed, true);
 }

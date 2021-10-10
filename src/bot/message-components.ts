@@ -229,9 +229,15 @@ function unhandledInteraction(interaction: MessageComponentInteraction) {
 // (removes components so it can receive no further interaction)
 componentInteractions[lock] = {
 	handler: async ({ message, channel }) => {
+		console.log(`locking ${message.id}`)
 		const fullMessage = await channel?.messages.fetch(message.id);
-		if (fullMessage)
-			return { content: fullMessage.content, embeds: fullMessage.embeds, components: [] };
+		if (fullMessage) {
+			const returnOptions: InteractionReplyOptions = { components: [] };
+			if (fullMessage.content) returnOptions.content = fullMessage.content;
+			if (fullMessage.embeds) returnOptions.embeds = fullMessage.embeds;
+
+			return returnOptions;
+		}
 	},
 	update: true,
 };
@@ -240,6 +246,7 @@ componentInteractions[lock] = {
 // (removes the message)
 componentInteractions[wastebasket] = {
 	handler: async ({ message, channel }) => {
+		console.log(`removing ${message.id}`)
 		await (await channel?.messages.fetch(message.id))?.delete();
 	},
 };
