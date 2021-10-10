@@ -61,13 +61,28 @@ function getFinalizer(paginatorName: string) {
 	return finalizer;
 }
 
-function generatePage(paginatorName: string, currentPageNum: number, seed?: string) {
+function generatePage(
+	paginatorName: string,
+	currentPageNum: number,
+	seed?: string,
+	includeLock?: boolean,
+	includeRemove?: boolean
+) {
 	const paginator = getPaginator(paginatorName);
 	const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
 
 	const components: MessageActionRow[] = [];
 	if (totalPages > 1)
-		components.push(generatePageControls(paginatorName, currentPageNum, totalPages, seed));
+		components.push(
+			generatePageControls(
+				paginatorName,
+				currentPageNum,
+				totalPages,
+				seed,
+				includeLock,
+				includeRemove
+			)
+		);
 	if (selectorOptions)
 		components.push(generateSelectorControls(paginatorName, selectorOptions, seed));
 
@@ -135,12 +150,22 @@ function generateSelectorControls(
 	});
 }
 
-function generateInitialPagination(paginatorName: string, seed?: string) {
-	return generatePage(paginatorName, 0, seed);
+function generateInitialPagination(
+	paginatorName: string,
+	seed?: string,
+	includeLock?: boolean,
+	includeRemove?: boolean
+) {
+	return generatePage(paginatorName, 0, seed, includeLock, includeRemove);
 }
 
-function generateInitialPaginatedSelector(paginatorName: string, seed?: string) {
-	return generatePage(paginatorName, 0, seed);
+function generateInitialPaginatedSelector(
+	paginatorName: string,
+	seed?: string,
+	includeLock?: boolean,
+	includeRemove?: boolean
+) {
+	return generatePage(paginatorName, 0, seed, includeLock, includeRemove);
 }
 
 const paginationHandler: ComponentInteractionHandlingData = {
@@ -148,7 +173,7 @@ const paginationHandler: ComponentInteractionHandlingData = {
 		const { paginatorName, seed, operator, operand } = decodeControlID(controlID);
 		if (operator === "page") {
 			const requestedPageNum = parseInt(operand);
-			return generatePage(paginatorName, requestedPageNum, seed);
+			return generatePage(paginatorName, requestedPageNum, seed, true, true);
 		} else if (operator === "pick") {
 			if (!values) throw "select was submitted with no value?? " + controlID;
 			return finalizeContent(paginatorName, values[0], seed);

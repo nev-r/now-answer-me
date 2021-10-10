@@ -32,12 +32,12 @@ function getFinalizer(paginatorName) {
         throw ("invalid finalizer: " + paginatorName + "\navailable finalizers: " + Object.keys(finalizers));
     return finalizer;
 }
-function generatePage(paginatorName, currentPageNum, seed) {
+function generatePage(paginatorName, currentPageNum, seed, includeLock, includeRemove) {
     const paginator = getPaginator(paginatorName);
     const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
     const components = [];
     if (totalPages > 1)
-        components.push(generatePageControls(paginatorName, currentPageNum, totalPages, seed));
+        components.push(generatePageControls(paginatorName, currentPageNum, totalPages, seed, includeLock, includeRemove));
     if (selectorOptions)
         components.push(generateSelectorControls(paginatorName, selectorOptions, seed));
     return { embeds: [requestedPage], components };
@@ -85,18 +85,18 @@ function generateSelectorControls(paginatorName, options, seed) {
         ],
     });
 }
-function generateInitialPagination(paginatorName, seed) {
-    return generatePage(paginatorName, 0, seed);
+function generateInitialPagination(paginatorName, seed, includeLock, includeRemove) {
+    return generatePage(paginatorName, 0, seed, includeLock, includeRemove);
 }
-function generateInitialPaginatedSelector(paginatorName, seed) {
-    return generatePage(paginatorName, 0, seed);
+function generateInitialPaginatedSelector(paginatorName, seed, includeLock, includeRemove) {
+    return generatePage(paginatorName, 0, seed, includeLock, includeRemove);
 }
 const paginationHandler = {
     handler: ({ controlID, values }) => {
         const { paginatorName, seed, operator, operand } = decodeControlID(controlID);
         if (operator === "page") {
             const requestedPageNum = parseInt(operand);
-            return generatePage(paginatorName, requestedPageNum, seed);
+            return generatePage(paginatorName, requestedPageNum, seed, true, true);
         }
         else if (operator === "pick") {
             if (!values)
