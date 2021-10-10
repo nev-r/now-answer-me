@@ -39,7 +39,7 @@ export async function routeSlashCommand(interaction) {
     let { handler, ephemeral, deferImmediately, failIfLong } = slashCommand;
     let deferalCountdown;
     if (!failIfLong) {
-        deferalCountdown = setTimeout(() => interaction.deferReply({ ephemeral }), deferImmediately ? 0 : 2300);
+        deferalCountdown = setTimeout(() => interaction.deferred || interaction.deferReply({ ephemeral }), deferImmediately ? 0 : 2300);
     }
     try {
         let results;
@@ -68,18 +68,20 @@ export async function routeSlashCommand(interaction) {
             if (interaction.replied)
                 console.log(`${interaction.commandName}: this interaction was already replied to??`);
             else
-                await interaction[interaction.deferred ? "editReply" : "reply"]({
+                await feedback(interaction)({
                     ephemeral,
                     ...sendableToInteractionReplyOptions(results),
                 });
         }
     }
     catch (e) {
-        await interaction.reply({ content: "⚠", ephemeral: true });
+        deferalCountdown && clearTimeout(deferalCountdown);
+        await feedback(interaction)({ content: `⚠ ${e}`, ephemeral: true });
         console.log(e);
     }
+    deferalCountdown && clearTimeout(deferalCountdown);
     if (!interaction.replied)
-        await interaction.reply({ content: "☑", ephemeral: true });
+        await feedback(interaction)({ content: "☑", ephemeral: true });
 }
 async function registerSlashCommands(whereOrWheres, config) {
     const wheres = arrayify(whereOrWheres);
@@ -196,4 +198,9 @@ function createDictFromSelectedOptions(originalOptions, meta = {
 // }
 function unConst(c) {
     return c;
+}
+function feedback(interaction) {
+    if (interaction.replied)
+        return (r) => console.log(`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`);
+    return interaction[interaction.deferred ? "editReply" : "reply"];
 }

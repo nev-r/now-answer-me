@@ -27,8 +27,8 @@ export interface SlashCommandParams<SelectedOptions extends any, SelectedSubcomm
     channel: CommandInteraction["channel"];
     optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
     optionDict: SelectedOptions;
-    subCommand: SelectedSubcommand | undefined;
-    subCommandGroup: SelectedSubcommandGroup | undefined;
+    subCommand: (SelectedSubcommand & string) | undefined;
+    subCommandGroup: (SelectedSubcommandGroup & string) | undefined;
 }
 /**
  * basic discord metadata about who and where a command was triggered

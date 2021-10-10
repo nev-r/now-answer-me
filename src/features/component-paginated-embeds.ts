@@ -10,11 +10,15 @@ import {
 	ComponentInteractionHandlingData,
 	componentInteractions,
 	encodeCustomID,
+	lock,
+	wastebasket,
 } from "../bot/message-components.js";
 
-const paginationIdentifier = "␉";
-const paginationArgsSeparator = "␟";
-const operationSeparator = "␌";
+const paginationIdentifier = "\u2409"; // ␉
+const paginationArgsSeparator = "\u241f"; // ␟
+const operationSeparator = "\u240c"; // ␌
+const rightArrow = "\u27a1"; // ➡
+const leftArrow = "\u2b05"; // ⬅
 
 function decodeControlID(controlID: string) {
 	const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);
@@ -81,7 +85,9 @@ function generatePageControls(
 	paginatorName: string,
 	currentPageNum: number,
 	totalPages: number,
-	seed?: string
+	seed?: string,
+	includeLock?: boolean,
+	includeRemove?: boolean
 ) {
 	const lastPossiblePage = totalPages - 1;
 	let prevPageNum = `${currentPageNum === 0 ? lastPossiblePage : currentPageNum - 1}`;
@@ -94,12 +100,20 @@ function generatePageControls(
 	const prevCustomID = encodePaginationCustomID(prevControlID);
 	const nextCustomID = encodePaginationCustomID(nextControlID);
 	const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
+	const components = [
+		new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: leftArrow }),
+		new MessageButton({ style: "SECONDARY", customId: " ", label: pageLabel, disabled: true }),
+		new MessageButton({ style: "PRIMARY", customId: nextCustomID, emoji: rightArrow }),
+	];
+	if (includeLock)
+		components.push(new MessageButton({ style: "SUCCESS", customId: lock, emoji: lock }));
+	if (includeRemove)
+		components.push(
+			new MessageButton({ style: "DANGER", customId: wastebasket, emoji: wastebasket })
+		);
+
 	return new MessageActionRow({
-		components: [
-			new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: "⬅️" }),
-			new MessageButton({ style: "SECONDARY", customId: " ", label: pageLabel, disabled: true }),
-			new MessageButton({ style: "PRIMARY", customId: nextCustomID, emoji: "➡️" }),
-		],
+		components,
 	});
 }
 

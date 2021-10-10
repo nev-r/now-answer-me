@@ -20,7 +20,9 @@ import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 
-export const interactionIdSeparator = "␞";
+export const interactionIdSeparator = "\u241E"; // ␞
+export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
+export const lock = String.fromCodePoint(0x1f512); // ⬅
 
 function decodeCustomId(customId: string) {
 	let [interactionID, controlID] = customId.split(interactionIdSeparator);
@@ -51,6 +53,7 @@ export type ComponentInteractionHandlingData = {
 				guild: Guild | null;
 				channel: TextBasedChannels | null;
 				user: User;
+				message: MessageComponentInteraction["message"];
 				interactionID: string;
 				controlID: string;
 				values?: string[];
@@ -59,6 +62,7 @@ export type ComponentInteractionHandlingData = {
 	deferImmediately?: boolean;
 	allowTimeout?: boolean;
 	update?: boolean;
+	public?: boolean;
 };
 
 export const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData> = {};
@@ -76,7 +80,7 @@ type InteractionButton = {
 	  }
 );
 
-// isnt it cooler to NOT unwrap a starburst in your mouth? just eat it. wax paper and all. badass 
+// isnt it cooler to NOT unwrap a starburst in your mouth? just eat it. wax paper and all. badass
 
 type InteractionSelect = {
 	controlID: string;
@@ -146,11 +150,13 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
 	else {
-		const originalUser = interaction.message.interaction?.user.id;
-		if (originalUser && interaction.user.id !== originalUser) {
-			await interaction.deferUpdate();
-			console.log("this isnt your control");
-			return;
+		// if it's a private interaction, only the initiator may click its buttons
+		if (!handlingData.public) {
+			const originalUser = interaction.message.interaction?.user.id;
+			if (originalUser && interaction.user.id !== originalUser) {
+				// end it here
+				return interaction.followUp({ ephemeral: true, content: "this isnt your control" });
+			}
 		}
 
 		let { handler, ephemeral, deferImmediately, allowTimeout, update } = handlingData;
@@ -172,13 +178,14 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 		try {
 			let results: Sendable | Message | undefined;
 			if (typeof handler === "function") {
-				const { guild, channel, user } = interaction;
+				const { guild, channel, user, message } = interaction;
 				const values = interaction.isSelectMenu() ? interaction.values : undefined;
 				results =
 					(await handler({
-						channel,
 						guild,
+						channel,
 						user,
+						message,
 						interactionID,
 						controlID,
 						values,
@@ -215,3 +222,22 @@ function unhandledInteraction(interaction: MessageComponentInteraction) {
 		content,
 	});
 }
+
+// register handler for lock functionality
+// (removes components so it can receive no further interaction)
+componentInteractions[lock] = {
+	handler: async ({ message, channel }) => {
+		const fullMessage = await channel?.messages.fetch(message.id);
+		if (fullMessage)
+			return { content: fullMessage.content, embeds: fullMessage.embeds, components: [] };
+	},
+	update: true,
+};
+
+// register handler for remove functionality
+// (removes the message)
+componentInteractions[lock] = {
+	handler: async ({ message, channel }) => {
+		await (await channel?.messages.fetch(message.id))?.delete();
+	},
+};

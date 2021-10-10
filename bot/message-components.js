@@ -2,7 +2,9 @@ import { MessageActionRow, MessageButton, MessageSelectMenu, } from "discord.js"
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-export const interactionIdSeparator = "␞";
+export const interactionIdSeparator = "\u241E"; // ␞
+export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
+export const lock = String.fromCodePoint(0x1f512); // ⬅
 function decodeCustomId(customId) {
     let [interactionID, controlID] = customId.split(interactionIdSeparator);
     // these are the bare minimum that must decode properly
@@ -63,11 +65,13 @@ export async function routeComponentInteraction(interaction) {
     if (!handlingData)
         unhandledInteraction(interaction);
     else {
-        const originalUser = (_a = interaction.message.interaction) === null || _a === void 0 ? void 0 : _a.user.id;
-        if (originalUser && interaction.user.id !== originalUser) {
-            await interaction.deferUpdate();
-            console.log("this isnt your control");
-            return;
+        // if it's a private interaction, only the initiator may click its buttons
+        if (!handlingData.public) {
+            const originalUser = (_a = interaction.message.interaction) === null || _a === void 0 ? void 0 : _a.user.id;
+            if (originalUser && interaction.user.id !== originalUser) {
+                // end it here
+                return interaction.followUp({ ephemeral: true, content: "this isnt your control" });
+            }
         }
         let { handler, ephemeral, deferImmediately, allowTimeout, update } = handlingData;
         let deferalCountdown;
@@ -84,13 +88,14 @@ export async function routeComponentInteraction(interaction) {
         try {
             let results;
             if (typeof handler === "function") {
-                const { guild, channel, user } = interaction;
+                const { guild, channel, user, message } = interaction;
                 const values = interaction.isSelectMenu() ? interaction.values : undefined;
                 results =
                     (await handler({
-                        channel,
                         guild,
+                        channel,
                         user,
+                        message,
                         interactionID,
                         controlID,
                         values,
@@ -125,3 +130,21 @@ function unhandledInteraction(interaction) {
         content,
     });
 }
+// register handler for lock functionality
+// (removes components so it can receive no further interaction)
+componentInteractions[lock] = {
+    handler: async ({ message, channel }) => {
+        const fullMessage = await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(message.id));
+        if (fullMessage)
+            return { content: fullMessage.content, embeds: fullMessage.embeds, components: [] };
+    },
+    update: true,
+};
+// register handler for remove functionality
+// (removes the message)
+componentInteractions[lock] = {
+    handler: async ({ message, channel }) => {
+        var _a;
+        await ((_a = (await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(message.id)))) === null || _a === void 0 ? void 0 : _a.delete());
+    },
+};

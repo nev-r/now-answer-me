@@ -43,8 +43,8 @@ export interface SlashCommandParams<
 	channel: CommandInteraction["channel"];
 	optionList: [keyof SelectedOptions, SelectedOptions[keyof SelectedOptions]][];
 	optionDict: SelectedOptions;
-	subCommand: SelectedSubcommand | undefined;
-	subCommandGroup: SelectedSubcommandGroup | undefined;
+	subCommand: (SelectedSubcommand & string) | undefined;
+	subCommandGroup: (SelectedSubcommandGroup & string) | undefined;
 }
 
 /**

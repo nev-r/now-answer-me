@@ -1,8 +1,10 @@
 import { MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu, } from "discord.js";
-import { componentInteractions, encodeCustomID, } from "../bot/message-components.js";
-const paginationIdentifier = "␉";
-const paginationArgsSeparator = "␟";
-const operationSeparator = "␌";
+import { componentInteractions, encodeCustomID, lock, wastebasket, } from "../bot/message-components.js";
+const paginationIdentifier = "\u2409"; // ␉
+const paginationArgsSeparator = "\u241f"; // ␟
+const operationSeparator = "\u240c"; // ␌
+const rightArrow = "\u27a1"; // ➡
+const leftArrow = "\u2b05"; // ⬅
 function decodeControlID(controlID) {
     const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);
     const [operator, operand] = operation.split(operationSeparator);
@@ -47,7 +49,7 @@ function finalizeContent(paginatorName, selectionNumber, seed) {
         return { embeds: [finalContent], components: [] };
     return finalContent;
 }
-function generatePageControls(paginatorName, currentPageNum, totalPages, seed) {
+function generatePageControls(paginatorName, currentPageNum, totalPages, seed, includeLock, includeRemove) {
     const lastPossiblePage = totalPages - 1;
     let prevPageNum = `${currentPageNum === 0 ? lastPossiblePage : currentPageNum - 1}`;
     const nextPageNum = `${currentPageNum === lastPossiblePage ? 0 : currentPageNum + 1}`;
@@ -58,12 +60,17 @@ function generatePageControls(paginatorName, currentPageNum, totalPages, seed) {
     const prevCustomID = encodePaginationCustomID(prevControlID);
     const nextCustomID = encodePaginationCustomID(nextControlID);
     const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
+    const components = [
+        new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: leftArrow }),
+        new MessageButton({ style: "SECONDARY", customId: " ", label: pageLabel, disabled: true }),
+        new MessageButton({ style: "PRIMARY", customId: nextCustomID, emoji: rightArrow }),
+    ];
+    if (includeLock)
+        components.push(new MessageButton({ style: "SUCCESS", customId: lock, emoji: lock }));
+    if (includeRemove)
+        components.push(new MessageButton({ style: "DANGER", customId: wastebasket, emoji: wastebasket }));
     return new MessageActionRow({
-        components: [
-            new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: "⬅️" }),
-            new MessageButton({ style: "SECONDARY", customId: " ", label: pageLabel, disabled: true }),
-            new MessageButton({ style: "PRIMARY", customId: nextCustomID, emoji: "➡️" }),
-        ],
+        components,
     });
 }
 function generateSelectorControls(paginatorName, options, seed) {

@@ -1,9 +1,12 @@
 /// <reference types="node" />
 import { EmojiIdentifierResolvable, Guild, InteractionReplyOptions, MessageActionRow, MessageButtonStyleResolvable, MessageComponentInteraction, MessageEmbed, MessageSelectOptionData, TextBasedChannels, User } from "discord.js";
 import { Sendable } from "../types/types-bot.js";
+import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 export declare const interactionIdSeparator = "\u241E";
+export declare const wastebasket: string;
+export declare const lock: string;
 export declare function encodeCustomID(
 /** lookup key for how to handle this interaction */
 interactionID: string, 
@@ -14,6 +17,7 @@ export declare type ComponentInteractionHandlingData = {
         guild: Guild | null;
         channel: TextBasedChannels | null;
         user: User;
+        message: MessageComponentInteraction["message"];
         interactionID: string;
         controlID: string;
         values?: string[];
@@ -22,6 +26,7 @@ export declare type ComponentInteractionHandlingData = {
     deferImmediately?: boolean;
     allowTimeout?: boolean;
     update?: boolean;
+    public?: boolean;
 };
 export declare const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData>;
 declare type InteractionButton = {
@@ -54,5 +59,5 @@ export declare function createComponentSelects({ interactionID, selects, ...hand
     selects: InteractionSelect | InteractionSelect[];
     interactionID: string;
 } & ComponentInteractionHandlingData): MessageActionRow[];
-export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<void>;
+export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<import("discord-api-types").APIMessage | Message | undefined>;
 export {};
