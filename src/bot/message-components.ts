@@ -22,7 +22,7 @@ import { MessageButtonStyles } from "discord.js/typings/enums";
 
 export const interactionIdSeparator = "\u241E"; // ␞
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
-export const lock = String.fromCodePoint(0x1f512); // ⬅
+export const lock = String.fromCodePoint(0x1f512); // 🔒
 
 function decodeCustomId(customId: string) {
 	let [interactionID, controlID] = customId.split(interactionIdSeparator) as [
@@ -238,7 +238,7 @@ componentInteractions[lock] = {
 
 // register handler for remove functionality
 // (removes the message)
-componentInteractions[lock] = {
+componentInteractions[wastebasket] = {
 	handler: async ({ message, channel }) => {
 		await (await channel?.messages.fetch(message.id))?.delete();
 	},

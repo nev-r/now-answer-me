@@ -4,7 +4,7 @@ import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 export const interactionIdSeparator = "\u241E"; // ␞
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
-export const lock = String.fromCodePoint(0x1f512); // ⬅
+export const lock = String.fromCodePoint(0x1f512); // 🔒
 function decodeCustomId(customId) {
     let [interactionID, controlID] = customId.split(interactionIdSeparator);
     // this is the bare minimum that must decode properly
@@ -142,7 +142,7 @@ componentInteractions[lock] = {
 };
 // register handler for remove functionality
 // (removes the message)
-componentInteractions[lock] = {
+componentInteractions[wastebasket] = {
     handler: async ({ message, channel }) => {
         var _a;
         await ((_a = (await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(message.id)))) === null || _a === void 0 ? void 0 : _a.delete());
