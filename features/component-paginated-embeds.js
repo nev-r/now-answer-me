@@ -1,22 +1,9 @@
 import { MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu, } from "discord.js";
-import { componentInteractions, encodeCustomID, lock, wastebasket, } from "../bot/message-components.js";
-const paginationIdentifier = "\u2409"; // ␉
-const paginationArgsSeparator = "\u241f"; // ␟
-const operationSeparator = "\u240c"; // ␌
+import { serialize } from "../bot/component-id-parser.js";
+import { componentInteractions, lock, wastebasket, } from "../bot/message-components.js";
+const paginationInteractionID = "\u2409"; // ␉
 const rightArrow = "\u27a1"; // ➡
 const leftArrow = "\u2b05"; // ⬅
-function decodeControlID(controlID) {
-    const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);
-    const [operator, operand] = operation.split(operationSeparator);
-    return { paginatorName, seed, operator, operand };
-}
-function encodeControlID(paginatorName, seed, operator, operand) {
-    const operation = [operator, operand].filter(Boolean).join(operationSeparator);
-    return [paginatorName, operation, seed].filter(Boolean).join(paginationArgsSeparator);
-}
-function encodePaginationCustomID(controlID) {
-    return encodeCustomID(paginationIdentifier, controlID);
-}
 function getPaginator(paginatorName) {
     const paginator = paginationSchemes[paginatorName];
     if (!paginator)
@@ -49,16 +36,26 @@ function finalizeContent(paginatorName, selectionNumber, seed) {
         return { embeds: [finalContent], components: [] };
     return finalContent;
 }
-function generatePageControls(paginatorName, currentPageNum, totalPages, seed, includeLock, includeRemove) {
+function generatePageControls(paginatorID, currentPageNum, totalPages, seed, includeLock, includeRemove) {
     const lastPossiblePage = totalPages - 1;
     let prevPageNum = `${currentPageNum === 0 ? lastPossiblePage : currentPageNum - 1}`;
     const nextPageNum = `${currentPageNum === lastPossiblePage ? 0 : currentPageNum + 1}`;
     if (prevPageNum === nextPageNum)
         prevPageNum = "0" + prevPageNum;
-    const prevControlID = encodeControlID(paginatorName, seed, "page", prevPageNum);
-    const nextControlID = encodeControlID(paginatorName, seed, "page", nextPageNum);
-    const prevCustomID = encodePaginationCustomID(prevControlID);
-    const nextCustomID = encodePaginationCustomID(nextControlID);
+    const prevCustomID = serialize({
+        interactionID: paginationInteractionID,
+        paginatorID,
+        seed,
+        operation: "page",
+        operand: prevPageNum,
+    });
+    const nextCustomID = serialize({
+        interactionID: paginationInteractionID,
+        paginatorID,
+        seed,
+        operation: "page",
+        operand: nextPageNum,
+    });
     const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
     const components = [
         new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: leftArrow }),
@@ -73,9 +70,13 @@ function generatePageControls(paginatorName, currentPageNum, totalPages, seed, i
         components,
     });
 }
-function generateSelectorControls(paginatorName, options, seed) {
-    const controlID = encodeControlID(paginatorName, seed, "pick");
-    const customId = encodeCustomID(paginationIdentifier, controlID);
+function generateSelectorControls(paginatorID, options, seed) {
+    const customId = serialize({
+        interactionID: paginationInteractionID,
+        paginatorID,
+        seed,
+        operation: "pick",
+    });
     return new MessageActionRow({
         components: [
             new MessageSelectMenu({
@@ -92,18 +93,20 @@ function generateInitialPaginatedSelector(paginatorName, seed, includeLock, incl
     return generatePage(paginatorName, 0, seed, includeLock, includeRemove);
 }
 const paginationHandler = {
-    handler: ({ controlID, values }) => {
-        if (!controlID)
-            throw "pagination was submitted with no controlID?? ";
-        const { paginatorName, seed, operator, operand } = decodeControlID(controlID);
-        if (operator === "page") {
+    handler: ({ componentParams, values }) => {
+        const { paginatorID, seed, operation, operand } = componentParams;
+        if (!paginatorID)
+            throw "pagination handler was reached without a paginatorID...";
+        if (operation === "page") {
+            if (!operand)
+                throw "page change submitted with no target page number";
             const requestedPageNum = parseInt(operand);
-            return generatePage(paginatorName, requestedPageNum, seed, true, true);
+            return generatePage(paginatorID, requestedPageNum, seed, true, true);
         }
-        else if (operator === "pick") {
+        else if (operation === "pick") {
             if (!values)
-                throw "select was submitted with no value?? " + controlID;
-            return finalizeContent(paginatorName, values[0], seed);
+                throw "select was submitted with no value?? " + JSON.stringify(componentParams);
+            return finalizeContent(paginatorID, values[0], seed);
         }
     },
     update: true,
@@ -112,14 +115,14 @@ const paginationSchemes = {};
 const finalizers = {};
 export function createPaginator({ paginatorName, getPageData, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
-    componentInteractions[paginationIdentifier] = paginationHandler;
+    componentInteractions[paginationInteractionID] = paginationHandler;
     paginationSchemes[paginatorName] = getPageData;
     // return the function that initiates this paginator
     return (seed) => generateInitialPagination(paginatorName, seed, true, true);
 }
 export function createPaginatedSelector({ paginatorName, getPageData, finalizer, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
-    componentInteractions[paginationIdentifier] = paginationHandler;
+    componentInteractions[paginationInteractionID] = paginationHandler;
     // register this specific paginator and finalizer
     finalizers[paginatorName] = finalizer;
     paginationSchemes[paginatorName] = getPageData;

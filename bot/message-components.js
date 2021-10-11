@@ -2,28 +2,9 @@ import { MessageActionRow, MessageButton, MessageSelectMenu, } from "discord.js"
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-export const interactionIdSeparator = "\u241E"; // ␞
+import { deserialize, serialize } from "./component-id-parser.js";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
-function decodeCustomId(customId) {
-    let [interactionID, controlID] = customId.split(interactionIdSeparator);
-    // this is the bare minimum that must decode properly
-    if (!interactionID)
-        throw `invalid! interactionID:${interactionID} controlID:${controlID}`;
-    return {
-        /** lookup key for how to handle this interaction */
-        interactionID,
-        /** which control (button/select) was submitted */
-        controlID,
-    };
-}
-export function encodeCustomID(
-/** lookup key for how to handle this interaction */
-interactionID, 
-/** a unique id for the control (button/select) */
-controlID) {
-    return interactionID + interactionIdSeparator + controlID;
-}
 export const componentInteractions = {};
 export function createComponentButtons({ interactionID, buttons, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
@@ -36,7 +17,7 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
         components: r.map((b) => {
             const { value, ...rest } = b;
             return new MessageButton({
-                customId: encodeCustomID(interactionID, value),
+                customId: serialize({ interactionID, operation: value }),
                 ...rest,
             });
         }),
@@ -47,7 +28,7 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     const nestedSelects = arrayify(selects);
     return nestedSelects.map((s) => {
         const { controlID, ...rest } = s;
-        const customId = encodeCustomID(interactionID, controlID);
+        const customId = serialize({ interactionID, operation: controlID });
         return new MessageActionRow({
             components: [
                 new MessageSelectMenu({
@@ -60,7 +41,7 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
 }
 export async function routeComponentInteraction(interaction) {
     var _a;
-    const { interactionID, controlID } = decodeCustomId(interaction.customId);
+    const { interactionID, ...componentParams } = deserialize(interaction.customId);
     const handlingData = componentInteractions[interactionID];
     if (!handlingData)
         unhandledInteraction(interaction);
@@ -97,7 +78,7 @@ export async function routeComponentInteraction(interaction) {
                         user,
                         message,
                         interactionID,
-                        controlID,
+                        componentParams,
                         values,
                     })) || "";
             }
@@ -134,7 +115,6 @@ function unhandledInteraction(interaction) {
 // (removes components so it can receive no further interaction)
 componentInteractions[lock] = {
     handler: async ({ message, channel }) => {
-        console.log(`locking ${message.id}`);
         const fullMessage = await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(message.id));
         if (fullMessage) {
             const returnOptions = { components: [] };
@@ -152,7 +132,6 @@ componentInteractions[lock] = {
 componentInteractions[wastebasket] = {
     handler: async ({ message, channel }) => {
         var _a;
-        console.log(`removing ${message.id}`);
         await ((_a = (await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(message.id)))) === null || _a === void 0 ? void 0 : _a.delete());
     },
 };

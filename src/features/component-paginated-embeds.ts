@@ -6,39 +6,18 @@ import {
 	MessageSelectMenu,
 	MessageSelectOptionData,
 } from "discord.js";
+import { serialize } from "../bot/component-id-parser.js";
+
 import {
 	ComponentInteractionHandlingData,
 	componentInteractions,
-	encodeCustomID,
 	lock,
 	wastebasket,
 } from "../bot/message-components.js";
 
-const paginationIdentifier = "\u2409"; // ␉
-const paginationArgsSeparator = "\u241f"; // ␟
-const operationSeparator = "\u240c"; // ␌
+const paginationInteractionID = "\u2409"; // ␉
 const rightArrow = "\u27a1"; // ➡
 const leftArrow = "\u2b05"; // ⬅
-
-function decodeControlID(controlID: string) {
-	const [paginatorName, operation, seed] = controlID.split(paginationArgsSeparator);
-	const [operator, operand] = operation.split(operationSeparator);
-	return { paginatorName, seed, operator, operand };
-}
-
-function encodeControlID(
-	paginatorName: string,
-	seed: string | undefined,
-	operator: string,
-	operand?: string
-) {
-	const operation = [operator, operand].filter(Boolean).join(operationSeparator);
-	return [paginatorName, operation, seed].filter(Boolean).join(paginationArgsSeparator);
-}
-
-function encodePaginationCustomID(controlID: string) {
-	return encodeCustomID(paginationIdentifier, controlID);
-}
 
 function getPaginator(paginatorName: string) {
 	const paginator = paginationSchemes[paginatorName];
@@ -97,7 +76,7 @@ function finalizeContent(paginatorName: string, selectionNumber: string, seed?: 
 }
 
 function generatePageControls(
-	paginatorName: string,
+	paginatorID: string,
 	currentPageNum: number,
 	totalPages: number,
 	seed?: string,
@@ -109,11 +88,20 @@ function generatePageControls(
 	const nextPageNum = `${currentPageNum === lastPossiblePage ? 0 : currentPageNum + 1}`;
 	if (prevPageNum === nextPageNum) prevPageNum = "0" + prevPageNum;
 
-	const prevControlID = encodeControlID(paginatorName, seed, "page", prevPageNum);
-	const nextControlID = encodeControlID(paginatorName, seed, "page", nextPageNum);
-
-	const prevCustomID = encodePaginationCustomID(prevControlID);
-	const nextCustomID = encodePaginationCustomID(nextControlID);
+	const prevCustomID = serialize({
+		interactionID: paginationInteractionID,
+		paginatorID,
+		seed,
+		operation: "page",
+		operand: prevPageNum,
+	});
+	const nextCustomID = serialize({
+		interactionID: paginationInteractionID,
+		paginatorID,
+		seed,
+		operation: "page",
+		operand: nextPageNum,
+	});
 	const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
 	const components = [
 		new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: leftArrow }),
@@ -133,12 +121,16 @@ function generatePageControls(
 }
 
 function generateSelectorControls(
-	paginatorName: string,
+	paginatorID: string,
 	options: MessageSelectOptionData[],
 	seed?: string
 ) {
-	const controlID = encodeControlID(paginatorName, seed, "pick");
-	const customId = encodeCustomID(paginationIdentifier, controlID);
+	const customId = serialize({
+		interactionID: paginationInteractionID,
+		paginatorID,
+		seed,
+		operation: "pick",
+	});
 
 	return new MessageActionRow({
 		components: [
@@ -169,15 +161,16 @@ function generateInitialPaginatedSelector(
 }
 
 const paginationHandler: ComponentInteractionHandlingData = {
-	handler: ({ controlID, values }) => {
-		if (!controlID) throw "pagination was submitted with no controlID?? ";
-		const { paginatorName, seed, operator, operand } = decodeControlID(controlID);
-		if (operator === "page") {
+	handler: ({ componentParams, values }) => {
+		const { paginatorID, seed, operation, operand } = componentParams;
+		if (!paginatorID) throw "pagination handler was reached without a paginatorID...";
+		if (operation === "page") {
+			if (!operand) throw "page change submitted with no target page number";
 			const requestedPageNum = parseInt(operand);
-			return generatePage(paginatorName, requestedPageNum, seed, true, true);
-		} else if (operator === "pick") {
-			if (!values) throw "select was submitted with no value?? " + controlID;
-			return finalizeContent(paginatorName, values[0], seed);
+			return generatePage(paginatorID, requestedPageNum, seed, true, true);
+		} else if (operation === "pick") {
+			if (!values) throw "select was submitted with no value?? " + JSON.stringify(componentParams);
+			return finalizeContent(paginatorID, values[0], seed);
 		}
 	},
 	update: true,
@@ -209,7 +202,7 @@ export function createPaginator({
 	) => [requestedPage: MessageEmbed, totalPages: number];
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
-	componentInteractions[paginationIdentifier] = paginationHandler;
+	componentInteractions[paginationInteractionID] = paginationHandler;
 	paginationSchemes[paginatorName] = getPageData;
 
 	// return the function that initiates this paginator
@@ -233,7 +226,7 @@ export function createPaginatedSelector({
 	finalizer: (selectionNumber: string, seed?: string) => InteractionReplyOptions | MessageEmbed;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
-	componentInteractions[paginationIdentifier] = paginationHandler;
+	componentInteractions[paginationInteractionID] = paginationHandler;
 
 	// register this specific paginator and finalizer
 	finalizers[paginatorName] = finalizer;

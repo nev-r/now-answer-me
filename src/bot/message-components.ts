@@ -19,34 +19,10 @@ import { Awaitable } from "one-stone/types";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { MessageButtonStyles } from "discord.js/typings/enums";
+import { ComponentParams, deserialize, serialize } from "./component-id-parser.js";
 
-export const interactionIdSeparator = "\u241E"; // ␞
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
-
-function decodeCustomId(customId: string) {
-	let [interactionID, controlID] = customId.split(interactionIdSeparator) as [
-		string,
-		string | undefined
-	];
-	// this is the bare minimum that must decode properly
-	if (!interactionID) throw `invalid! interactionID:${interactionID} controlID:${controlID}`;
-	return {
-		/** lookup key for how to handle this interaction */
-		interactionID,
-		/** which control (button/select) was submitted */
-		controlID,
-	};
-}
-
-export function encodeCustomID(
-	/** lookup key for how to handle this interaction */
-	interactionID: string,
-	/** a unique id for the control (button/select) */
-	controlID: string
-) {
-	return interactionID + interactionIdSeparator + controlID;
-}
 
 export type ComponentInteractionHandlingData = {
 	handler:
@@ -57,7 +33,7 @@ export type ComponentInteractionHandlingData = {
 				user: User;
 				message: MessageComponentInteraction["message"];
 				interactionID: string;
-				controlID: string | undefined;
+				componentParams: ComponentParams;
 				values?: string[];
 		  }) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>);
 	ephemeral?: boolean;
@@ -114,7 +90,7 @@ export function createComponentButtons({
 				components: r.map((b) => {
 					const { value, ...rest } = b;
 					return new MessageButton({
-						customId: encodeCustomID(interactionID, value),
+						customId: serialize({ interactionID, operation: value }),
 						...rest,
 					});
 				}),
@@ -135,7 +111,7 @@ export function createComponentSelects({
 
 	return nestedSelects.map((s) => {
 		const { controlID, ...rest } = s;
-		const customId = encodeCustomID(interactionID, controlID);
+		const customId = serialize({ interactionID, operation: controlID });
 		return new MessageActionRow({
 			components: [
 				new MessageSelectMenu({
@@ -148,7 +124,7 @@ export function createComponentSelects({
 }
 
 export async function routeComponentInteraction(interaction: MessageComponentInteraction) {
-	const { interactionID, controlID } = decodeCustomId(interaction.customId);
+	const { interactionID, ...componentParams } = deserialize(interaction.customId);
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
 	else {
@@ -189,7 +165,7 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 						user,
 						message,
 						interactionID,
-						controlID,
+						componentParams,
 						values,
 					})) || "";
 			} else {
@@ -229,7 +205,6 @@ function unhandledInteraction(interaction: MessageComponentInteraction) {
 // (removes components so it can receive no further interaction)
 componentInteractions[lock] = {
 	handler: async ({ message, channel }) => {
-		console.log(`locking ${message.id}`)
 		const fullMessage = await channel?.messages.fetch(message.id);
 		if (fullMessage) {
 			const returnOptions: InteractionReplyOptions = { components: [] };
@@ -246,7 +221,6 @@ componentInteractions[lock] = {
 // (removes the message)
 componentInteractions[wastebasket] = {
 	handler: async ({ message, channel }) => {
-		console.log(`removing ${message.id}`)
 		await (await channel?.messages.fetch(message.id))?.delete();
 	},
 };
