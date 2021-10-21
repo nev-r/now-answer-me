@@ -109,7 +109,7 @@ export function replyOrEdit(interaction, content) {
     return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
 }
 export function updateComponent(interaction, content) {
-    return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+    return interaction.deferred ? interaction.editReply(content) : interaction.update(content);
 }
 /**
  * provide in-discord feedback to an interaction,

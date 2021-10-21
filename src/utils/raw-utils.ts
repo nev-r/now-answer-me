@@ -175,7 +175,7 @@ export function updateComponent(
 	interaction: MessageComponentInteraction,
 	content: Parameters<MessageComponentInteraction["editReply"]>[0]
 ) {
-	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+	return interaction.deferred ? interaction.editReply(content) : interaction.update(content);
 }
 
 /**

@@ -85,7 +85,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 	if (!failIfLong) {
 		deferalCountdown = setTimeout(
 			() => interaction.deferred || interaction.deferReply({ ephemeral }),
-			deferImmediately ? 0 : 2300
+			deferImmediately ? 0 : 2600
 		);
 	}
 	try {

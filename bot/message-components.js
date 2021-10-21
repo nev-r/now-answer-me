@@ -63,7 +63,7 @@ export async function routeComponentInteraction(interaction) {
             // which is probably bad UX.
             // otherwise, defer in 2.3 seconds if it looks like the function
             // might run past the 3 second response window
-            const deferralDelay = deferImmediately ? 0 : 2300;
+            const deferralDelay = deferImmediately ? 0 : 2600;
             const deferralMethod = () => update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral });
             deferalCountdown = setTimeout(deferralMethod, deferralDelay);
         }

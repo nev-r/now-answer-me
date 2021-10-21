@@ -40,7 +40,7 @@ export async function routeSlashCommand(interaction) {
     let { handler, ephemeral, deferImmediately, failIfLong } = slashCommand;
     let deferalCountdown;
     if (!failIfLong) {
-        deferalCountdown = setTimeout(() => interaction.deferred || interaction.deferReply({ ephemeral }), deferImmediately ? 0 : 2300);
+        deferalCountdown = setTimeout(() => interaction.deferred || interaction.deferReply({ ephemeral }), deferImmediately ? 0 : 2600);
     }
     try {
         let results;
