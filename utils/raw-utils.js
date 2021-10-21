@@ -106,6 +106,9 @@ export function replyOrEdit(interaction, content) {
         return (r) => console.log(`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`);
     return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
 }
+export function updateComponent(interaction, content) {
+    return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+}
 /**
  * provide in-discord feedback to an interaction,
  * whether that's an initial reply, an edit to a deferral,

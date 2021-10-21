@@ -78,7 +78,7 @@ export async function routeSlashCommand(interaction) {
     catch (e) {
         deferalCountdown && clearTimeout(deferalCountdown);
         console.log(e);
-        await forceFeedback(interaction, { content: `⚠ ${e}`, ephemeral: true });
+        await forceFeedback(interaction, { content: `⚠.. ${e}`, ephemeral: true });
     }
     deferalCountdown && clearTimeout(deferalCountdown);
     if (!interaction.replied)
