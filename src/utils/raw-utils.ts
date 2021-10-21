@@ -153,7 +153,7 @@ export function announceToChannels(
 }
 
 export function replyOrEdit(
-	interaction: CommandInteraction,
+	interaction: CommandInteraction | MessageComponentInteraction,
 	content:
 		| Parameters<CommandInteraction["reply"]>[0]
 		| Parameters<CommandInteraction["editReply"]>[0]
@@ -163,7 +163,9 @@ export function replyOrEdit(
 			r: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]
 		) =>
 			console.log(
-				`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`
+				`interaction [${
+					(interaction as any).commandName
+				}] was already replied to. would have replied [${r}]`
 			);
 	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
 }

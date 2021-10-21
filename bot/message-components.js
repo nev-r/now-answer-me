@@ -3,7 +3,7 @@ import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { deserialize, serialize } from "./component-id-parser.js";
-import { forceFeedback } from "../utils/raw-utils.js";
+import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
 export const componentInteractions = {};
@@ -94,7 +94,7 @@ export async function routeComponentInteraction(interaction) {
                 }
                 else {
                     if (!interaction.replied) {
-                        await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
+                        await replyOrEdit(interaction, { ephemeral, ...sendableToInteractionReplyOptions(results) });
                     }
                 }
             }
