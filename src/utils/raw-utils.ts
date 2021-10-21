@@ -120,11 +120,12 @@ export async function uploadEmojisUsingClient(
 			if (!currentlyAvailableEmoji[emoji.name]) {
 				console.log(`uploading emoji for ${emoji.name}`);
 				await storageServer.emojis.create(emoji.attachment, emoji.name);
-				await sleep(6000);
 			}
 		}
 		currentlyAvailableEmoji = await buildEmojiDictUsingClient(client, storageServer);
 		if (toUpload.every((e) => e in currentlyAvailableEmoji)) {
+			for (const n in currentlyAvailableEmoji)
+				if (!toUpload.includes(n)) delete currentlyAvailableEmoji[n];
 			return currentlyAvailableEmoji as Record<string, GuildEmoji>;
 		}
 		tryCounter++;
