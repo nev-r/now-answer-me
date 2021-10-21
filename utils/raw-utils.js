@@ -101,3 +101,20 @@ export function announceToChannels(client, message, channelIds) {
             channel.send(sendableToMessageOptions(message)));
     });
 }
+export function replyOrEdit(interaction, content) {
+    if (interaction.replied)
+        return (r) => console.log(`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`);
+    return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+}
+/**
+ * provide in-discord feedback to an interaction,
+ * whether that's an initial reply, an edit to a deferral,
+ * or a completely separate followup message
+ */
+export function forceFeedback(interaction, content) {
+    if (interaction.replied)
+        return interaction.followUp(content);
+    if (interaction.deferred)
+        return interaction.editReply(content);
+    return interaction.reply(content);
+}

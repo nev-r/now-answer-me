@@ -3,6 +3,7 @@ import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { deserialize, serialize } from "./component-id-parser.js";
+import { forceFeedback } from "../utils/raw-utils.js";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
 export const componentInteractions = {};
@@ -87,16 +88,21 @@ export async function routeComponentInteraction(interaction) {
             }
             // the response function finished. we can cancel the scheduled deferral
             deferalCountdown !== undefined && clearTimeout(deferalCountdown);
-            if (results && !update && !interaction.replied) {
-                await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
-            }
-            if (results && update) {
-                await interaction.update(sendableToInteractionReplyOptions(results));
+            if (results) {
+                if (update) {
+                    await interaction.update(sendableToInteractionReplyOptions(results));
+                }
+                else {
+                    if (!interaction.replied) {
+                        await interaction.reply({ ephemeral, ...sendableToInteractionReplyOptions(results) });
+                    }
+                }
             }
         }
         catch (e) {
-            await interaction.reply({ content: "⚠", ephemeral: true });
+            console.log("caught error in a handler");
             console.log(e);
+            await forceFeedback(interaction, { content: "⚠", ephemeral: true });
         }
     }
 }

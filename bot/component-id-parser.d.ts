@@ -1,6 +1,8 @@
+/** turn a MessageComponentInteraction.customId into a dictionary of values */
 export declare function deserialize(s: string): ComponentParams & {
     interactionID: string;
 };
+/** turn a dictionary into a single string, for a component's customId field */
 export declare function serialize({ interactionID, ...o }: ComponentParams & {
     interactionID: string;
 }): string;

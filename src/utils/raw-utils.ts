@@ -13,6 +13,8 @@ import type {
 	GuildEmojiManager,
 	TextChannel,
 	Snowflake,
+	CommandInteraction,
+	MessageComponentInteraction,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
@@ -148,4 +150,37 @@ export function announceToChannels(
 			channel.send(sendableToMessageOptions(message))
 		);
 	});
+}
+
+export function replyOrEdit(
+	interaction: CommandInteraction,
+	content:
+		| Parameters<CommandInteraction["reply"]>[0]
+		| Parameters<CommandInteraction["editReply"]>[0]
+) {
+	if (interaction.replied)
+		return (
+			r: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]
+		) =>
+			console.log(
+				`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`
+			);
+	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+}
+
+/**
+ * provide in-discord feedback to an interaction,
+ * whether that's an initial reply, an edit to a deferral,
+ * or a completely separate followup message
+ */
+export function forceFeedback(
+	interaction: CommandInteraction | MessageComponentInteraction,
+	content:
+		| Parameters<CommandInteraction["followUp"]>[0]
+		| Parameters<CommandInteraction["reply"]>[0]
+		| Parameters<CommandInteraction["editReply"]>[0]
+) {
+	if (interaction.replied) return interaction.followUp(content);
+	if (interaction.deferred) return interaction.editReply(content);
+	return interaction.reply(content);
 }

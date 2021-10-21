@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import type { Client, ChannelResolvable, GuildEmoji, GuildResolvable, MessageEmbed, MessageResolvable, UserResolvable, GuildEmojiManager, Snowflake } from "discord.js";
+import type { Client, ChannelResolvable, GuildEmoji, GuildResolvable, MessageEmbed, MessageResolvable, UserResolvable, GuildEmojiManager, Snowflake, CommandInteraction, MessageComponentInteraction } from "discord.js";
 import { Sendable } from "../types/types-discord.js";
 export declare function buildEmojiDictUsingClient(client: Client, guilds: GuildResolvable | GuildResolvable[]): Promise<NodeJS.Dict<GuildEmoji>>;
 export declare function sendMessageUsingClient(client: Client, channel: ChannelResolvable, content: string | MessageEmbed, publish?: boolean): Promise<import("discord.js").Message>;
@@ -13,4 +13,11 @@ export declare function uploadEmojisUsingClient(client: Client, guild: GuildReso
     name: EmojiName;
 }[]): Promise<Record<string, GuildEmoji>>;
 export declare function announceToChannels(client: Client, message: Sendable, channelIds: Snowflake | Snowflake[]): (false | Promise<import("discord.js").Message>)[];
+export declare function replyOrEdit(interaction: CommandInteraction, content: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]): Promise<void> | Promise<import("discord-api-types").APIMessage | import("discord.js").Message> | ((r: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]) => void);
+/**
+ * provide in-discord feedback to an interaction,
+ * whether that's an initial reply, an edit to a deferral,
+ * or a completely separate followup message
+ */
+export declare function forceFeedback(interaction: CommandInteraction | MessageComponentInteraction, content: Parameters<CommandInteraction["followUp"]>[0] | Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]): Promise<void> | Promise<import("discord-api-types").APIMessage | import("discord.js").Message>;
 export {};

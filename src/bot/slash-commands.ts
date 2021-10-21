@@ -1,26 +1,21 @@
-import {
-	ApplicationCommandData,
-	ApplicationCommandOption,
-	ApplicationCommandOptionChoice,
-	ApplicationCommandOptionData,
+import type {
 	ChatInputApplicationCommandData,
 	CommandInteraction,
 	CommandInteractionOption,
 	GuildResolvable,
+	Message,
 } from "discord.js";
-import { APIApplicationCommandOption } from "discord-api-types/v9";
-import { Message } from "discord.js";
 import type { Sendable, SlashCommandResponse } from "../types/types-bot.js";
-import { sendableToInteractionReplyOptions, sendableToMessageOptions } from "../utils/misc.js";
+import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-import {
+import type {
 	CommandOptionsMap,
 	StrictCommand,
-	StrictOption,
 	SubCommandGroupsOf,
 	SubCommandsOf,
 } from "../types/the-option-understander-has-signed-on.js";
 import { client, clientReady, clientStatus } from "./index.js";
+import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 
 const slashCommands: NodeJS.Dict<{
 	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
@@ -120,18 +115,18 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 			if (interaction.replied)
 				console.log(`${interaction.commandName}: this interaction was already replied to??`);
 			else
-				await feedback(interaction, {
+				await replyOrEdit(interaction, {
 					ephemeral,
 					...sendableToInteractionReplyOptions(results),
 				});
 		}
 	} catch (e) {
 		deferalCountdown && clearTimeout(deferalCountdown);
-		await feedback(interaction, { content: `⚠ ${e}`, ephemeral: true });
 		console.log(e);
+		await forceFeedback(interaction, { content: `⚠ ${e}`, ephemeral: true });
 	}
 	deferalCountdown && clearTimeout(deferalCountdown);
-	if (!interaction.replied) await feedback(interaction, { content: "☑", ephemeral: true });
+	if (!interaction.replied) await replyOrEdit(interaction, { content: "☑", ephemeral: true });
 }
 
 async function registerSlashCommands(
@@ -263,20 +258,4 @@ function createDictFromSelectedOptions(
 // }
 function unConst(c: StrictCommand): ChatInputApplicationCommandData {
 	return c as ChatInputApplicationCommandData;
-}
-
-function feedback(
-	interaction: CommandInteraction,
-	content:
-		| Parameters<CommandInteraction["reply"]>[0]
-		| Parameters<CommandInteraction["editReply"]>[0]
-) {
-	if (interaction.replied)
-		return (
-			r: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]
-		) =>
-			console.log(
-				`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`
-			);
-	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
 }
