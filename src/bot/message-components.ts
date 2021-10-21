@@ -20,7 +20,7 @@ import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 import { ComponentParams, deserialize, serialize } from "./component-id-parser.js";
-import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
+import { forceFeedback, replyOrEdit, updateComponent } from "../utils/raw-utils.js";
 
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
@@ -177,17 +177,20 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 
 			if (results) {
 				if (update) {
-					await interaction.update(sendableToInteractionReplyOptions(results));
+					await updateComponent(interaction, sendableToInteractionReplyOptions(results));
 				} else {
 					if (!interaction.replied) {
-						await replyOrEdit(interaction,{ ephemeral, ...sendableToInteractionReplyOptions(results) });
+						await replyOrEdit(interaction, {
+							ephemeral,
+							...sendableToInteractionReplyOptions(results),
+						});
 					}
 				}
 			}
 		} catch (e) {
 			console.log("caught error in a handler");
 			console.log(e);
-			await forceFeedback(interaction, { content: "⚠", ephemeral: true });
+			await forceFeedback(interaction, { content: `⚠. ${e}`, ephemeral: true });
 		}
 	}
 }

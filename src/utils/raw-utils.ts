@@ -170,6 +170,13 @@ export function replyOrEdit(
 	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
 }
 
+export function updateComponent(
+	interaction: MessageComponentInteraction,
+	content: Parameters<MessageComponentInteraction["editReply"]>[0]
+) {
+	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+}
+
 /**
  * provide in-discord feedback to an interaction,
  * whether that's an initial reply, an edit to a deferral,
