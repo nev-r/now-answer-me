@@ -17,6 +17,7 @@ export declare type StrictOption = Readonly<{
     name: string;
     description: string;
     required?: boolean;
+    autocomplete?: boolean;
 } & ({
     type: "SUB_COMMAND" | ApplicationCommandOptionTypes.SUB_COMMAND | "SUB_COMMAND_GROUP" | ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
     options?: readonly StrictOption[];
@@ -44,6 +45,7 @@ declare type OptionAsDict<Option> = Option extends {
     name: infer Name;
     type: infer Identifier;
     required?: infer Required;
+    autocomplete?: infer Autocomplete;
     options?: infer Option;
     choices?: infer Choices;
 } ? Name extends string ? Required extends true ? {

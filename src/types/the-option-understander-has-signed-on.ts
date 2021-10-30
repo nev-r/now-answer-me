@@ -27,6 +27,7 @@ export type StrictOption = Readonly<
 		name: string;
 		description: string;
 		required?: boolean;
+		autocomplete?: boolean;
 	} & (
 		| {
 				type:
@@ -92,6 +93,7 @@ type OptionAsDict<Option> = Option extends {
 	name: infer Name;
 	type: infer Identifier;
 	required?: infer Required;
+	autocomplete?: infer Autocomplete;
 	options?: infer Option;
 	choices?: infer Choices;
 }

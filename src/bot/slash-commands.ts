@@ -86,7 +86,10 @@ export function addSlashCommand<Config extends StrictCommand>({
 
 // given a command string, find and run the appropriate function
 export async function routeAutocomplete(interaction: AutocompleteInteraction) {
-	console.log("stub unsupported.. :(");
+	console.log(interaction);
+	console.log(interaction.options.getFocused());
+	console.log(interaction.options.getFocused(true));
+	interaction.respond([{ name: "test1", value: "test2" }]);
 }
 // given a command string, find and run the appropriate function
 export async function routeContextMenuCommand(interaction: ContextMenuInteraction) {

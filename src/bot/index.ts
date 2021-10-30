@@ -4,6 +4,7 @@ import type { ActivityOptions } from "discord.js";
 import { arrayify } from "one-stone/array";
 import {
 	registerCommandsOnConnect,
+	routeAutocomplete,
 	routeContextMenuCommand,
 	routeSlashCommand,
 } from "./slash-commands.js";
@@ -139,6 +140,7 @@ export function init(token: string) {
 			routeMessageCommand(msg);
 		})
 		.on("interactionCreate", async (interaction) => {
+			if (interaction.isAutocomplete()) routeAutocomplete(interaction);
 			if (interaction.isCommand()) routeSlashCommand(interaction);
 			if (interaction.isContextMenu()) routeContextMenuCommand(interaction);
 			else if (interaction.isMessageComponent()) routeComponentInteraction(interaction);
