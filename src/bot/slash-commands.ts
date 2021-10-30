@@ -52,6 +52,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 	ephemeral,
 	deferImmediately,
 	failIfLong,
+	autocompleters,
 }: {
 	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
 	config: Config;
@@ -63,6 +64,9 @@ export function addSlashCommand<Config extends StrictCommand>({
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
 	failIfLong?: boolean;
+	autocompleters?: NodeJS.Dict<
+		(params: AutocompleteParams) => string[] | { name: string; value: string | number }[]
+	>;
 }) {
 	const standardConfig = unConst(config);
 	slashCommands[config.name] = {
@@ -72,6 +76,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 		ephemeral,
 		deferImmediately,
 		failIfLong,
+		autocompleters,
 	};
 
 	if (clientStatus.hasConnected) registerSlashCommands(where, [standardConfig]);

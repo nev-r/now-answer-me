@@ -15,7 +15,7 @@ export async function registerCommandsOnConnect() {
         }
     }
 }
-export function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, }) {
+export function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }) {
     const standardConfig = unConst(config);
     slashCommands[config.name] = {
         where,
@@ -24,6 +24,7 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
         ephemeral,
         deferImmediately,
         failIfLong,
+        autocompleters,
     };
     if (clientStatus.hasConnected)
         registerSlashCommands(where, [standardConfig]);
