@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import type { CommandResponse, Constraints, Extras, TriggerResponse } from "../types/types-bot.js";
+import type { TextCommandHandler, Constraints, Extras, TriggerResponse } from "../types/types-bot.js";
 /**
  * set the command prefix (i.e. "!"" or "?"" or whatever)
  *
@@ -13,7 +13,7 @@ import type { CommandResponse, Constraints, Extras, TriggerResponse } from "../t
 export declare function setPrefix(prefix: string | RegExp): void;
 declare const commands: ({
     command: string | string[];
-    response: CommandResponse;
+    response: TextCommandHandler;
 } & Constraints & Extras)[];
 /**
  * either a Sendable, or a function that generates a Sendable.

@@ -1,1 +1,1 @@
-export { Sendable, CommandParams, TriggerParams, CommandResponse, TriggerResponse, ConstraintTypes, Constraints, } from "./types-bot.js";
+export { Sendable, CommandParams, TriggerParams, TextCommandHandler, TriggerResponse, ConstraintTypes, Constraints, } from "./types-bot.js";

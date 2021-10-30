@@ -3,7 +3,6 @@ import { arrayify } from "one-stone/array";
 import { client, clientReady, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 const slashCommands = {};
-const contextCommands = {};
 export const theseStillNeedRegistering = [];
 export async function registerCommandsOnConnect() {
     while (theseStillNeedRegistering.length) {
@@ -31,18 +30,23 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
     else
         theseStillNeedRegistering.push(config.name);
 }
-// given a command string, find and run the appropriate function
 export async function routeAutocomplete(interaction) {
-    console.log(interaction);
-    console.log(interaction.options.getFocused());
-    console.log(interaction.options.getFocused(true));
-    interaction.respond([{ name: "test1", value: "test2" }]);
+    var _a, _b;
+    const slashCommand = slashCommands[interaction.commandName];
+    if (!slashCommand) {
+        const info = JSON.stringify(interaction.options.getFocused(true), null, 2);
+        console.log(`unrecognized autocomplete request: ${interaction.commandName}\n${info}`);
+        return [];
+    }
+    const { name, value } = interaction.options.getFocused(true);
+    const handler = (_a = slashCommand.autocompleters) === null || _a === void 0 ? void 0 : _a[name];
+    const { guild, channel, user } = interaction;
+    const options = (_b = handler === null || handler === void 0 ? void 0 : handler({ guild, channel, user, stub: value })) !== null && _b !== void 0 ? _b : [];
+    interaction.respond(options.map((o) => (typeof o === "string" ? { name: o, value: o } : o)));
 }
-// given a command string, find and run the appropriate function
 export async function routeContextMenuCommand(interaction) {
     console.log("stub unsupported.. :(");
 }
-// given a command string, find and run the appropriate function
 export async function routeSlashCommand(interaction) {
     const slashCommand = slashCommands[interaction.commandName];
     if (!slashCommand) {
