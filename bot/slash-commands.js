@@ -33,7 +33,10 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
 }
 // given a command string, find and run the appropriate function
 export async function routeAutocomplete(interaction) {
-    console.log("stub unsupported.. :(");
+    console.log(interaction);
+    console.log(interaction.options.getFocused());
+    console.log(interaction.options.getFocused(true));
+    interaction.respond([{ name: "test1", value: "test2" }]);
 }
 // given a command string, find and run the appropriate function
 export async function routeContextMenuCommand(interaction) {

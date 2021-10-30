@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import type {
-	CommandResponse,
+	TextCommandHandler,
 	Constraints,
 	Extras,
 	Sendable,
@@ -45,7 +45,7 @@ setPrefix("!");
 
 const commands: ({
 	command: string | string[];
-	response: CommandResponse;
+	response: TextCommandHandler;
 } & Constraints &
 	Extras)[] = [];
 

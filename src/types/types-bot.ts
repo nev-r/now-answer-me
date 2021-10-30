@@ -8,8 +8,8 @@ import {
 	Snowflake,
 	User,
 } from "discord.js";
-import { Awaitable } from "one-stone/types";
-import { Sendable } from "./types-discord.js";
+import type { Awaitable } from "one-stone/types";
+import type { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
 
 /**
@@ -47,6 +47,11 @@ export interface SlashCommandParams<
 	subCommandGroup: (SelectedSubcommandGroup & string) | undefined;
 }
 
+export interface AutocompleteParams extends IncitingParams {
+	channel: Message["channel"] | null;
+	stub: string | number;
+}
+
 /**
  * basic discord metadata about who and where a command was triggered
  */
@@ -61,16 +66,17 @@ export interface IncitingParams {
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the CommandParams object
  */
-export type CommandResponse =
+export type TextCommandHandler =
 	| ((
 			params: CommandParams
 	  ) => Sendable | undefined | void | Promise<Message | Sendable | undefined | void>)
 	| Sendable;
+
 /**
  * either a Sendable, or a function that generates a Sendable.
  * if it's a function, it's passed the SlashCommandParams object
  */
-export type SlashCommandResponse<
+export type SlashCommandHandler<
 	SelectedOptionMap extends any,
 	SelectedSubcommand extends any,
 	SelectedSubcommandGroup extends any

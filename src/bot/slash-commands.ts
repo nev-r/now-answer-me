@@ -7,7 +7,7 @@ import type {
 	GuildResolvable,
 	Message,
 } from "discord.js";
-import type { Sendable, SlashCommandResponse } from "../types/types-bot.js";
+import type { AutocompleteParams, Sendable, SlashCommandHandler } from "../types/types-bot.js";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import type {
@@ -22,16 +22,10 @@ import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 const slashCommands: NodeJS.Dict<{
 	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
 	config: ChatInputApplicationCommandData;
-	handler: SlashCommandResponse<any, any, any>;
-	ephemeral?: boolean;
-	deferImmediately?: boolean;
-	failIfLong?: boolean;
-}> = {};
-
-const contextCommands: NodeJS.Dict<{
-	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
-	config: ChatInputApplicationCommandData;
-	handler: SlashCommandResponse<any, any, any>;
+	handler: SlashCommandHandler<any, any, any>;
+	autocompleters?: NodeJS.Dict<
+		(params: AutocompleteParams) => string[] | { name: string; value: string | number }[]
+	>;
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
 	failIfLong?: boolean;
@@ -61,7 +55,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 }: {
 	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
 	config: Config;
-	handler: SlashCommandResponse<
+	handler: SlashCommandHandler<
 		CommandOptionsMap<Config>,
 		SubCommandsOf<Config>,
 		SubCommandGroupsOf<Config>
@@ -84,19 +78,24 @@ export function addSlashCommand<Config extends StrictCommand>({
 	else theseStillNeedRegistering.push(config.name);
 }
 
-// given a command string, find and run the appropriate function
 export async function routeAutocomplete(interaction: AutocompleteInteraction) {
-	console.log(interaction);
-	console.log(interaction.options.getFocused());
-	console.log(interaction.options.getFocused(true));
-	interaction.respond([{ name: "test1", value: "test2" }]);
+	const slashCommand = slashCommands[interaction.commandName];
+	if (!slashCommand) {
+		const info = JSON.stringify(interaction.options.getFocused(true), null, 2);
+		console.log(`unrecognized autocomplete request: ${interaction.commandName}\n${info}`);
+		return [];
+	}
+	const { name, value } = interaction.options.getFocused(true);
+	const handler = slashCommand.autocompleters?.[name];
+	const { guild, channel, user } = interaction;
+	const options = handler?.({ guild, channel, user, stub: value }) ?? [];
+	interaction.respond(options.map((o) => (typeof o === "string" ? { name: o, value: o } : o)));
 }
-// given a command string, find and run the appropriate function
+
 export async function routeContextMenuCommand(interaction: ContextMenuInteraction) {
 	console.log("stub unsupported.. :(");
 }
 
-// given a command string, find and run the appropriate function
 export async function routeSlashCommand(interaction: CommandInteraction) {
 	const slashCommand = slashCommands[interaction.commandName];
 	if (!slashCommand) {

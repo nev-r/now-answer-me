@@ -2,7 +2,7 @@ export {
 	Sendable,
 	CommandParams,
 	TriggerParams,
-	CommandResponse,
+	TextCommandHandler,
 	TriggerResponse,
 	ConstraintTypes,
 	Constraints,
