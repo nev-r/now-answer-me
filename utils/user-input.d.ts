@@ -10,7 +10,7 @@ export declare function promptForText({ channel, options, user, swallowResponse,
     promptContent?: Sendable;
 }): Promise<{
     text: string;
-    message: Message;
+    message: Message<boolean>;
 } | undefined>;
 /**
  * posts 1 or more options (emoji) to a message,

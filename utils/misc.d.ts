@@ -4,7 +4,7 @@ import { Sendable } from "../types/types-discord.js";
 export declare function bugOut<T extends any>(msg: Message | undefined, func: (() => T) | (() => Promise<T>)): Promise<T>;
 export declare function delMsg(msg?: Message): Promise<void>;
 /** deprecated i guess */
-export declare function sendMsg(channel: Message["channel"], sendable: Sendable): Promise<Message>;
+export declare function sendMsg(channel: Message["channel"], sendable: Sendable): Promise<Message<boolean>>;
 export declare function sendableToMessageOptions(sendable: Sendable): MessageOptions & {
     split?: false | undefined;
 };

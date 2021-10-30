@@ -3,6 +3,7 @@ import { arrayify } from "one-stone/array";
 import { client, clientReady, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 const slashCommands = {};
+const contextCommands = {};
 export const theseStillNeedRegistering = [];
 export async function registerCommandsOnConnect() {
     while (theseStillNeedRegistering.length) {
@@ -29,6 +30,14 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
         registerSlashCommands(where, [standardConfig]);
     else
         theseStillNeedRegistering.push(config.name);
+}
+// given a command string, find and run the appropriate function
+export async function routeAutocomplete(interaction) {
+    console.log("stub unsupported.. :(");
+}
+// given a command string, find and run the appropriate function
+export async function routeContextMenuCommand(interaction) {
+    console.log("stub unsupported.. :(");
 }
 // given a command string, find and run the appropriate function
 export async function routeSlashCommand(interaction) {

@@ -124,7 +124,7 @@ export function createComponentSelects({
 	});
 }
 
-export async function routeComponentInteraction(interaction: MessageComponentInteraction) {
+export async function routeComponentInteraction(interaction: MessageComponentInteraction):Promise<void> {
 	const { interactionID, ...componentParams } = deserialize(interaction.customId);
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
@@ -134,7 +134,8 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 			const originalUser = interaction.message.interaction?.user.id;
 			if (originalUser && interaction.user.id !== originalUser) {
 				// end it here
-				return interaction.followUp({ ephemeral: true, content: "this isnt your control" });
+				interaction.followUp({ ephemeral: true, content: "this isnt your control" });
+				return;
 			}
 		}
 

@@ -1,7 +1,6 @@
 /// <reference types="node" />
 import { EmojiIdentifierResolvable, Guild, InteractionReplyOptions, MessageActionRow, MessageButtonStyleResolvable, MessageComponentInteraction, MessageEmbed, MessageSelectOptionData, TextBasedChannels, User } from "discord.js";
 import { Sendable } from "../types/types-bot.js";
-import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 import { ComponentParams } from "./component-id-parser.js";
@@ -54,5 +53,5 @@ export declare function createComponentSelects({ interactionID, selects, ...hand
     selects: InteractionSelect | InteractionSelect[];
     interactionID: string;
 } & ComponentInteractionHandlingData): MessageActionRow[];
-export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<import("discord-api-types").APIMessage | Message | undefined>;
+export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<void>;
 export {};

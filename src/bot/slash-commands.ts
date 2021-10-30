@@ -1,7 +1,9 @@
 import type {
+	AutocompleteInteraction,
 	ChatInputApplicationCommandData,
 	CommandInteraction,
 	CommandInteractionOption,
+	ContextMenuInteraction,
 	GuildResolvable,
 	Message,
 } from "discord.js";
@@ -25,6 +27,16 @@ const slashCommands: NodeJS.Dict<{
 	deferImmediately?: boolean;
 	failIfLong?: boolean;
 }> = {};
+
+const contextCommands: NodeJS.Dict<{
+	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
+	config: ChatInputApplicationCommandData;
+	handler: SlashCommandResponse<any, any, any>;
+	ephemeral?: boolean;
+	deferImmediately?: boolean;
+	failIfLong?: boolean;
+}> = {};
+
 export const theseStillNeedRegistering: string[] = [];
 
 export async function registerCommandsOnConnect() {
@@ -70,6 +82,15 @@ export function addSlashCommand<Config extends StrictCommand>({
 
 	if (clientStatus.hasConnected) registerSlashCommands(where, [standardConfig]);
 	else theseStillNeedRegistering.push(config.name);
+}
+
+// given a command string, find and run the appropriate function
+export async function routeAutocomplete(interaction: AutocompleteInteraction) {
+	console.log("stub unsupported.. :(");
+}
+// given a command string, find and run the appropriate function
+export async function routeContextMenuCommand(interaction: ContextMenuInteraction) {
+	console.log("stub unsupported.. :(");
 }
 
 // given a command string, find and run the appropriate function

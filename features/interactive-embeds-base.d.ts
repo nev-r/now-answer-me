@@ -18,7 +18,7 @@ export declare function _newPaginatedSelector_<T>({ user, preexistingMessage, ch
     itemsPerPage?: number;
     waitTime?: number;
 }): Promise<{
-    paginatedMessage: Message;
+    paginatedMessage: Message<boolean>;
     selection: Promise<number | undefined>;
 }>;
 export declare function _newPaginatedEmbed_({ user, preexistingMessage, channel, pages, renderer, startPage, buttons, waitTime, }: {
@@ -31,7 +31,7 @@ export declare function _newPaginatedEmbed_({ user, preexistingMessage, channel,
     buttons?: keyof typeof reactOptions;
     waitTime?: number;
 }): Promise<{
-    paginatedMessage: Message;
+    paginatedMessage: Message<boolean>;
     page: Promise<number | undefined>;
 }>;
 export {};

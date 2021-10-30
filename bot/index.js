@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
 import { arrayify } from "one-stone/array";
-import { registerCommandsOnConnect, routeSlashCommand } from "./slash-commands.js";
+import { registerCommandsOnConnect, routeContextMenuCommand, routeSlashCommand, } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
 import { routeMessageCommand } from "./message-commands.js";
 export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
@@ -15,6 +15,7 @@ export const client = new Client({
         "DIRECT_MESSAGE_REACTIONS",
         "GUILD_EMOJIS_AND_STICKERS",
         "GUILD_MESSAGE_REACTIONS",
+        "GUILD_MEMBERS",
     ],
 });
 let _clientReadyResolve;
@@ -118,8 +119,10 @@ export function init(token) {
         routeMessageCommand(msg);
     })
         .on("interactionCreate", async (interaction) => {
-        if (interaction.isCommand() || interaction.isContextMenu())
+        if (interaction.isCommand())
             routeSlashCommand(interaction);
+        if (interaction.isContextMenu())
+            routeContextMenuCommand(interaction);
         else if (interaction.isMessageComponent())
             routeComponentInteraction(interaction);
     })

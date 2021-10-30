@@ -52,7 +52,8 @@ export async function routeComponentInteraction(interaction) {
             const originalUser = (_a = interaction.message.interaction) === null || _a === void 0 ? void 0 : _a.user.id;
             if (originalUser && interaction.user.id !== originalUser) {
                 // end it here
-                return interaction.followUp({ ephemeral: true, content: "this isnt your control" });
+                interaction.followUp({ ephemeral: true, content: "this isnt your control" });
+                return;
             }
         }
         let { handler, ephemeral, deferImmediately, allowTimeout, update } = handlingData;
