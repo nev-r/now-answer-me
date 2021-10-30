@@ -43,7 +43,7 @@ export async function routeAutocomplete(interaction) {
     const handler = (_a = slashCommand.autocompleters) === null || _a === void 0 ? void 0 : _a[name];
     const { guild, channel, user } = interaction;
     const options = (_b = handler === null || handler === void 0 ? void 0 : handler({ guild, channel, user, stub: value })) !== null && _b !== void 0 ? _b : [];
-    interaction.respond(options.map((o) => (typeof o === "string" ? { name: o, value: o } : o)));
+    interaction.respond(options.slice(0, 25).map((o) => (typeof o === "string" ? { name: o, value: o } : o)));
 }
 export async function routeContextMenuCommand(interaction) {
     console.log("stub unsupported.. :(");
