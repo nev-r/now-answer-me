@@ -1,6 +1,6 @@
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-import { client, clientReady, clientStatus } from "./index.js";
+import { client, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 const slashCommands = {};
 export const theseStillNeedRegistering = [];
@@ -104,7 +104,6 @@ export async function routeSlashCommand(interaction) {
 }
 async function registerSlashCommands(wheres, config) {
     const configs = arrayify(config);
-    await clientReady;
     const serverList = new Set(client.guilds.cache.keys());
     const filteredWheres = new Set();
     for (const where of wheres) {

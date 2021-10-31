@@ -130,12 +130,12 @@ export function init(token) {
         startActivityUpkeep();
         await Promise.allSettled(onConnects.map((fnc) => fnc(client)));
         await registerCommandsOnConnect();
+        _clientReadyResolve(client);
         await Promise.allSettled(onReadies.map((fnc) => fnc(client)));
         // set `performReconnects` in 1s, so reconnect events don't fire the first time
         setTimeout(() => {
             clientStatus.performReconnects = true;
         }, 1000);
-        _clientReadyResolve(client);
     })
         .on("ready", () => {
         clientStatus.performReconnects && onReconnects.forEach((fnc) => fnc(client));

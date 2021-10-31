@@ -173,7 +173,6 @@ async function registerSlashCommands(
 	config: ChatInputApplicationCommandData | ChatInputApplicationCommandData[]
 ) {
 	const configs = arrayify(config);
-	await clientReady;
 
 	const serverList = new Set<string>(client.guilds.cache.keys());
 	const filteredWheres = new Set<string>();
