@@ -18,18 +18,16 @@ declare let activities: ActivityOptions[];
  */
 export declare function addActivity(...activities_: (string | ActivityOptions)[]): void;
 /**
- * completely replaces existing `activities` statuses. you probably want `addActivity` instead
+ * completely replaces existing `activities` statuses. you may want `addActivity` instead
  */
 export declare function setActivities(activities_: typeof activities): void;
-declare let onConnects: ((client_: Client) => void)[];
+declare let onConnects: ((client_: Client) => Promise<void> | void)[];
 /**
  * add function(s) to run upon first logging into discord
  *
  * the discord client will be passed as an arg
  */
 export declare function addOnConnect(...onConnect_: typeof onConnects): void;
-/** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
-export declare function setOnConnect(onConnects_: typeof onConnects): void;
 declare let onReconnects: ((client_: Client) => void)[];
 /**
  * add function(s) to run upon any reconnection to discord
@@ -37,8 +35,13 @@ declare let onReconnects: ((client_: Client) => void)[];
  * the discord client will be passed as an arg
  */
 export declare function addOnReconnect(...onReconnect_: typeof onReconnects): void;
-/** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
-export declare function setOnReconnect(onReconnect_: typeof onReconnects): void;
+declare let onReadies: ((client_: Client) => Promise<void> | void)[];
+/**
+ * add function(s) to run upon first logging into discord
+ *
+ * the discord client will be passed as an arg
+ */
+export declare function addOnReady(...onReady_: typeof onReadies): void;
 export declare function ignoreServerId(...serverIds: (string | string[])[]): void;
 export declare function ignoreUserId(...userIds: (string | string[])[]): void;
 declare type MessageFilter = (msg: Message) => boolean;

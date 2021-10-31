@@ -41,7 +41,7 @@ export function addActivity(...activities_) {
     activities.push(...activities_.map((a) => (typeof a === "string" ? { name: a } : a)));
 }
 /**
- * completely replaces existing `activities` statuses. you probably want `addActivity` instead
+ * completely replaces existing `activities` statuses. you may want `addActivity` instead
  */
 export function setActivities(activities_) {
     activities = activities_;
@@ -56,10 +56,6 @@ let onConnects = [];
 export function addOnConnect(...onConnect_) {
     onConnects.push(...onConnect_);
 }
-/** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
-export function setOnConnect(onConnects_) {
-    onConnects = onConnects_;
-}
 // list of functions to run on reconnection
 let onReconnects = [];
 /**
@@ -70,9 +66,15 @@ let onReconnects = [];
 export function addOnReconnect(...onReconnect_) {
     onReconnects.push(...onReconnect_);
 }
-/** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
-export function setOnReconnect(onReconnect_) {
-    onReconnects = onReconnect_;
+// list of functions to run after bot commands are setup
+let onReadies = [];
+/**
+ * add function(s) to run upon first logging into discord
+ *
+ * the discord client will be passed as an arg
+ */
+export function addOnReady(...onReady_) {
+    onReadies.push(...onReady_);
 }
 const ignoredServerIds = new Set();
 export function ignoreServerId(...serverIds) {
@@ -131,8 +133,9 @@ export function init(token) {
         .once("ready", async () => {
         clientStatus.hasConnected = true;
         startActivityUpkeep();
-        registerCommandsOnConnect();
-        onConnects.forEach((fnc) => fnc(client));
+        await Promise.allSettled(onConnects.map((fnc) => fnc(client)));
+        await registerCommandsOnConnect();
+        await Promise.allSettled(onReadies.map((fnc) => fnc(client)));
         // set `performReconnects` in 1s, so reconnect events don't fire the first time
         setTimeout(() => {
             clientStatus.performReconnects = true;

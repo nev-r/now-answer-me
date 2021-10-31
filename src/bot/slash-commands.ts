@@ -5,6 +5,7 @@ import type {
 	CommandInteraction,
 	CommandInteractionOption,
 	ContextMenuInteraction,
+	Guild,
 	GuildApplicationCommandManager,
 	GuildResolvable,
 	Message,
@@ -22,7 +23,7 @@ import { client, clientReady, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 
 const slashCommands: NodeJS.Dict<{
-	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
+	where: "global" | "all" | GuildResolvable | ("global" | "all" | GuildResolvable)[];
 	config: ChatInputApplicationCommandData;
 	handler: SlashCommandHandler<any, any, any>;
 	autocompleters?: NodeJS.Dict<
@@ -173,7 +174,7 @@ async function registerSlashCommands(
 		const destination = where === "global" ? client.application : client.guilds.resolve(where);
 		if (!destination) throw `couldn't resolve ${where} to a guild`;
 
-		if (!destination.commands.cache.size) await (destination as any).commands.fetch();
+		if (!destination.commands.cache.size) await (destination as Guild).commands.fetch();
 		const cache = [...destination.commands.cache.values()];
 
 		for (const conf of configs) {

@@ -59,14 +59,14 @@ export function addActivity(...activities_: (string | ActivityOptions)[]) {
 }
 
 /**
- * completely replaces existing `activities` statuses. you probably want `addActivity` instead
+ * completely replaces existing `activities` statuses. you may want `addActivity` instead
  */
 export function setActivities(activities_: typeof activities) {
 	activities = activities_;
 }
 
 // list of functions to run on initial connection
-let onConnects: ((client_: Client) => void)[] = [];
+let onConnects: ((client_: Client) => Promise<void> | void)[] = [];
 
 /**
  * add function(s) to run upon first logging into discord
@@ -75,11 +75,6 @@ let onConnects: ((client_: Client) => void)[] = [];
  */
 export function addOnConnect(...onConnect_: typeof onConnects) {
 	onConnects.push(...onConnect_);
-}
-
-/** completely replaces existing `onConnect` functions. prefer `addOnConnect` */
-export function setOnConnect(onConnects_: typeof onConnects) {
-	onConnects = onConnects_;
 }
 
 // list of functions to run on reconnection
@@ -94,9 +89,16 @@ export function addOnReconnect(...onReconnect_: typeof onReconnects) {
 	onReconnects.push(...onReconnect_);
 }
 
-/** completely replaces existing `onReconnect` functions. prefer `addOnReconnect` */
-export function setOnReconnect(onReconnect_: typeof onReconnects) {
-	onReconnects = onReconnect_;
+// list of functions to run after bot commands are setup
+let onReadies: ((client_: Client) => Promise<void> | void)[] = [];
+
+/**
+ * add function(s) to run upon first logging into discord
+ *
+ * the discord client will be passed as an arg
+ */
+export function addOnReady(...onReady_: typeof onReadies) {
+	onReadies.push(...onReady_);
 }
 
 const ignoredServerIds = new Set<string>();
@@ -153,8 +155,10 @@ export function init(token: string) {
 			clientStatus.hasConnected = true;
 			startActivityUpkeep();
 
-			registerCommandsOnConnect();
-			onConnects.forEach((fnc) => fnc(client));
+			await Promise.allSettled(onConnects.map((fnc) => fnc(client)));
+			await registerCommandsOnConnect();
+
+			await Promise.allSettled(onReadies.map((fnc) => fnc(client)));
 
 			// set `performReconnects` in 1s, so reconnect events don't fire the first time
 			setTimeout(() => {
