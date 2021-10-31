@@ -2,9 +2,16 @@ import {
 	CommandInteraction,
 	CommandInteractionOption,
 	Emoji,
+	Guild,
+	GuildChannel,
+	GuildEmoji,
+	GuildMember,
+	GuildResolvable,
 	InteractionReplyOptions,
+	Invite,
 	Message,
 	MessageEmbed,
+	Role,
 	Snowflake,
 	User,
 } from "discord.js";
@@ -113,3 +120,18 @@ export interface ConstraintSet {
 	emoji?: null | string | Snowflake | Emoji | (Snowflake | string | Emoji)[];
 	notEmoji?: null | string | Snowflake | Emoji | (Snowflake | string | Emoji)[];
 }
+
+type StringLike = {
+	[x: number]: string;
+	[Symbol.iterator]: () => IterableIterator<string>;
+} & { [K in keyof String]?: String[K] };
+
+type Hint<A extends string> = StringLike | A;
+
+export type SlashCommandLocation = Hint<"global" | "all">;
+// | Guild
+// | GuildChannel
+// | GuildMember
+// | GuildEmoji
+// | Invite
+// | Role;

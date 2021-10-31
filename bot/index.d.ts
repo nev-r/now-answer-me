@@ -24,22 +24,17 @@ export declare function setActivities(activities_: typeof activities): void;
 declare let onConnects: ((client_: Client) => Promise<void> | void)[];
 /**
  * add function(s) to run upon first logging into discord
- *
- * the discord client will be passed as an arg
  */
 export declare function addOnConnect(...onConnect_: typeof onConnects): void;
 declare let onReconnects: ((client_: Client) => void)[];
 /**
  * add function(s) to run upon any reconnection to discord
- *
- * the discord client will be passed as an arg
  */
 export declare function addOnReconnect(...onReconnect_: typeof onReconnects): void;
 declare let onReadies: ((client_: Client) => Promise<void> | void)[];
 /**
- * add function(s) to run upon first logging into discord
- *
- * the discord client will be passed as an arg
+ * add function(s) to run after bot is ready
+ * (startup tasks are completed, slash commands are registered)
  */
 export declare function addOnReady(...onReady_: typeof onReadies): void;
 export declare function ignoreServerId(...serverIds: (string | string[])[]): void;

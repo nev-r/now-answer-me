@@ -10,7 +10,12 @@ import type {
 	GuildResolvable,
 	Message,
 } from "discord.js";
-import type { AutocompleteParams, Sendable, SlashCommandHandler } from "../types/types-bot.js";
+import type {
+	AutocompleteParams,
+	Sendable,
+	SlashCommandHandler,
+	SlashCommandLocation,
+} from "../types/types-bot.js";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import type {
@@ -23,7 +28,7 @@ import { client, clientReady, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 
 const slashCommands: NodeJS.Dict<{
-	where: "global" | "all" | GuildResolvable | ("global" | "all" | GuildResolvable)[];
+	wheres: SlashCommandLocation[];
 	config: ChatInputApplicationCommandData;
 	handler: SlashCommandHandler<any, any, any>;
 	autocompleters?: NodeJS.Dict<
@@ -42,7 +47,7 @@ export async function registerCommandsOnConnect() {
 		if (nameToRegister) {
 			const toRegister = slashCommands[nameToRegister];
 			if (toRegister) {
-				await registerSlashCommands(toRegister.where, [toRegister.config]);
+				await registerSlashCommands(toRegister.wheres, [toRegister.config]);
 			}
 		}
 	}
@@ -57,7 +62,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 	failIfLong,
 	autocompleters,
 }: {
-	where: "global" | GuildResolvable | ("global" | GuildResolvable)[];
+	where: SlashCommandLocation | SlashCommandLocation[];
 	config: Config;
 	handler: SlashCommandHandler<
 		CommandOptionsMap<Config>,
@@ -72,8 +77,9 @@ export function addSlashCommand<Config extends StrictCommand>({
 	>;
 }) {
 	const standardConfig = unConst(config);
+	const wheres = arrayify(where);
 	slashCommands[config.name] = {
-		where,
+		wheres,
 		config: standardConfig,
 		handler,
 		ephemeral,
@@ -82,7 +88,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 		autocompleters,
 	};
 
-	if (clientStatus.hasConnected) registerSlashCommands(where, [standardConfig]);
+	if (clientStatus.hasConnected) registerSlashCommands(wheres, [standardConfig]);
 	else theseStillNeedRegistering.push(config.name);
 }
 
@@ -163,14 +169,22 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 }
 
 async function registerSlashCommands(
-	whereOrWheres: "global" | GuildResolvable | GuildResolvable[],
+	wheres: SlashCommandLocation[],
 	config: ChatInputApplicationCommandData | ChatInputApplicationCommandData[]
 ) {
-	const wheres = arrayify(whereOrWheres);
 	const configs = arrayify(config);
 	await clientReady;
 
+	const serverList = new Set<string>(client.guilds.cache.keys());
+	const filteredWheres = new Set<string>();
+
 	for (const where of wheres) {
+		if (where === "all") for (const s of serverList) filteredWheres.add(s);
+		else if (where === "global") filteredWheres.add("global");
+		else if (typeof where === "string" && serverList.has(where)) filteredWheres.add(where);
+	}
+
+	for (const where of filteredWheres) {
 		const destination = where === "global" ? client.application : client.guilds.resolve(where);
 		if (!destination) throw `couldn't resolve ${where} to a guild`;
 

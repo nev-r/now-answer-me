@@ -10,15 +10,16 @@ export async function registerCommandsOnConnect() {
         if (nameToRegister) {
             const toRegister = slashCommands[nameToRegister];
             if (toRegister) {
-                await registerSlashCommands(toRegister.where, [toRegister.config]);
+                await registerSlashCommands(toRegister.wheres, [toRegister.config]);
             }
         }
     }
 }
 export function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }) {
     const standardConfig = unConst(config);
+    const wheres = arrayify(where);
     slashCommands[config.name] = {
-        where,
+        wheres,
         config: standardConfig,
         handler,
         ephemeral,
@@ -27,7 +28,7 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
         autocompleters,
     };
     if (clientStatus.hasConnected)
-        registerSlashCommands(where, [standardConfig]);
+        registerSlashCommands(wheres, [standardConfig]);
     else
         theseStillNeedRegistering.push(config.name);
 }
@@ -101,11 +102,21 @@ export async function routeSlashCommand(interaction) {
     if (!interaction.replied)
         await replyOrEdit(interaction, { content: "☑", ephemeral: true });
 }
-async function registerSlashCommands(whereOrWheres, config) {
-    const wheres = arrayify(whereOrWheres);
+async function registerSlashCommands(wheres, config) {
     const configs = arrayify(config);
     await clientReady;
+    const serverList = new Set(client.guilds.cache.keys());
+    const filteredWheres = new Set();
     for (const where of wheres) {
+        if (where === "all")
+            for (const s of serverList)
+                filteredWheres.add(s);
+        else if (where === "global")
+            filteredWheres.add("global");
+        else if (typeof where === "string" && serverList.has(where))
+            filteredWheres.add(where);
+    }
+    for (const where of filteredWheres) {
         const destination = where === "global" ? client.application : client.guilds.resolve(where);
         if (!destination)
             throw `couldn't resolve ${where} to a guild`;

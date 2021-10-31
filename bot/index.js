@@ -50,8 +50,6 @@ export function setActivities(activities_) {
 let onConnects = [];
 /**
  * add function(s) to run upon first logging into discord
- *
- * the discord client will be passed as an arg
  */
 export function addOnConnect(...onConnect_) {
     onConnects.push(...onConnect_);
@@ -60,8 +58,6 @@ export function addOnConnect(...onConnect_) {
 let onReconnects = [];
 /**
  * add function(s) to run upon any reconnection to discord
- *
- * the discord client will be passed as an arg
  */
 export function addOnReconnect(...onReconnect_) {
     onReconnects.push(...onReconnect_);
@@ -69,9 +65,8 @@ export function addOnReconnect(...onReconnect_) {
 // list of functions to run after bot commands are setup
 let onReadies = [];
 /**
- * add function(s) to run upon first logging into discord
- *
- * the discord client will be passed as an arg
+ * add function(s) to run after bot is ready
+ * (startup tasks are completed, slash commands are registered)
  */
 export function addOnReady(...onReady_) {
     onReadies.push(...onReady_);
