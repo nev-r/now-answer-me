@@ -11,7 +11,11 @@ import {
 import { routeComponentInteraction } from "./message-components.js";
 import { routeMessageCommand } from "./message-commands.js";
 export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
-export { addSlashCommand } from "./slash-commands.js";
+export {
+	addSlashCommand,
+	setPermittedCommandUserInGuild,
+	setPermittedCommandUserEverywhere,
+} from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 
 export const startupTimestamp = new Date();

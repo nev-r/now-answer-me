@@ -160,6 +160,60 @@ function createDictFromSelectedOptions(originalOptions, meta = {
     }
     return { ...meta, optionDict };
 }
+/** allow only these users to use this command, in this guild */
+export async function setPermittedCommandUserInGuild(commandName, guildId, userIds, strict = false) {
+    const guild = client.guilds.resolve(guildId);
+    if (!guild) {
+        const err = `can't resolve ${guildId} to a guild`;
+        if (strict)
+            throw err;
+        else
+            return console.log(err);
+    }
+    const command = await getCommandByName(guild.commands, commandName);
+    if (!command) {
+        const err = `can't find command ${command} in guild ${guild.name} (${guildId})`;
+        if (strict)
+            throw err;
+        else
+            return console.log(err);
+    }
+    userIds = arrayify(userIds);
+    const users = await guild.members.fetch({ user: userIds });
+    if (users.size !== userIds.length) {
+        const foundUsers = new Set(users.keys());
+        const missingUsers = userIds.filter((u) => foundUsers.has(u));
+        const err = `guild ${guild.name} (${guildId}) doesn't contain ${missingUsers}`;
+        if (strict)
+            throw err;
+        else
+            return console.log(err);
+    }
+    const permissions = users.map((u) => ({ id: u.id, type: "USER", permission: true }));
+    command.permissions.set({ permissions });
+}
+/** allow only these users to use this command, in all guilds where it's present */
+export async function setPermittedCommandUserEverywhere(commandName, userIds) {
+    for (const guild of client.guilds.cache.values()) {
+        const command = await getCommandByName(guild.commands, commandName);
+        if (!command)
+            continue;
+        userIds = arrayify(userIds);
+        const users = await guild.members.fetch({ user: userIds });
+        if (!users.size)
+            continue;
+        const permissions = users.map((u) => ({ id: u.id, type: "USER", permission: true }));
+        command.permissions.set({ permissions });
+    }
+}
+async function getCommandByName(commandManager, commandName) {
+    const commands = await commandManager.fetch();
+    for (const [, c] of commands) {
+        if (c.name === commandName) {
+            return c;
+        }
+    }
+}
 // type ApplicationCommandDataNoEnums = Pick<
 // 	ChatInputApplicationCommandData,
 // 	"defaultPermission" | "description" | "name" | "type"

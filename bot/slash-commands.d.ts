@@ -19,3 +19,7 @@ export declare function addSlashCommand<Config extends StrictCommand>({ where, c
 export declare function routeAutocomplete(interaction: AutocompleteInteraction): Promise<never[] | undefined>;
 export declare function routeContextMenuCommand(interaction: ContextMenuInteraction): Promise<void>;
 export declare function routeSlashCommand(interaction: CommandInteraction): Promise<void>;
+/** allow only these users to use this command, in this guild */
+export declare function setPermittedCommandUserInGuild(commandName: string, guildId: GuildResolvable, userIds: string | string[], strict?: boolean): Promise<void>;
+/** allow only these users to use this command, in all guilds where it's present */
+export declare function setPermittedCommandUserEverywhere(commandName: string, userIds: string | string[]): Promise<void>;
