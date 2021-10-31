@@ -3,23 +3,38 @@ import { arrayify } from "one-stone/array";
 import { client, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 const slashCommands = {};
-export const theseStillNeedRegistering = [];
+const theseStillNeedRegistering = [];
+// anything globally registered shouldn't be registered at a server level
+// or else it will show up twice in the client command list
+const globalCommands = new Set();
 export async function registerCommandsOnConnect() {
     while (theseStillNeedRegistering.length) {
         const nameToRegister = theseStillNeedRegistering.pop();
         if (nameToRegister) {
             const toRegister = slashCommands[nameToRegister];
-            if (toRegister) {
-                await registerSlashCommands(toRegister.wheres, [toRegister.config]);
+            if (toRegister)
+                await registerSlashCommands(toRegister.where, toRegister.config);
+        }
+    }
+    cleanupGlobalDupes();
+}
+async function cleanupGlobalDupes() {
+    for (const guild of client.guilds.cache.values()) {
+        const commands = await guild.commands.fetch();
+        for (const [, c] of commands) {
+            if (globalCommands.has(c.name)) {
+                console.log(`cleaning up ${c.name} in ${g(guild)}`);
+                await c.delete();
             }
         }
     }
 }
 export function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }) {
+    if (where === "global")
+        globalCommands.add(config.name);
     const standardConfig = unConst(config);
-    const wheres = arrayify(where);
     slashCommands[config.name] = {
-        wheres,
+        where,
         config: standardConfig,
         handler,
         ephemeral,
@@ -28,7 +43,7 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
         autocompleters,
     };
     if (clientStatus.hasConnected)
-        registerSlashCommands(wheres, [standardConfig]);
+        registerSlashCommands(where, standardConfig);
     else
         theseStillNeedRegistering.push(config.name);
 }
@@ -102,28 +117,29 @@ export async function routeSlashCommand(interaction) {
     if (!interaction.replied)
         await replyOrEdit(interaction, { content: "☑", ephemeral: true });
 }
-async function registerSlashCommands(wheres, config) {
+async function registerSlashCommands(where, config) {
     const configs = arrayify(config);
     const serverList = new Set(client.guilds.cache.keys());
     const filteredWheres = new Set();
-    for (const where of wheres) {
-        if (where === "all")
-            for (const s of serverList)
-                filteredWheres.add(s);
-        else if (where === "global")
-            filteredWheres.add("global");
-        else if (typeof where === "string" && serverList.has(where))
-            filteredWheres.add(where);
-    }
-    for (const where of filteredWheres) {
-        const destination = where === "global" ? client.application : client.guilds.resolve(where);
+    if (where === "global")
+        filteredWheres.add("global");
+    else if (where === "all")
+        for (const s of serverList)
+            filteredWheres.add(s);
+    else
+        for (const loc of arrayify(where)) {
+            if (typeof loc === "string" && serverList.has(loc))
+                filteredWheres.add(loc);
+        }
+    for (const loc of filteredWheres) {
+        const destination = loc === "global" ? client.application : client.guilds.resolve(loc);
         if (!destination)
-            throw `couldn't resolve ${where} to a guild`;
+            throw `couldn't resolve ${loc} to a guild`;
         if (!destination.commands.cache.size)
             await destination.commands.fetch();
         const cache = [...destination.commands.cache.values()];
         for (const conf of configs) {
-            process.stdout.write(`registering ${conf.name}: `);
+            process.stdout.write(`${g(destination)}: registering ${conf.name}: `);
             const matchingConfig = cache.find((c) => {
                 return c.equals(conf);
             });
@@ -223,6 +239,10 @@ async function getCommandByName(commandManager, commandName) {
             return c;
         }
     }
+}
+function g(destination) {
+    var _a;
+    return `${(_a = destination.name) === null || _a === void 0 ? void 0 : _a.substring(0, 20).padEnd(20)} (${destination.id})`;
 }
 // type ApplicationCommandDataNoEnums = Pick<
 // 	ChatInputApplicationCommandData,

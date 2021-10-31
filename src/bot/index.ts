@@ -155,7 +155,7 @@ export function init(token: string) {
 			_clientReadyResolve(client);
 			await Promise.allSettled(onReadies.map((fnc) => fnc(client)));
 
-			// set `performReconnects` in 1s, so reconnect events don't fire the first time
+			// set performReconnects in 1s, so reconnect events don't fire the first time
 			setTimeout(() => {
 				clientStatus.performReconnects = true;
 			}, 1000);

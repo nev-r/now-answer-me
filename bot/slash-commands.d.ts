@@ -2,10 +2,9 @@
 import type { AutocompleteInteraction, CommandInteraction, ContextMenuInteraction, GuildResolvable } from "discord.js";
 import type { AutocompleteParams, SlashCommandHandler, SlashCommandLocation } from "../types/types-bot.js";
 import type { CommandOptionsMap, StrictCommand, SubCommandGroupsOf, SubCommandsOf } from "../types/the-option-understander-has-signed-on.js";
-export declare const theseStillNeedRegistering: string[];
 export declare function registerCommandsOnConnect(): Promise<void>;
 export declare function addSlashCommand<Config extends StrictCommand>({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }: {
-    where: SlashCommandLocation | SlashCommandLocation[];
+    where: SlashCommandLocation;
     config: Config;
     handler: SlashCommandHandler<CommandOptionsMap<Config>, SubCommandsOf<Config>, SubCommandGroupsOf<Config>>;
     ephemeral?: boolean;

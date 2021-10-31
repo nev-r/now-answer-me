@@ -128,7 +128,7 @@ type StringLike = {
 
 type Hint<A extends string> = StringLike | A;
 
-export type SlashCommandLocation = Hint<"global" | "all">;
+export type SlashCommandLocation = Hint<"global" | "all"> | Snowflake[];
 // | Guild
 // | GuildChannel
 // | GuildMember

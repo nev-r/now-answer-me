@@ -78,4 +78,4 @@ declare type StringLike = {
     [K in keyof String]?: String[K];
 };
 declare type Hint<A extends string> = StringLike | A;
-export declare type SlashCommandLocation = Hint<"global" | "all">;
+export declare type SlashCommandLocation = Hint<"global" | "all"> | Snowflake[];
