@@ -327,7 +327,7 @@ async function getCommandByName(
 }
 
 function g(destination: Guild | ClientApplication) {
-	return `${destination.name?.substring(0, 20).padEnd(20)} (${destination.id})`;
+	return `${(destination.name ?? "global").substring(0, 20).padEnd(20)} (${destination.id})`;
 }
 // type ApplicationCommandDataNoEnums = Pick<
 // 	ChatInputApplicationCommandData,

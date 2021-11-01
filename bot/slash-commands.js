@@ -242,7 +242,7 @@ async function getCommandByName(commandManager, commandName) {
 }
 function g(destination) {
     var _a;
-    return `${(_a = destination.name) === null || _a === void 0 ? void 0 : _a.substring(0, 20).padEnd(20)} (${destination.id})`;
+    return `${((_a = destination.name) !== null && _a !== void 0 ? _a : "global").substring(0, 20).padEnd(20)} (${destination.id})`;
 }
 // type ApplicationCommandDataNoEnums = Pick<
 // 	ChatInputApplicationCommandData,
