@@ -124,7 +124,9 @@ export function createComponentSelects({
 	});
 }
 
-export async function routeComponentInteraction(interaction: MessageComponentInteraction):Promise<void> {
+export async function routeComponentInteraction(
+	interaction: MessageComponentInteraction
+): Promise<void> {
 	const { interactionID, ...componentParams } = deserialize(interaction.customId);
 	const handlingData = componentInteractions[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
@@ -198,6 +200,8 @@ export async function routeComponentInteraction(interaction: MessageComponentInt
 
 function unhandledInteraction(interaction: MessageComponentInteraction) {
 	let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
+	content += `\ndeserialized as:\n${JSON.stringify(deserialize(interaction.customId), null, 2)}`;
+	content += `\nkeys available${Object.keys(componentInteractions).join(', ')}\n`
 
 	if (interaction.isSelectMenu()) {
 		const values = interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ");

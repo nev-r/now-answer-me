@@ -112,6 +112,8 @@ export async function routeComponentInteraction(interaction) {
 }
 function unhandledInteraction(interaction) {
     let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
+    content += `\ndeserialized as:\n${JSON.stringify(deserialize(interaction.customId), null, 2)}`;
+    content += `\nkeys available${Object.keys(componentInteractions).join(', ')}\n`;
     if (interaction.isSelectMenu()) {
         const values = interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ");
         content += `\nvalues submitted: ${values}`;

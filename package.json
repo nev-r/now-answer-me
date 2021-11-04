@@ -14,6 +14,7 @@
 	},
 	"type": "module",
 	"scripts": {
+		"build": "tsc",
 		"test": "find . -type f \\( -name '*.d.ts' -or -name '*.js' \\) -not -path './node_modules*' -not -path './apo*' -delete && tsc && node test.mjs",
 		"clear": "find . -type f \\( -name '*.d.ts' -or -name '*.js' \\) -not -path './node_modules*' -not -path './apo*' -delete"
 	},
