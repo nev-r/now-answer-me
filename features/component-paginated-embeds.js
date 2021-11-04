@@ -29,9 +29,9 @@ function generatePage(paginatorName, currentPageNum, seed, includeLock, includeR
         components.push(generateSelectorControls(paginatorName, selectorOptions, seed));
     return { embeds: [requestedPage], components };
 }
-function finalizeContent(paginatorName, selectionNumber, seed) {
+async function finalizeContent(paginatorName, selectionNumber, seed) {
     const finalizer = getFinalizer(paginatorName);
-    const finalContent = finalizer(selectionNumber, seed);
+    const finalContent = await finalizer(selectionNumber, seed);
     if (finalContent instanceof MessageEmbed)
         return { embeds: [finalContent], components: [] };
     return finalContent;
@@ -93,7 +93,7 @@ function generateInitialPaginatedSelector(paginatorName, seed, includeLock, incl
     return generatePage(paginatorName, 0, seed, includeLock, includeRemove);
 }
 const paginationHandler = {
-    handler: ({ componentParams, values }) => {
+    handler: async ({ componentParams, values }) => {
         const { paginatorID, seed, operation, operand } = componentParams;
         if (!paginatorID)
             throw "pagination handler was reached without a paginatorID...";
@@ -106,7 +106,7 @@ const paginationHandler = {
         else if (operation === "pick") {
             if (!values)
                 throw "select was submitted with no value?? " + JSON.stringify(componentParams);
-            return finalizeContent(paginatorID, values[0], seed);
+            return await finalizeContent(paginatorID, values[0], seed);
         }
     },
     update: true,

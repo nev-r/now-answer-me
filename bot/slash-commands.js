@@ -68,6 +68,11 @@ export async function routeSlashCommand(interaction) {
     const slashCommand = slashCommands[interaction.commandName];
     if (!slashCommand) {
         console.log(`unrecognized slash command received: ${interaction.commandName}`);
+        if (!interaction.replied)
+            replyOrEdit(interaction, {
+                content: `sorry, not sure how to handle the command \`${interaction.commandName}\``,
+                ephemeral: true,
+            });
         return;
     }
     let { handler, ephemeral, deferImmediately, failIfLong } = slashCommand;

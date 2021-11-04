@@ -6,6 +6,7 @@ import {
 	MessageSelectMenu,
 	MessageSelectOptionData,
 } from "discord.js";
+import { Awaitable } from "one-stone/types";
 import { serialize } from "../bot/component-id-parser.js";
 
 import {
@@ -68,9 +69,9 @@ function generatePage(
 	return { embeds: [requestedPage], components };
 }
 
-function finalizeContent(paginatorName: string, selectionNumber: string, seed?: string) {
+async function finalizeContent(paginatorName: string, selectionNumber: string, seed?: string) {
 	const finalizer = getFinalizer(paginatorName);
-	const finalContent = finalizer(selectionNumber, seed);
+	const finalContent = await finalizer(selectionNumber, seed);
 	if (finalContent instanceof MessageEmbed) return { embeds: [finalContent], components: [] };
 	return finalContent;
 }
@@ -161,7 +162,7 @@ function generateInitialPaginatedSelector(
 }
 
 const paginationHandler: ComponentInteractionHandlingData = {
-	handler: ({ componentParams, values }) => {
+	handler: async ({ componentParams, values }) => {
 		const { paginatorID, seed, operation, operand } = componentParams;
 		if (!paginatorID) throw "pagination handler was reached without a paginatorID...";
 		if (operation === "page") {
@@ -170,7 +171,7 @@ const paginationHandler: ComponentInteractionHandlingData = {
 			return generatePage(paginatorID, requestedPageNum, seed, true, true);
 		} else if (operation === "pick") {
 			if (!values) throw "select was submitted with no value?? " + JSON.stringify(componentParams);
-			return finalizeContent(paginatorID, values[0], seed);
+			return await finalizeContent(paginatorID, values[0], seed);
 		}
 	},
 	update: true,
@@ -188,7 +189,7 @@ const paginationSchemes: NodeJS.Dict<
 > = {};
 
 const finalizers: NodeJS.Dict<
-	(selectionNumber: string, seed?: string) => InteractionReplyOptions | MessageEmbed
+	(selectionNumber: string, seed?: string) => Awaitable<InteractionReplyOptions | MessageEmbed>
 > = {};
 
 export function createPaginator({
@@ -223,7 +224,10 @@ export function createPaginatedSelector({
 		totalPages: number,
 		selectorOptions: MessageSelectOptionData[]
 	];
-	finalizer: (selectionNumber: string, seed?: string) => InteractionReplyOptions | MessageEmbed;
+	finalizer: (
+		selectionNumber: string,
+		seed?: string
+	) => Awaitable<InteractionReplyOptions | MessageEmbed>;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationInteractionID] = paginationHandler;
