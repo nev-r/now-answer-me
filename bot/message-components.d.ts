@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { EmojiIdentifierResolvable, Guild, InteractionReplyOptions, MessageActionRow, MessageButtonStyleResolvable, MessageComponentInteraction, MessageEmbed, MessageSelectOptionData, TextBasedChannels, User } from "discord.js";
 import { Sendable } from "../types/types-bot.js";
+import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 import { ComponentParams } from "./component-id-parser.js";
@@ -11,7 +12,7 @@ export declare type ComponentInteractionHandlingData = {
         guild: Guild | null;
         channel: TextBasedChannels | null;
         user: User;
-        message: MessageComponentInteraction["message"];
+        message?: Message;
         interactionID: string;
         componentParams: ComponentParams;
         values?: string[];

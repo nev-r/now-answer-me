@@ -21,6 +21,7 @@ import { arrayify } from "one-stone/array";
 import { MessageButtonStyles } from "discord.js/typings/enums";
 import { ComponentParams, deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit, updateComponent } from "../utils/raw-utils.js";
+import { client } from "./index.js";
 
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
@@ -32,7 +33,7 @@ export type ComponentInteractionHandlingData = {
 				guild: Guild | null;
 				channel: TextBasedChannels | null;
 				user: User;
-				message: MessageComponentInteraction["message"];
+				message?: Message;
 				interactionID: string;
 				componentParams: ComponentParams;
 				values?: string[];
@@ -160,7 +161,13 @@ export async function routeComponentInteraction(
 		try {
 			let results: Sendable | Message | undefined;
 			if (typeof handler === "function") {
-				const { guild, channel, user, message } = interaction;
+				const channel =
+					interaction.channel ??
+					((await client.channels.fetch(interaction.channelId)) as TextBasedChannels | null);
+				const message = await channel?.messages.fetch(interaction.message.id);
+
+				const { guild, user } = interaction;
+				// const { guild, channel, user, message } = interaction;
 				const values = interaction.isSelectMenu() ? interaction.values : undefined;
 				results =
 					(await handler({
@@ -201,7 +208,7 @@ export async function routeComponentInteraction(
 function unhandledInteraction(interaction: MessageComponentInteraction) {
 	let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
 	content += `\ndeserialized as:\n${JSON.stringify(deserialize(interaction.customId), null, 2)}`;
-	content += `\nkeys available${Object.keys(componentInteractions).join(', ')}\n`
+	content += `\nkeys available${Object.keys(componentInteractions).join(", ")}\n`;
 
 	if (interaction.isSelectMenu()) {
 		const values = interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ");
@@ -218,11 +225,10 @@ function unhandledInteraction(interaction: MessageComponentInteraction) {
 // (removes components so it can receive no further interaction)
 componentInteractions[lock] = {
 	handler: async ({ message, channel }) => {
-		const fullMessage = await channel?.messages.fetch(message.id);
-		if (fullMessage) {
+		if (message) {
 			const returnOptions: InteractionReplyOptions = { components: [] };
-			if (fullMessage.content) returnOptions.content = fullMessage.content;
-			if (fullMessage.embeds) returnOptions.embeds = fullMessage.embeds;
+			if (message.content) returnOptions.content = message.content;
+			if (message.embeds) returnOptions.embeds = message.embeds;
 
 			return returnOptions;
 		}
@@ -233,7 +239,7 @@ componentInteractions[lock] = {
 // register handler for remove functionality
 // (removes the message)
 componentInteractions[wastebasket] = {
-	handler: async ({ message, channel }) => {
-		await (await channel?.messages.fetch(message.id))?.delete();
+	handler: async ({ message }) => {
+		await message?.delete();
 	},
 };

@@ -4,6 +4,7 @@ import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit, updateComponent } from "../utils/raw-utils.js";
+import { client } from "./index.js";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
 export const componentInteractions = {};
@@ -41,7 +42,7 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     });
 }
 export async function routeComponentInteraction(interaction) {
-    var _a;
+    var _a, _b;
     const { interactionID, ...componentParams } = deserialize(interaction.customId);
     const handlingData = componentInteractions[interactionID];
     if (!handlingData)
@@ -71,7 +72,10 @@ export async function routeComponentInteraction(interaction) {
         try {
             let results;
             if (typeof handler === "function") {
-                const { guild, channel, user, message } = interaction;
+                const channel = (_b = interaction.channel) !== null && _b !== void 0 ? _b : (await client.channels.fetch(interaction.channelId));
+                const message = await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(interaction.message.id));
+                const { guild, user } = interaction;
+                // const { guild, channel, user, message } = interaction;
                 const values = interaction.isSelectMenu() ? interaction.values : undefined;
                 results =
                     (await handler({
@@ -113,7 +117,7 @@ export async function routeComponentInteraction(interaction) {
 function unhandledInteraction(interaction) {
     let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
     content += `\ndeserialized as:\n${JSON.stringify(deserialize(interaction.customId), null, 2)}`;
-    content += `\nkeys available${Object.keys(componentInteractions).join(', ')}\n`;
+    content += `\nkeys available${Object.keys(componentInteractions).join(", ")}\n`;
     if (interaction.isSelectMenu()) {
         const values = interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ");
         content += `\nvalues submitted: ${values}`;
@@ -127,13 +131,12 @@ function unhandledInteraction(interaction) {
 // (removes components so it can receive no further interaction)
 componentInteractions[lock] = {
     handler: async ({ message, channel }) => {
-        const fullMessage = await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(message.id));
-        if (fullMessage) {
+        if (message) {
             const returnOptions = { components: [] };
-            if (fullMessage.content)
-                returnOptions.content = fullMessage.content;
-            if (fullMessage.embeds)
-                returnOptions.embeds = fullMessage.embeds;
+            if (message.content)
+                returnOptions.content = message.content;
+            if (message.embeds)
+                returnOptions.embeds = message.embeds;
             return returnOptions;
         }
     },
@@ -142,8 +145,7 @@ componentInteractions[lock] = {
 // register handler for remove functionality
 // (removes the message)
 componentInteractions[wastebasket] = {
-    handler: async ({ message, channel }) => {
-        var _a;
-        await ((_a = (await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(message.id)))) === null || _a === void 0 ? void 0 : _a.delete());
+    handler: async ({ message }) => {
+        await (message === null || message === void 0 ? void 0 : message.delete());
     },
 };
