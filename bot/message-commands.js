@@ -51,7 +51,6 @@ export function addTrigger(...triggers_) {
 }
 // given a command string, find and run the appropriate function
 export async function routeMessageCommand(msg) {
-    var _a, _b, _c, _d, _e, _f;
     const commandMatch = prefixCheck(msg.content);
     let foundRoute = (commandMatch &&
         commands.find((r) => mixedIncludes(r.command, commandMatch.groups.command))) ||
@@ -59,7 +58,7 @@ export async function routeMessageCommand(msg) {
     if (foundRoute) {
         let { response: responseGenerator, trashable, selfDestructSeconds, reportViaReaction, } = foundRoute;
         if (!meetsConstraints(msg, foundRoute)) {
-            console.log(`constraints suppressed a response to ${msg.author.username} requesting ${(_a = foundRoute.command) !== null && _a !== void 0 ? _a : foundRoute.trigger.source}`);
+            console.log(`constraints suppressed a response to ${msg.author.username} requesting ${foundRoute.command ?? foundRoute.trigger.source}`);
             return;
         }
         try {
@@ -69,8 +68,8 @@ export async function routeMessageCommand(msg) {
                 results =
                     (await responseGenerator({
                         msg,
-                        command: (_c = (_b = commandMatch === null || commandMatch === void 0 ? void 0 : commandMatch.groups) === null || _b === void 0 ? void 0 : _b.command) !== null && _c !== void 0 ? _c : "",
-                        args: (_f = (_e = (_d = commandMatch === null || commandMatch === void 0 ? void 0 : commandMatch.groups) === null || _d === void 0 ? void 0 : _d.args) === null || _e === void 0 ? void 0 : _e.trim()) !== null && _f !== void 0 ? _f : "",
+                        command: commandMatch?.groups?.command ?? "",
+                        args: commandMatch?.groups?.args?.trim() ?? "",
                         content: msg.content.trim(),
                         channel,
                         guild,
@@ -116,7 +115,6 @@ export async function routeMessageCommand(msg) {
     }
 }
 function getReactionEmojiFromString(str) {
-    var _a, _b;
     // strips out 0xFE0F (VS16 "present this char as an emoji")
     // and 0x20E3 (COMBINING ENCLOSING KEYCAP),
     // turning "1️⃣" into "1"
@@ -133,7 +131,7 @@ function getReactionEmojiFromString(str) {
     }
     // if tihs is a custom discord emoji, there's a whole markup to parse
     // we try and extract the snowflake id
-    const snowflake = (_b = (_a = str.match(/^<a?:(\w+):(?<snowflake>\d+)>$/)) === null || _a === void 0 ? void 0 : _a.groups) === null || _b === void 0 ? void 0 : _b.snowflake;
+    const snowflake = str.match(/^<a?:(\w+):(?<snowflake>\d+)>$/)?.groups?.snowflake;
     if (snowflake)
         str = snowflake;
     // try resolving that snowflake,

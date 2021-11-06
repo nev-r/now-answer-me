@@ -29,6 +29,11 @@ export const client = new Client({
 		"GUILD_MESSAGE_REACTIONS",
 		"GUILD_MEMBERS",
 	],
+	rejectOnRateLimit: (_) => {
+		console.log("rejectOnRateLimit");
+		console.log(_);
+		return false;
+	},
 });
 
 let _clientReadyResolve: (value: Client | PromiseLike<Client>) => void;

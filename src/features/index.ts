@@ -11,3 +11,5 @@ export {
 } from "./interactive-embeds.js";
 
 export { createPaginator, createPaginatedSelector } from "./component-paginated-embeds.js";
+
+export { createDynamicEmojiManager } from "./dynamic-emoji-manager.js";

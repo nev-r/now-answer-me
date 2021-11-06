@@ -1,6 +1,6 @@
 export function meetsConstraints(msg, { allowChannel, allowGuild, allowUser, blockChannel, blockGuild, blockUser, requireChannel, requireGuild, requireUser, }) {
     const { author: { id: authorId }, channel: { id: channelId }, guild: msgGuild, } = msg;
-    const guildId = msgGuild === null || msgGuild === void 0 ? void 0 : msgGuild.id;
+    const guildId = msgGuild?.id;
     // if an allow constraint exists, and it's met, allow
     if ((allowChannel && mixedIncludes(allowChannel, channelId)) ||
         (allowUser && mixedIncludes(allowUser, authorId)) ||

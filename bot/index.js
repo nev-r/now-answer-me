@@ -17,6 +17,11 @@ export const client = new Client({
         "GUILD_MESSAGE_REACTIONS",
         "GUILD_MEMBERS",
     ],
+    rejectOnRateLimit: (_) => {
+        console.log("rejectOnRateLimit");
+        console.log(_);
+        return false;
+    },
 });
 let _clientReadyResolve;
 /** resolves when the client has connected */
@@ -101,11 +106,10 @@ export function ignoreDms(setting = true) {
 export function init(token) {
     client
         .on("messageCreate", async (msg) => {
-        var _a;
         // quit if this is the bot's own message
         if (msg.author === client.user)
             return;
-        if (ignoredServerIds.has((_a = msg.guild) === null || _a === void 0 ? void 0 : _a.id))
+        if (ignoredServerIds.has(msg.guild?.id))
             return;
         if (ignoredUserIds.has(msg.author.id))
             return;
@@ -147,7 +151,6 @@ let currentActivityIndex = -1;
 let currentlySetActivity = activities[currentActivityIndex];
 function startActivityUpkeep() {
     setInterval(() => {
-        var _a;
         // no need to do anything this loop, if there's no activities
         if (!activities.length)
             return;
@@ -161,6 +164,6 @@ function startActivityUpkeep() {
             return;
         // do an update
         currentlySetActivity = newActivity;
-        (_a = client.user) === null || _a === void 0 ? void 0 : _a.setActivity(activities[currentActivityIndex]);
+        client.user?.setActivity(activities[currentActivityIndex]);
     }, 90000);
 }

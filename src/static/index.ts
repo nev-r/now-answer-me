@@ -91,7 +91,3 @@ export async function uploadEmojis(
 		return uploadEmojisUsingClient(client, guild, emojis);
 	});
 }
-
-function undict<T>(dict: NodeJS.Dict<T>): Record<string, T> {
-	return dict as any;
-}

@@ -14,7 +14,7 @@ export async function bugOut(msg, func) {
 }
 export async function delMsg(msg) {
     try {
-        (msg === null || msg === void 0 ? void 0 : msg.deletable) && !msg.deleted && (await msg.delete());
+        msg?.deletable && !msg.deleted && (await msg.delete());
     }
     catch (e) {
         console.log(e);

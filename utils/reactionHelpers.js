@@ -24,13 +24,12 @@ export async function consumeReaction(__) {
 }
 /** like `consumeReaction` but accepts a `controller` param and returns an endEarly */
 export function _consumeReaction_(__) {
-    var _a, _b;
     // force 1 reaction max
-    __.awaitOptions = { max: 1, time: (_b = (_a = __.awaitOptions) === null || _a === void 0 ? void 0 : _a.time) !== null && _b !== void 0 ? _b : 60000 };
+    __.awaitOptions = { max: 1, time: __.awaitOptions?.time ?? 60000 };
     const { collectedReactions, endEarly } = _consumeReactions_(__);
     return {
         endEarly,
-        collectedReaction: collectedReactions.then((cr) => cr === null || cr === void 0 ? void 0 : cr.first()),
+        collectedReaction: collectedReactions.then((cr) => cr?.first()),
     };
 }
 /**
@@ -42,12 +41,11 @@ export async function consumeReactions(__) {
 }
 /** like `consumeReactions` but accepts a `controller` param and returns an endEarly */
 export function _consumeReactions_({ msg, constraints = {}, awaitOptions = { max: 3, time: 60000 }, controller = { messageGone: false, consumptionOk: Promise.resolve() }, }) {
-    var _a;
     // queue holding reaction deletions.
     // we can only process 1 per... whatever, because heavy rate limiting
     const reactionDeletions = [];
     // forces the bot to ignore its own reactions
-    constraints.notUsers = [...arrayify((_a = constraints.notUsers) !== null && _a !== void 0 ? _a : []), msg.client.user];
+    constraints.notUsers = [...arrayify(constraints.notUsers ?? []), msg.client.user];
     const reactionFilterConditions = buildReactionFilter(constraints);
     // if it's been told to give up, reactionFilter will say yes to any reaction,
     // but meawhile consumeReactions will resolve undefined

@@ -48,7 +48,6 @@ export function addSlashCommand({ where, config, handler, ephemeral, deferImmedi
         theseStillNeedRegistering.push(config.name);
 }
 export async function routeAutocomplete(interaction) {
-    var _a, _b;
     const slashCommand = slashCommands[interaction.commandName];
     if (!slashCommand) {
         const info = JSON.stringify(interaction.options.getFocused(true), null, 2);
@@ -56,9 +55,9 @@ export async function routeAutocomplete(interaction) {
         return [];
     }
     const { name, value } = interaction.options.getFocused(true);
-    const handler = (_a = slashCommand.autocompleters) === null || _a === void 0 ? void 0 : _a[name];
+    const handler = slashCommand.autocompleters?.[name];
     const { guild, channel, user } = interaction;
-    const options = (_b = handler === null || handler === void 0 ? void 0 : handler({ guild, channel, user, stub: value })) !== null && _b !== void 0 ? _b : [];
+    const options = handler?.({ guild, channel, user, stub: value }) ?? [];
     interaction.respond(options.slice(0, 25).map((o) => (typeof o === "string" ? { name: o, value: o } : o)));
 }
 export async function routeContextMenuCommand(interaction) {
@@ -166,7 +165,6 @@ function createDictFromSelectedOptions(originalOptions, meta = {
     subCommandGroup: undefined,
     subCommand: undefined,
 }) {
-    var _a;
     const optionDict = {};
     for (const opt of originalOptions) {
         if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP") {
@@ -181,7 +179,7 @@ function createDictFromSelectedOptions(originalOptions, meta = {
                 opt.type === "CHANNEL"
                     ? opt.channel
                     : opt.type === "USER"
-                        ? (_a = opt.member) !== null && _a !== void 0 ? _a : opt.user
+                        ? opt.member ?? opt.user
                         : opt.type === "ROLE"
                             ? opt.role
                             : opt.type === "MENTIONABLE"
@@ -246,8 +244,7 @@ async function getCommandByName(commandManager, commandName) {
     }
 }
 function g(destination) {
-    var _a;
-    return `${((_a = destination.name) !== null && _a !== void 0 ? _a : "global").substring(0, 20).padEnd(20)} (${destination.id})`;
+    return `${(destination.name ?? "global").substring(0, 20).padEnd(20)} (${destination.id})`;
 }
 // type ApplicationCommandDataNoEnums = Pick<
 // 	ChatInputApplicationCommandData,

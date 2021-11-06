@@ -52,6 +52,3 @@ export async function uploadEmojis(apiToken, guild, emojis) {
         return uploadEmojisUsingClient(client, guild, emojis);
     });
 }
-function undict(dict) {
-    return dict;
-}

@@ -58,7 +58,6 @@ export async function promptForText({ channel, options, user, swallowResponse = 
  * aborting this prevents reaction cleanup and returns undefined
  */
 export async function presentOptions({ msg, options, deleteAfter = true, cleanupReactions = deleteAfter ? false : true, waitTime = 60000, }) {
-    var _a;
     const awaitOptions = { max: 1, time: waitTime };
     const options_ = arrayify(options);
     const optionsMeta = options_.map((o) => {
@@ -106,7 +105,7 @@ export async function presentOptions({ msg, options, deleteAfter = true, cleanup
                 return undefined;
         }
         const result = collectedReaction.emoji;
-        return (_a = optionsMeta.find((o) => o.name === result.name || (result.id && o.id && result.id === o.id))) === null || _a === void 0 ? void 0 : _a.option;
+        return optionsMeta.find((o) => o.name === result.name || (result.id && o.id && result.id === o.id))?.option;
     }
     catch (e) {
         console.log(e);

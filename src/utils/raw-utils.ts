@@ -22,7 +22,7 @@ import { Sendable } from "../types/types-discord.js";
 import { normalizeID } from "./data-normalization.js";
 import { sendableToMessageOptions } from "./misc.js";
 
-export async function buildEmojiDictUsingClient(
+export function buildEmojiDictUsingClient(
 	client: Client,
 	guilds: GuildResolvable | GuildResolvable[]
 ) {
@@ -153,29 +153,26 @@ export function announceToChannels(
 	});
 }
 
-export function replyOrEdit(
+export async function replyOrEdit(
 	interaction: CommandInteraction | MessageComponentInteraction,
 	content:
 		| Parameters<CommandInteraction["reply"]>[0]
 		| Parameters<CommandInteraction["editReply"]>[0]
 ) {
-	if (interaction.replied)
-		return (
-			r: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]
-		) =>
-			console.log(
-				`interaction [${
-					(interaction as any).commandName
-				}] was already replied to. would have replied [${r}]`
-			);
-	return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+	if (interaction.replied) {
+		console.log(
+			`interaction [${
+				(interaction as any).commandName
+			}] was already replied to. would have replied [${content}]`
+		);
+	} else await (interaction.deferred ? interaction.editReply(content) : interaction.reply(content));
 }
 
-export function updateComponent(
+export async function updateComponent(
 	interaction: MessageComponentInteraction,
 	content: Parameters<MessageComponentInteraction["editReply"]>[0]
 ) {
-	return interaction.deferred ? interaction.editReply(content) : interaction.update(content);
+	await (interaction.deferred ? interaction.editReply(content) : interaction.update(content));
 }
 
 /**
@@ -183,14 +180,14 @@ export function updateComponent(
  * whether that's an initial reply, an edit to a deferral,
  * or a completely separate followup message
  */
-export function forceFeedback(
+export async function forceFeedback(
 	interaction: CommandInteraction | MessageComponentInteraction,
 	content:
 		| Parameters<CommandInteraction["followUp"]>[0]
 		| Parameters<CommandInteraction["reply"]>[0]
 		| Parameters<CommandInteraction["editReply"]>[0]
 ) {
-	if (interaction.replied) return interaction.followUp(content);
-	if (interaction.deferred) return interaction.editReply(content);
-	return interaction.reply(content);
+	if (interaction.replied) await interaction.followUp(content);
+	if (interaction.deferred) await interaction.editReply(content);
+	await interaction.reply(content);
 }

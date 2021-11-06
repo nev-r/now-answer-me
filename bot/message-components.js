@@ -42,7 +42,6 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     });
 }
 export async function routeComponentInteraction(interaction) {
-    var _a, _b;
     const { interactionID, ...componentParams } = deserialize(interaction.customId);
     const handlingData = componentInteractions[interactionID];
     if (!handlingData)
@@ -50,7 +49,7 @@ export async function routeComponentInteraction(interaction) {
     else {
         // if it's a private interaction, only the initiator may click its buttons
         if (!handlingData.public) {
-            const originalUser = (_a = interaction.message.interaction) === null || _a === void 0 ? void 0 : _a.user.id;
+            const originalUser = interaction.message.interaction?.user.id;
             if (originalUser && interaction.user.id !== originalUser) {
                 // end it here
                 interaction.followUp({ ephemeral: true, content: "this isnt your control" });
@@ -72,8 +71,9 @@ export async function routeComponentInteraction(interaction) {
         try {
             let results;
             if (typeof handler === "function") {
-                const channel = (_b = interaction.channel) !== null && _b !== void 0 ? _b : (await client.channels.fetch(interaction.channelId));
-                const message = await (channel === null || channel === void 0 ? void 0 : channel.messages.fetch(interaction.message.id));
+                const channel = interaction.channel ??
+                    (await client.channels.fetch(interaction.channelId));
+                const message = await channel?.messages.fetch(interaction.message.id);
                 const { guild, user } = interaction;
                 // const { guild, channel, user, message } = interaction;
                 const values = interaction.isSelectMenu() ? interaction.values : undefined;
@@ -146,6 +146,6 @@ componentInteractions[lock] = {
 // (removes the message)
 componentInteractions[wastebasket] = {
     handler: async ({ message }) => {
-        await (message === null || message === void 0 ? void 0 : message.delete());
+        await message?.delete();
     },
 };

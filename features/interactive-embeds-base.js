@@ -15,18 +15,18 @@ const reactOptions = {
     random: [random],
     arrowsRandom: [...arrows, random],
 };
-export async function _newPaginatedSelector_({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, cleanupReactions = false, optionRenderer, selectables, startPage = 0, buttons = "arrows", prompt = "choose by responding with a number:", itemsPerPage = 18, waitTime = 180000, }) {
+export async function _newPaginatedSelector_({ user, preexistingMessage, channel = preexistingMessage?.channel, cleanupReactions = false, optionRenderer, selectables, startPage = 0, buttons = "arrows", prompt = "choose by responding with a number:", itemsPerPage = 18, waitTime = 180000, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     const numPages = Math.ceil(selectables.length / itemsPerPage);
     let currentPage = startPage;
     const useOptionRenderer = 
     // in upstream overloads, we will gate optionRenderer to "must operate upon <T>"
-    optionRenderer !== null && optionRenderer !== void 0 ? optionRenderer : 
-    // otherwise,
-    (isEmbedFields(selectables) // if selectables are already embeds
-        ? (o) => o // return them as-is
-        : (l, i) => ({ name: `(${i})`, value: `${l}`, inline: true })); // otherwise stringify the value
+    optionRenderer ?? // keep optionRenderer if it's already set
+        // otherwise,
+        (isEmbedFields(selectables) // if selectables are already embeds
+            ? (o) => o // return them as-is
+            : (l, i) => ({ name: `(${i})`, value: `${l}`, inline: true })); // otherwise stringify the value
     const pages = [...Array(numPages)].map((x, pageNum) => {
         const pageEmbed = new MessageEmbed({
             fields: selectables
@@ -119,7 +119,7 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
         }),
     };
 }
-export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = preexistingMessage === null || preexistingMessage === void 0 ? void 0 : preexistingMessage.channel, pages, renderer = (e) => e, startPage = 0, buttons = "arrows", waitTime = 180000, }) {
+export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = preexistingMessage?.channel, pages, renderer = (e) => e, startPage = 0, buttons = "arrows", waitTime = 180000, }) {
     if (!channel)
         throw new Error("no channel provided to send pagination to");
     let currentPage = startPage;
@@ -144,7 +144,6 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
             });
             try {
                 await bugOut(paginatedMessage, async () => {
-                    var _a, _b, _c, _d;
                     // if there's pages to switch between, enter a loop of listening for input
                     if (pages.length > 1)
                         for await (const reaction of paginationReactionMonitor) {
@@ -169,8 +168,8 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
                     // loop breaks when there's no more input or when a choice was made
                     // let's remove the pagination footer (if we were using it to count)
                     // and perform one last edit (if the message is still there)
-                    if (((_b = (_a = embed.footer) === null || _a === void 0 ? void 0 : _a.text) === null || _b === void 0 ? void 0 : _b.match(/^\d+ \/ \d+$/)) ||
-                        ((_d = (_c = embed.footer) === null || _c === void 0 ? void 0 : _c.text) === null || _d === void 0 ? void 0 : _d.match(/^\d+ remaining$/)))
+                    if (embed.footer?.text?.match(/^\d+ \/ \d+$/) ||
+                        embed.footer?.text?.match(/^\d+ remaining$/))
                         embed.footer = null;
                     paginatedMessage.deleted || (await paginatedMessage.edit({ embeds: [embed] }));
                     resolvePage(currentPage);

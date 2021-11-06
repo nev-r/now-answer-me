@@ -5,13 +5,12 @@ import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { normalizeID } from "./data-normalization.js";
 import { sendableToMessageOptions } from "./misc.js";
-export async function buildEmojiDictUsingClient(client, guilds) {
-    var _a;
+export function buildEmojiDictUsingClient(client, guilds) {
     guilds = Array.isArray(guilds) ? guilds : [guilds];
     const results = {};
     for (const guild of guilds) {
-        const emojis = (_a = client.guilds.resolve(guild)) === null || _a === void 0 ? void 0 : _a.emojis.cache;
-        emojis === null || emojis === void 0 ? void 0 : emojis.forEach((emoji) => {
+        const emojis = client.guilds.resolve(guild)?.emojis.cache;
+        emojis?.forEach((emoji) => {
             if (emoji.name)
                 results[emoji.name] = emoji;
         });
@@ -98,28 +97,30 @@ export async function uploadEmojisUsingClient(client, guild, emojis) {
 export function announceToChannels(client, message, channelIds) {
     return arrayify(channelIds).map((channelId) => {
         const channel = client.channels.cache.get(channelId);
-        return (((channel === null || channel === void 0 ? void 0 : channel.type) === "DM" || (channel === null || channel === void 0 ? void 0 : channel.type) === "GUILD_TEXT") &&
+        return ((channel?.type === "DM" || channel?.type === "GUILD_TEXT") &&
             channel.isText() &&
             channel.send(sendableToMessageOptions(message)));
     });
 }
-export function replyOrEdit(interaction, content) {
-    if (interaction.replied)
-        return (r) => console.log(`interaction [${interaction.commandName}] was already replied to. would have replied [${r}]`);
-    return interaction.deferred ? interaction.editReply(content) : interaction.reply(content);
+export async function replyOrEdit(interaction, content) {
+    if (interaction.replied) {
+        console.log(`interaction [${interaction.commandName}] was already replied to. would have replied [${content}]`);
+    }
+    else
+        await (interaction.deferred ? interaction.editReply(content) : interaction.reply(content));
 }
-export function updateComponent(interaction, content) {
-    return interaction.deferred ? interaction.editReply(content) : interaction.update(content);
+export async function updateComponent(interaction, content) {
+    await (interaction.deferred ? interaction.editReply(content) : interaction.update(content));
 }
 /**
  * provide in-discord feedback to an interaction,
  * whether that's an initial reply, an edit to a deferral,
  * or a completely separate followup message
  */
-export function forceFeedback(interaction, content) {
+export async function forceFeedback(interaction, content) {
     if (interaction.replied)
-        return interaction.followUp(content);
+        await interaction.followUp(content);
     if (interaction.deferred)
-        return interaction.editReply(content);
-    return interaction.reply(content);
+        await interaction.editReply(content);
+    await interaction.reply(content);
 }

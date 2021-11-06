@@ -40,9 +40,8 @@ export async function serialReactions(msg, reactions, abortController = { abort:
  * apply `reaction` to `msg`, without complaining about errors
  */
 export async function singleReaction(msg, reaction, abortController = { abort: false }) {
-    var _a;
     try {
-        if (!abortController.abort && !msg.deleted && !((_a = msg.reactions.cache.get(reaction)) === null || _a === void 0 ? void 0 : _a.me)) {
+        if (!abortController.abort && !msg.deleted && !msg.reactions.cache.get(reaction)?.me) {
             await msg.react(reaction);
             await sleep(800); // apparently discord rate limited this
         }
