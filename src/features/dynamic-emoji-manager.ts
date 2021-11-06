@@ -27,6 +27,10 @@ export function createDynamicEmojiManager(guilds: string[], drainUntilFree = 10)
 		drainOldEmoji();
 		// we're ready enough to start taking requests
 		isReady = true;
+
+    let spacesAvailable = 0;
+		for (const k in perGuildEmptySlots) spacesAvailable += perGuildEmptySlots[k];
+    console.log(`initialized an emoji manager using ${guilds.length} servers with ${spacesAvailable} slots available`)
 	})();
 
 	return upload;
@@ -98,7 +102,7 @@ export function createDynamicEmojiManager(guilds: string[], drainUntilFree = 10)
 	}
 
 	function takeStock() {
-		for (const gid in guilds) perGuildEmptySlots[gid] = getFreeSlots(gid);
+		for (const gid of guilds) perGuildEmptySlots[gid] = getFreeSlots(gid);
 	}
 
 	function getEmptiest() {
