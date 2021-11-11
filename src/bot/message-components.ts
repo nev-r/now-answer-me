@@ -150,9 +150,9 @@ export async function routeComponentInteraction(
 		if (!allowTimeout) {
 			// schedule a deferral. deferImmediately makes the button stop spinning right away.
 			// which is probably bad UX.
-			// otherwise, defer in 2.3 seconds if it looks like the function
+			// otherwise, defer in 2.2 seconds if it looks like the function
 			// might run past the 3 second response window
-			const deferralDelay = deferImmediately ? 0 : 2600;
+			const deferralDelay = deferImmediately ? 0 : 2200;
 			const deferralMethod = () =>
 				update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral });
 			deferalCountdown = setTimeout(deferralMethod, deferralDelay);
@@ -198,6 +198,7 @@ export async function routeComponentInteraction(
 				}
 			}
 		} catch (e) {
+			deferalCountdown !== undefined && clearTimeout(deferalCountdown);
 			console.log("caught error in a handler");
 			console.log(e);
 			await forceFeedback(interaction, { content: `⚠. ${e}`, ephemeral: true });

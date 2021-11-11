@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { Client, ClientOptions } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import { arrayify } from "one-stone/array";
@@ -19,7 +19,8 @@ export {
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 
 export const startupTimestamp = new Date();
-export const client = new Client({
+
+const clientOptions: ClientOptions = {
 	intents: [
 		"GUILDS",
 		"GUILD_MESSAGES",
@@ -34,7 +35,9 @@ export const client = new Client({
 		console.log(_);
 		return false;
 	},
-});
+};
+
+export const client = new Client(clientOptions);
 
 let _clientReadyResolve: (value: Client | PromiseLike<Client>) => void;
 

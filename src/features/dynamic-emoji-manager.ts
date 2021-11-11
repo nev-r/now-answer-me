@@ -5,7 +5,6 @@ import { sleep } from "one-stone/promise";
 
 export function createDynamicEmojiManager(guilds: string[], drainUntilFree = 10) {
 	let isReady = false;
-	// let guildMeta: Record<	string,	{ count: number; oldestName: string; oldestTime: number; names: Set<string> }> = {};
 	let emojiDict: NodeJS.Dict<GuildEmoji> = {};
 	const perGuildEmptySlots: Record<string, number> = {};
 	let drainTimer: NodeJS.Timeout | undefined;
@@ -30,7 +29,7 @@ export function createDynamicEmojiManager(guilds: string[], drainUntilFree = 10)
 
     let spacesAvailable = 0;
 		for (const k in perGuildEmptySlots) spacesAvailable += perGuildEmptySlots[k];
-    console.log(`initialized an emoji manager using ${guilds.length} servers with ${spacesAvailable} slots available`)
+    console.log(`initialized an emoji manager using ${guilds.length} servers with ${spacesAvailable} slots`)
 	})();
 
 	return upload;
@@ -61,6 +60,7 @@ export function createDynamicEmojiManager(guilds: string[], drainUntilFree = 10)
 			await Promise.all(guilds.map((gid) => drainServer(gid, spaceToClearOnEach)));
 		}
 
+		// multiple emojis submitted. return the entire dict.
 		if (Array.isArray(emojis)) {
 			await Promise.all(
 				emojis
@@ -82,7 +82,9 @@ export function createDynamicEmojiManager(guilds: string[], drainUntilFree = 10)
 			);
 			if (drainTimer === undefined) drainTimer = setTimeout(drainOldEmoji, 300000);
 			return emojiDict;
-		} else {
+		}
+		// only one emoji submitted. return that alone
+		else {
 			if (emojiDict[emojis.name]) return emojiDict[emojis.name]!;
 			else {
 				const emptiest = getEmptiest();

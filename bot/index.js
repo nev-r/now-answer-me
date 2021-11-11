@@ -7,7 +7,7 @@ export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
 export { addSlashCommand, setPermittedCommandUserInGuild, setPermittedCommandUserEverywhere, } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export const startupTimestamp = new Date();
-export const client = new Client({
+const clientOptions = {
     intents: [
         "GUILDS",
         "GUILD_MESSAGES",
@@ -22,7 +22,8 @@ export const client = new Client({
         console.log(_);
         return false;
     },
-});
+};
+export const client = new Client(clientOptions);
 let _clientReadyResolve;
 /** resolves when the client has connected */
 export let clientReady = new Promise((resolve) => {

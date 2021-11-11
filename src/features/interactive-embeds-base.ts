@@ -4,12 +4,8 @@
 
 import type {
 	Message,
-	TextChannel,
-	DMChannel,
-	NewsChannel,
 	User,
 	EmbedFieldData,
-	ThreadChannel,
 	TextBasedChannels,
 } from "discord.js";
 import { MessageEmbed } from "discord.js";
