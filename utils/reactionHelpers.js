@@ -60,7 +60,7 @@ export function _consumeReactions_({ msg, constraints = {}, awaitOptions = { max
         // await the current queue of deletions
         await Promise.allSettled(reactionDeletions);
         // abort if there's no message to delete from
-        if (msg.deleted || controller.messageGone)
+        if (controller.messageGone)
             return;
         // and push a new promise into it
         reactionDeletions.push(reaction.users.remove(user).then(() => sleep(800)));

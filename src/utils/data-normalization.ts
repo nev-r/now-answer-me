@@ -9,10 +9,12 @@ import type {
 	GuildChannel,
 	Snowflake,
 	ThreadMember,
+	PartialDMChannel,
 } from "discord.js";
 
 export function normalizeID(
 	resolvable:
+		| PartialDMChannel
 		| User
 		| Message
 		| Channel

@@ -1,4 +1,4 @@
-import { MessageActionRow, MessageButton, MessageSelectMenu, } from "discord.js";
+import { ActionRow, ButtonComponent, SelectMenuComponent, } from "discord.js";
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
@@ -6,7 +6,9 @@ import { deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit, updateComponent } from "../utils/raw-utils.js";
 import { client } from "./index.js";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
+export const wastebasketEmoji = { name: String.fromCodePoint(0x1f5d1) }; // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
+export const lockEmoji = { name: String.fromCodePoint(0x1f512) }; // 🔒
 export const componentInteractions = {};
 export function createComponentButtons({ interactionID, buttons, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
@@ -15,11 +17,13 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
             ? buttons
             : [buttons]
         : [[buttons]];
-    return nestedButtons.map((r) => new MessageActionRow({
+    return nestedButtons.map((r) => new ActionRow({
+        type: 1 /* ActionRow */,
         components: r.map((b) => {
             const { value, ...rest } = b;
-            return new MessageButton({
-                customId: serialize({ interactionID, operation: value }),
+            return new ButtonComponent({
+                type: 2 /* Button */,
+                custom_id: serialize({ interactionID, operation: value }),
                 ...rest,
             });
         }),
@@ -30,14 +34,10 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
     const nestedSelects = arrayify(selects);
     return nestedSelects.map((s) => {
         const { controlID, ...rest } = s;
-        const customId = serialize({ interactionID, operation: controlID });
-        return new MessageActionRow({
-            components: [
-                new MessageSelectMenu({
-                    customId,
-                    ...rest,
-                }),
-            ],
+        const custom_id = serialize({ interactionID, operation: controlID });
+        return new ActionRow({
+            type: 1 /* ActionRow */,
+            components: [new SelectMenuComponent({ type: 3 /* SelectMenu */, custom_id, ...rest })],
         });
     });
 }

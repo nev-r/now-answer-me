@@ -10,14 +10,14 @@ import type {
 	User,
 	EmbedFieldData,
 } from "discord.js";
-import { MessageEmbed } from "discord.js";
+import { Embed } from "discord.js";
 import { _newPaginatedEmbed_, _newPaginatedSelector_ } from "./interactive-embeds-base.js";
 
 /**
  * accepts a channel to post to, and a collection of pages to
  * let users switch between
  *
- * in this implementation, each page is a MessageEmbed
+ * in this implementation, each page is a Embed
  */
 export async function sendPaginatedEmbed<T>(
 	_: (
@@ -30,7 +30,7 @@ export async function sendPaginatedEmbed<T>(
 				channel?: undefined;
 		  }
 	) & {
-		pages: MessageEmbed[];
+		pages: Embed[];
 		renderer?: undefined;
 		startPage?: number;
 	}
@@ -43,7 +43,7 @@ export async function sendPaginatedEmbed<T>(
  * let users switch between
  *
  * in this implementation each page is source data for a
- * renderer function, which turns a page into a MessageEmbed
+ * renderer function, which turns a page into a Embed
  *
  * this can be used to defer heavy or async page rendering,
  * until that page is navigated to
@@ -60,7 +60,7 @@ export async function sendPaginatedEmbed<T>(
 		  }
 	) & {
 		pages: T[];
-		renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+		renderer: (sourceData: T) => Embed | Promise<Embed>;
 		startPage?: number;
 	}
 ): Promise<{
@@ -71,8 +71,8 @@ export async function sendPaginatedEmbed<T>(
 export async function sendPaginatedEmbed<T>(_: {
 	preexistingMessage?: Message;
 	channel?: TextChannel | DMChannel | NewsChannel;
-	pages: (T | MessageEmbed)[];
-	renderer?: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+	pages: (T | Embed)[];
+	renderer?: (sourceData: T) => Embed | Promise<Embed>;
 	startPage?: number;
 }) {
 	return await _newPaginatedEmbed_(_);
@@ -81,29 +81,29 @@ export async function sendPaginatedEmbed<T>(_: {
 /**
  * accepts a channel to post to, and a collection of "pages" to let users randomly switch between
  *
- * in this implementation, each page is a MessageEmbed
+ * in this implementation, each page is a Embed
  */
 export async function sendRerollableEmbed<T>(_: {
 	channel: TextChannel | DMChannel | NewsChannel;
-	pages: MessageEmbed[];
+	pages: Embed[];
 	renderer?: undefined;
 }): Promise<Message>;
 /**
  * accepts a channel to post to, and a collection of "pages" to let users randomly switch between
  *
- * in this implementation each page is source data for a renderer function, which turns a page into a MessageEmbed
+ * in this implementation each page is source data for a renderer function, which turns a page into a Embed
  *
  * this can be used to defer heavy or async page rendering, until that page is navigated to
  */
 export async function sendRerollableEmbed<T>(_: {
 	channel: TextChannel | DMChannel | NewsChannel;
 	pages: T[];
-	renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+	renderer: (sourceData: T) => Embed | Promise<Embed>;
 }): Promise<Message>;
 export async function sendRerollableEmbed<T>(_: {
 	channel: TextChannel | DMChannel | NewsChannel;
-	pages: (MessageEmbed | T)[];
-	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
+	pages: (Embed | T)[];
+	renderer?: (sourceData: any) => Embed | Promise<Embed>;
 }): Promise<Message> {
 	return (await _newPaginatedEmbed_({ ..._, buttons: "random" })).paginatedMessage;
 }
@@ -111,29 +111,29 @@ export async function sendRerollableEmbed<T>(_: {
 /**
  * accepts a channel to post to, and a collection of "pages" to let users randomly switch between. each page can only be viewed once
  *
- * in this implementation, each page is a MessageEmbed
+ * in this implementation, each page is a Embed
  */
 export async function sendRerollableStackEmbed<T>(_: {
 	channel: TextChannel | DMChannel | NewsChannel;
-	pages: MessageEmbed[];
+	pages: Embed[];
 	renderer?: undefined;
 }): Promise<Message>;
 /**
  * accepts a channel to post to, and a collection of "pages" to let users randomly switch between. each page can only be viewed once
  *
- * in this implementation each page is source data for a renderer function, which turns a page into a MessageEmbed
+ * in this implementation each page is source data for a renderer function, which turns a page into a Embed
  *
  * this can be used to defer heavy or async page rendering, until that page is navigated to
  */
 export async function sendRerollableStackEmbed<T>(_: {
 	channel: TextChannel | DMChannel | NewsChannel;
 	pages: T[];
-	renderer: (sourceData: T) => MessageEmbed | Promise<MessageEmbed>;
+	renderer: (sourceData: T) => Embed | Promise<Embed>;
 }): Promise<Message>;
 export async function sendRerollableStackEmbed<T>(_: {
 	channel: TextChannel | DMChannel | NewsChannel;
-	pages: (MessageEmbed | T)[];
-	renderer?: (sourceData: any) => MessageEmbed | Promise<MessageEmbed>;
+	pages: (Embed | T)[];
+	renderer?: (sourceData: any) => Embed | Promise<Embed>;
 }): Promise<Message> {
 	return (await _newPaginatedEmbed_({ ..._, buttons: "random" })).paginatedMessage;
 }

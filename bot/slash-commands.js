@@ -1,3 +1,4 @@
+import { Message, } from "discord.js";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { client, clientStatus } from "./index.js";
@@ -102,7 +103,7 @@ export async function routeSlashCommand(interaction) {
             results = handler;
         }
         deferalCountdown && clearTimeout(deferalCountdown);
-        if (results) {
+        if (results && !(results instanceof Message)) {
             if (interaction.replied)
                 console.log(`${interaction.commandName}: this interaction was already replied to??`);
             else
@@ -167,22 +168,23 @@ function createDictFromSelectedOptions(originalOptions, meta = {
 }) {
     const optionDict = {};
     for (const opt of originalOptions) {
-        if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP") {
-            if (opt.type === "SUB_COMMAND")
+        if (opt.type === 1 /* Subcommand */ ||
+            opt.type === 2 /* SubcommandGroup */) {
+            if (opt.type === 1 /* Subcommand */)
                 meta.subCommand = opt.name;
-            if (opt.type === "SUB_COMMAND_GROUP")
+            if (opt.type === 2 /* SubcommandGroup */)
                 meta.subCommandGroup = opt.name;
             optionDict[opt.name] = createDictFromSelectedOptions(opt.options ? [...opt.options.values()] : [], meta).optionDict;
         }
         else {
             optionDict[opt.name] =
-                opt.type === "CHANNEL"
+                opt.type === 7 /* Channel */
                     ? opt.channel
-                    : opt.type === "USER"
+                    : opt.type === 6 /* User */
                         ? opt.member ?? opt.user
-                        : opt.type === "ROLE"
+                        : opt.type === 8 /* Role */
                             ? opt.role
-                            : opt.type === "MENTIONABLE"
+                            : opt.type === 9 /* Mentionable */
                                 ? undefined
                                 : opt.value;
         }
@@ -218,7 +220,11 @@ export async function setPermittedCommandUserInGuild(commandName, guildId, userI
         else
             return console.log(err);
     }
-    const permissions = users.map((u) => ({ id: u.id, type: "USER", permission: true }));
+    const permissions = users.map((u) => ({
+        id: u.id,
+        type: 2 /* User */,
+        permission: true,
+    }));
     command.permissions.set({ permissions });
 }
 /** allow only these users to use this command, in all guilds where it's present */
@@ -231,7 +237,11 @@ export async function setPermittedCommandUserEverywhere(commandName, userIds) {
         const users = await guild.members.fetch({ user: userIds });
         if (!users.size)
             continue;
-        const permissions = users.map((u) => ({ id: u.id, type: "USER", permission: true }));
+        const permissions = users.map((u) => ({
+            id: u.id,
+            type: 2 /* User */,
+            permission: true,
+        }));
         command.permissions.set({ permissions });
     }
 }

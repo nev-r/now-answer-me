@@ -1,10 +1,13 @@
+import { APISelectMenuOption } from "discord-api-types";
 import {
 	InteractionReplyOptions,
-	MessageActionRow,
-	MessageButton,
-	MessageEmbed,
-	MessageSelectMenu,
+	ActionRow,
+	ButtonComponent,
+	Embed,
+	SelectMenuComponent,
 	MessageSelectOptionData,
+	ButtonStyle,
+	ComponentType,
 } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { serialize } from "../bot/component-id-parser.js";
@@ -13,12 +16,16 @@ import {
 	ComponentInteractionHandlingData,
 	componentInteractions,
 	lock,
+	lockEmoji,
 	wastebasket,
+	wastebasketEmoji,
 } from "../bot/message-components.js";
 
 const paginationInteractionID = "\u2409"; // ␉
 const rightArrow = "\u27a1"; // ➡
+const rightArrowEmoji = { name: "\u27a1" }; // ➡
 const leftArrow = "\u2b05"; // ⬅
+const leftArrowEmoji = { name: "\u2b05" }; // ⬅
 
 function getPaginator(paginatorName: string) {
 	const paginator = paginationSchemes[paginatorName];
@@ -51,7 +58,7 @@ function generatePage(
 	const paginator = getPaginator(paginatorName);
 	const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
 
-	const components: MessageActionRow[] = [];
+	const components: ActionRow[] = [];
 	if (totalPages > 1)
 		components.push(
 			generatePageControls(
@@ -72,7 +79,7 @@ function generatePage(
 async function finalizeContent(paginatorName: string, selectionNumber: string, seed?: string) {
 	const finalizer = getFinalizer(paginatorName);
 	const finalContent = await finalizer(selectionNumber, seed);
-	if (finalContent instanceof MessageEmbed) return { embeds: [finalContent], components: [] };
+	if (finalContent instanceof Embed) return { embeds: [finalContent], components: [] };
 	return finalContent;
 }
 
@@ -105,41 +112,63 @@ function generatePageControls(
 	});
 	const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
 	const components = [
-		new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: leftArrow }),
-		new MessageButton({ style: "SECONDARY", customId: " ", label: pageLabel, disabled: true }),
-		new MessageButton({ style: "PRIMARY", customId: nextCustomID, emoji: rightArrow }),
+		new ButtonComponent({
+			type: ComponentType.Button,
+			style: ButtonStyle.Primary,
+			custom_id: prevCustomID,
+			emoji: leftArrowEmoji,
+		}),
+		new ButtonComponent({
+			type: ComponentType.Button,
+			style: ButtonStyle.Secondary,
+			custom_id: " ",
+			label: pageLabel,
+			disabled: true,
+		}),
+		new ButtonComponent({
+			type: ComponentType.Button,
+			style: ButtonStyle.Primary,
+			custom_id: nextCustomID,
+			emoji: rightArrowEmoji,
+		}),
 	];
 	if (includeLock)
-		components.push(new MessageButton({ style: "SUCCESS", customId: lock, emoji: lock }));
+		components.push(
+			new ButtonComponent({
+				type: ComponentType.Button,
+				style: ButtonStyle.Success,
+				custom_id: lock,
+				emoji: lockEmoji,
+			})
+		);
 	if (includeRemove)
 		components.push(
-			new MessageButton({ style: "DANGER", customId: wastebasket, emoji: wastebasket })
+			new ButtonComponent({
+				type: ComponentType.Button,
+				style: ButtonStyle.Danger,
+				custom_id: wastebasket,
+				emoji: wastebasketEmoji,
+			})
 		);
 
-	return new MessageActionRow({
-		components,
-	});
+	return new ActionRow({ type: ComponentType.ActionRow, components });
 }
 
 function generateSelectorControls(
 	paginatorID: string,
-	options: MessageSelectOptionData[],
+	options: APISelectMenuOption[],
 	seed?: string
 ) {
-	const customId = serialize({
+	const custom_id = serialize({
 		interactionID: paginationInteractionID,
 		paginatorID,
 		seed,
 		operation: "pick",
 	});
 
-	return new MessageActionRow({
-		components: [
-			new MessageSelectMenu({
-				options,
-				customId,
-			}),
-		],
+	return new ActionRow({
+		type: ComponentType.ActionRow,
+		components: [new SelectMenuComponent({ type: ComponentType.SelectMenu, options, custom_id })],
 	});
 }
 
@@ -181,15 +210,11 @@ const paginationSchemes: NodeJS.Dict<
 	(
 		pageNum: number,
 		seed?: string
-	) => [
-		requestedPage: MessageEmbed,
-		totalPages: number,
-		selectorOptions?: MessageSelectOptionData[]
-	]
+	) => [requestedPage: Embed, totalPages: number, selectorOptions?: APISelectMenuOption[]]
 > = {};
 
 const finalizers: NodeJS.Dict<
-	(selectionNumber: string, seed?: string) => Awaitable<InteractionReplyOptions | MessageEmbed>
+	(selectionNumber: string, seed?: string) => Awaitable<InteractionReplyOptions | Embed>
 > = {};
 
 export function createPaginator({
@@ -197,10 +222,7 @@ export function createPaginator({
 	getPageData,
 }: {
 	paginatorName: string;
-	getPageData: (
-		pageNum: number,
-		seed?: string
-	) => [requestedPage: MessageEmbed, totalPages: number];
+	getPageData: (pageNum: number, seed?: string) => [requestedPage: Embed, totalPages: number];
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationInteractionID] = paginationHandler;
@@ -219,15 +241,8 @@ export function createPaginatedSelector({
 	getPageData: (
 		pageNum: number,
 		seed?: string
-	) => [
-		requestedPage: MessageEmbed,
-		totalPages: number,
-		selectorOptions: MessageSelectOptionData[]
-	];
-	finalizer: (
-		selectionNumber: string,
-		seed?: string
-	) => Awaitable<InteractionReplyOptions | MessageEmbed>;
+	) => [requestedPage: Embed, totalPages: number, selectorOptions: APISelectMenuOption[]];
+	finalizer: (selectionNumber: string, seed?: string) => Awaitable<InteractionReplyOptions | Embed>;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationInteractionID] = paginationHandler;

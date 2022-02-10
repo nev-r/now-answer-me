@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import type { AutocompleteInteraction, CommandInteraction, ContextMenuInteraction, GuildResolvable } from "discord.js";
+import { AutocompleteInteraction, CommandInteraction, ContextMenuCommandInteraction, GuildResolvable } from "discord.js";
 import type { AutocompleteParams, SlashCommandHandler, SlashCommandLocation } from "../types/types-bot.js";
 import type { CommandOptionsMap, StrictCommand, SubCommandGroupsOf, SubCommandsOf } from "../types/the-option-understander-has-signed-on.js";
 export declare function registerCommandsOnConnect(): Promise<void>;
@@ -16,7 +16,7 @@ export declare function addSlashCommand<Config extends StrictCommand>({ where, c
     }[]>;
 }): void;
 export declare function routeAutocomplete(interaction: AutocompleteInteraction): Promise<never[] | undefined>;
-export declare function routeContextMenuCommand(interaction: ContextMenuInteraction): Promise<void>;
+export declare function routeContextMenuCommand(interaction: ContextMenuCommandInteraction): Promise<void>;
 export declare function routeSlashCommand(interaction: CommandInteraction): Promise<void>;
 /** allow only these users to use this command, in this guild */
 export declare function setPermittedCommandUserInGuild(commandName: string, guildId: GuildResolvable, userIds: string | string[], strict?: boolean): Promise<void>;

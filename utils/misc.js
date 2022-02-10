@@ -1,7 +1,7 @@
 //
 // delayed resolvers
 //
-import { MessageEmbed } from "discord.js";
+import { Embed, } from "discord.js";
 /** try to do whatever func wants to do, but delete msg if there's an error */
 export async function bugOut(msg, func) {
     try {
@@ -14,7 +14,7 @@ export async function bugOut(msg, func) {
 }
 export async function delMsg(msg) {
     try {
-        msg?.deletable && !msg.deleted && (await msg.delete());
+        msg?.deletable && (await msg.delete());
     }
     catch (e) {
         console.log(e);
@@ -24,7 +24,7 @@ export async function delMsg(msg) {
 /** deprecated i guess */
 export async function sendMsg(channel, sendable) {
     let toSend;
-    if (sendable instanceof MessageEmbed)
+    if (sendable instanceof Embed)
         toSend = { embeds: [sendable] };
     else if (typeof sendable === "string")
         toSend = { content: sendable };
@@ -33,7 +33,7 @@ export async function sendMsg(channel, sendable) {
     return channel.send(toSend);
 }
 export function sendableToMessageOptions(sendable) {
-    if (sendable instanceof MessageEmbed)
+    if (sendable instanceof Embed)
         return { embeds: [sendable] };
     else if (typeof sendable === "string")
         return { content: sendable };
@@ -41,7 +41,15 @@ export function sendableToMessageOptions(sendable) {
         return sendable;
 }
 export function sendableToInteractionReplyOptions(sendable) {
-    if (sendable instanceof MessageEmbed)
+    if (sendable instanceof Embed)
+        return { embeds: [sendable] };
+    else if (typeof sendable === "string")
+        return { content: sendable };
+    else
+        return sendable;
+}
+export function sendableToPayload(sendable) {
+    if (sendable instanceof Embed)
         return { embeds: [sendable] };
     else if (typeof sendable === "string")
         return { content: sendable };

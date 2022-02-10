@@ -1,9 +1,11 @@
-import { MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu, } from "discord.js";
+import { ActionRow, ButtonComponent, Embed, SelectMenuComponent, } from "discord.js";
 import { serialize } from "../bot/component-id-parser.js";
-import { componentInteractions, lock, wastebasket, } from "../bot/message-components.js";
+import { componentInteractions, lock, lockEmoji, wastebasket, wastebasketEmoji, } from "../bot/message-components.js";
 const paginationInteractionID = "\u2409"; // ␉
 const rightArrow = "\u27a1"; // ➡
+const rightArrowEmoji = { name: "\u27a1" }; // ➡
 const leftArrow = "\u2b05"; // ⬅
+const leftArrowEmoji = { name: "\u2b05" }; // ⬅
 function getPaginator(paginatorName) {
     const paginator = paginationSchemes[paginatorName];
     if (!paginator)
@@ -32,7 +34,7 @@ function generatePage(paginatorName, currentPageNum, seed, includeLock, includeR
 async function finalizeContent(paginatorName, selectionNumber, seed) {
     const finalizer = getFinalizer(paginatorName);
     const finalContent = await finalizer(selectionNumber, seed);
-    if (finalContent instanceof MessageEmbed)
+    if (finalContent instanceof Embed)
         return { embeds: [finalContent], components: [] };
     return finalContent;
 }
@@ -58,32 +60,52 @@ function generatePageControls(paginatorID, currentPageNum, totalPages, seed, inc
     });
     const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
     const components = [
-        new MessageButton({ style: "PRIMARY", customId: prevCustomID, emoji: leftArrow }),
-        new MessageButton({ style: "SECONDARY", customId: " ", label: pageLabel, disabled: true }),
-        new MessageButton({ style: "PRIMARY", customId: nextCustomID, emoji: rightArrow }),
+        new ButtonComponent({
+            type: 2 /* Button */,
+            style: 1 /* Primary */,
+            custom_id: prevCustomID,
+            emoji: leftArrowEmoji,
+        }),
+        new ButtonComponent({
+            type: 2 /* Button */,
+            style: 2 /* Secondary */,
+            custom_id: " ",
+            label: pageLabel,
+            disabled: true,
+        }),
+        new ButtonComponent({
+            type: 2 /* Button */,
+            style: 1 /* Primary */,
+            custom_id: nextCustomID,
+            emoji: rightArrowEmoji,
+        }),
     ];
     if (includeLock)
-        components.push(new MessageButton({ style: "SUCCESS", customId: lock, emoji: lock }));
+        components.push(new ButtonComponent({
+            type: 2 /* Button */,
+            style: 3 /* Success */,
+            custom_id: lock,
+            emoji: lockEmoji,
+        }));
     if (includeRemove)
-        components.push(new MessageButton({ style: "DANGER", customId: wastebasket, emoji: wastebasket }));
-    return new MessageActionRow({
-        components,
-    });
+        components.push(new ButtonComponent({
+            type: 2 /* Button */,
+            style: 4 /* Danger */,
+            custom_id: wastebasket,
+            emoji: wastebasketEmoji,
+        }));
+    return new ActionRow({ type: 1 /* ActionRow */, components });
 }
 function generateSelectorControls(paginatorID, options, seed) {
-    const customId = serialize({
+    const custom_id = serialize({
         interactionID: paginationInteractionID,
         paginatorID,
         seed,
         operation: "pick",
     });
-    return new MessageActionRow({
-        components: [
-            new MessageSelectMenu({
-                options,
-                customId,
-            }),
-        ],
+    return new ActionRow({
+        type: 1 /* ActionRow */,
+        components: [new SelectMenuComponent({ type: 3 /* SelectMenu */, options, custom_id })],
     });
 }
 function generateInitialPagination(paginatorName, seed, includeLock, includeRemove) {

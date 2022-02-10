@@ -1,5 +1,4 @@
-import type { GuildChannel, GuildMember, Role, User } from "discord.js";
-import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
+import type { ApplicationCommandOptionType, GuildChannel, GuildMember, Role, User } from "discord.js";
 import { CleanUpObjectIntersectionRecursive, IntersectionFromUnion, KeyObjectUnionBy, UnionFromArray } from "./utility-types.js";
 export declare type StrictCommand = Command<StrictOption>;
 declare type Command<O> = Readonly<{
@@ -19,19 +18,19 @@ export declare type StrictOption = Readonly<{
     required?: boolean;
     autocomplete?: boolean;
 } & ({
-    type: "SUB_COMMAND" | ApplicationCommandOptionTypes.SUB_COMMAND | "SUB_COMMAND_GROUP" | ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+    type: "SUB_COMMAND" | ApplicationCommandOptionType.Subcommand | "SUB_COMMAND_GROUP" | ApplicationCommandOptionType.SubcommandGroup;
     options?: readonly StrictOption[];
     choices?: undefined;
 } | {
-    type: "STRING" | ApplicationCommandOptionTypes.STRING;
+    type: "STRING" | ApplicationCommandOptionType.String;
     options?: undefined;
     choices?: Choice<string>;
 } | {
-    type: "INTEGER" | ApplicationCommandOptionTypes.INTEGER;
+    type: "INTEGER" | ApplicationCommandOptionType.Integer;
     options?: undefined;
     choices?: Choice<number>;
 } | {
-    type: "BOOLEAN" | ApplicationCommandOptionTypes.BOOLEAN | "USER" | ApplicationCommandOptionTypes.USER | "ROLE" | ApplicationCommandOptionTypes.ROLE | "CHANNEL" | ApplicationCommandOptionTypes.CHANNEL | ApplicationCommandOptionTypes.MENTIONABLE;
+    type: "BOOLEAN" | ApplicationCommandOptionType.Boolean | "USER" | ApplicationCommandOptionType.User | "ROLE" | ApplicationCommandOptionType.Role | "CHANNEL" | ApplicationCommandOptionType.Channel | ApplicationCommandOptionType.Mentionable;
     options?: undefined;
     choices?: undefined;
 })>;

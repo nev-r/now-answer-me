@@ -5,7 +5,7 @@ export async function doSomethingUsingTempClient<T>(
 	something: (client: Client) => Promise<T> | T
 ) {
 	const tempClient = new Client({
-		intents: ["GUILDS", "GUILD_MESSAGES", "GUILD_EMOJIS_AND_STICKERS"],
+		intents: ["Guilds", "GuildMessages", "GuildEmojisAndStickers"],
 	});
 	const resolvesThenDestroysClient = new Promise<T>((resolve) => {
 		tempClient.on("ready", async () => {

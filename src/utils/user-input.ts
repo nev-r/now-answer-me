@@ -1,5 +1,5 @@
 import {
-	MessageEmbed,
+	Embed,
 	UserResolvable,
 	Message,
 	TextChannel,
@@ -57,7 +57,7 @@ export async function promptForText({
 	let promptMessage: Message | undefined;
 	if (promptContent) {
 		if (typeof promptContent === "string")
-			promptContent = new MessageEmbed({ description: promptContent });
+			promptContent = new Embed({ description: promptContent });
 		promptMessage = await channel.send(sendableToMessageOptions(promptContent));
 	}
 
@@ -149,7 +149,7 @@ export async function presentOptions<T extends string>({
 
 		// we timed out instead of getting a valid reaction
 		if (!collectedReaction || cleanupReactions) {
-			if (!deleteAfter && !msg.deleted)
+			if (!deleteAfter)
 				applyingReactions.then(() => {
 					if (!msg.reactions.cache.size) return;
 					console.log("cleanup");

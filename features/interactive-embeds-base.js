@@ -1,7 +1,7 @@
 //
 // things which will self-manage after sending
 //
-import { MessageEmbed } from "discord.js";
+import { Embed } from "discord.js";
 import { sleep } from "one-stone/promise";
 import { serialReactions } from "../utils/message-actions.js";
 import { bugOut, delMsg } from "../utils/misc.js";
@@ -28,18 +28,18 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
             ? (o) => o // return them as-is
             : (l, i) => ({ name: `(${i})`, value: `${l}`, inline: true })); // otherwise stringify the value
     const pages = [...Array(numPages)].map((x, pageNum) => {
-        const pageEmbed = new MessageEmbed({
+        const pageEmbed = new Embed({
             fields: selectables
                 .slice(pageNum * itemsPerPage, (pageNum + 1) * itemsPerPage)
                 .map((t, i) => useOptionRenderer(t, pageNum * itemsPerPage + i + 1)),
         });
         prompt && pageEmbed.setDescription(prompt);
-        numPages > 1 && pageEmbed.setFooter(`${pageNum + 1} / ${numPages}`);
+        numPages > 1 && pageEmbed.setFooter({ text: `${pageNum + 1} / ${numPages}` });
         return pageEmbed;
     });
     let embed = pages[currentPage];
     if (pages.length > 1 && embed.footer === null)
-        embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+        embed.setFooter({ text: `${currentPage + 1} / ${pages.length}` });
     // either send or edit, our initial message
     const paginatedMessage = preexistingMessage
         ? await preexistingMessage.edit({ embeds: [embed] })
@@ -84,7 +84,7 @@ export async function _newPaginatedSelector_({ user, preexistingMessage, channel
                         // and update the message with the new embed
                         embed = pages[currentPage];
                         if (embed.footer === null)
-                            embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+                            embed.setFooter({ text: `${currentPage + 1} / ${pages.length}` });
                         await paginatedMessage.edit({ embeds: [embed] });
                     }
                     // loop breaks when there's no more input or when a choice was made
@@ -125,7 +125,7 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
     let currentPage = startPage;
     let embed = await renderer(pages[currentPage]);
     if (pages.length > 1 && embed.footer === null)
-        embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+        embed.setFooter({ text: `${currentPage + 1} / ${pages.length}` });
     const paginatedMessage = preexistingMessage
         ? await preexistingMessage.edit({ embeds: [embed] })
         : await channel.send({ embeds: [embed] });
@@ -162,7 +162,7 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
                             // and update the message with the new embed
                             embed = await renderer(pages[currentPage]);
                             if (embed.footer === null)
-                                embed.setFooter(`${currentPage + 1} / ${pages.length}`);
+                                embed.setFooter({ text: `${currentPage + 1} / ${pages.length}` });
                             await paginatedMessage.edit({ embeds: [embed] });
                         }
                     // loop breaks when there's no more input or when a choice was made
@@ -170,8 +170,8 @@ export async function _newPaginatedEmbed_({ user, preexistingMessage, channel = 
                     // and perform one last edit (if the message is still there)
                     if (embed.footer?.text?.match(/^\d+ \/ \d+$/) ||
                         embed.footer?.text?.match(/^\d+ remaining$/))
-                        embed.footer = null;
-                    paginatedMessage.deleted || (await paginatedMessage.edit({ embeds: [embed] }));
+                        embed.setFooter(null);
+                    await paginatedMessage.edit({ embeds: [embed] });
                     resolvePage(currentPage);
                 });
             }

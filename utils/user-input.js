@@ -1,4 +1,4 @@
-import { MessageEmbed, } from "discord.js";
+import { Embed, } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { serialReactions } from "./message-actions.js";
@@ -22,7 +22,7 @@ export async function promptForText({ channel, options, user, swallowResponse = 
     let promptMessage;
     if (promptContent) {
         if (typeof promptContent === "string")
-            promptContent = new MessageEmbed({ description: promptContent });
+            promptContent = new Embed({ description: promptContent });
         promptMessage = await channel.send(sendableToMessageOptions(promptContent));
     }
     try {
@@ -94,7 +94,7 @@ export async function presentOptions({ msg, options, deleteAfter = true, cleanup
         }
         // we timed out instead of getting a valid reaction
         if (!collectedReaction || cleanupReactions) {
-            if (!deleteAfter && !msg.deleted)
+            if (!deleteAfter)
                 applyingReactions.then(() => {
                     if (!msg.reactions.cache.size)
                         return;

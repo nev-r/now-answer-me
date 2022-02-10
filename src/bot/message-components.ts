@@ -1,43 +1,46 @@
 import {
+	ActionRow,
+	ButtonComponent,
+	ButtonStyle,
+	ComponentType,
+	Embed,
 	EmojiIdentifierResolvable,
 	Guild,
 	InteractionReplyOptions,
-	MessageActionRow,
-	MessageButton,
-	MessageButtonStyleResolvable,
 	MessageComponentInteraction,
-	MessageEmbed,
-	MessageSelectMenu,
 	MessageSelectOptionData,
-	TextBasedChannels,
+	SelectMenuComponent,
+	TextBasedChannel,
 	User,
 } from "discord.js";
 import { escMarkdown } from "one-stone/string";
 import { Sendable } from "../types/types-bot.js";
 import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
-import { sendableToInteractionReplyOptions } from "../utils/misc.js";
+import { sendableToInteractionReplyOptions, sendableToPayload } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-import { MessageButtonStyles } from "discord.js/typings/enums";
 import { ComponentParams, deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit, updateComponent } from "../utils/raw-utils.js";
 import { client } from "./index.js";
+import { APIMessageComponentEmoji, APISelectMenuOption } from "discord-api-types";
 
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
+export const wastebasketEmoji = {name:String.fromCodePoint(0x1f5d1)}; // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
+export const lockEmoji = {name:String.fromCodePoint(0x1f512)}; // 🔒
 
 export type ComponentInteractionHandlingData = {
 	handler:
 		| Sendable
 		| ((_: {
 				guild: Guild | null;
-				channel: TextBasedChannels | null;
+				channel: TextBasedChannel | null;
 				user: User;
 				message?: Message;
 				interactionID: string;
 				componentParams: ComponentParams;
 				values?: string[];
-		  }) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>);
+		  }) => Awaitable<InteractionReplyOptions | Embed | string | undefined | void>);
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
 	allowTimeout?: boolean;
@@ -49,13 +52,13 @@ export const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData
 
 type InteractionButton = {
 	disabled?: boolean;
-	style: Exclude<MessageButtonStyleResolvable, "LINK" | MessageButtonStyles.LINK>;
+	style: Exclude<ButtonStyle, "LINK" | ButtonStyle.Link>;
 	value: string;
 } & (
-	| { emoji: EmojiIdentifierResolvable; label: string }
+	| { emoji: APIMessageComponentEmoji; label: string }
 	| { emoji?: undefined; label: string }
 	| {
-			emoji: EmojiIdentifierResolvable;
+			emoji: APIMessageComponentEmoji;
 			label?: undefined;
 	  }
 );
@@ -67,7 +70,7 @@ type InteractionSelect = {
 	disabled?: boolean;
 	maxValues?: number;
 	minValues?: number;
-	options: MessageSelectOptionData[];
+	options: APISelectMenuOption[];
 	placeholder?: string;
 };
 
@@ -88,11 +91,13 @@ export function createComponentButtons({
 
 	return nestedButtons.map(
 		(r) =>
-			new MessageActionRow({
+			new ActionRow({
+				type: ComponentType.ActionRow,
 				components: r.map((b) => {
 					const { value, ...rest } = b;
-					return new MessageButton({
-						customId: serialize({ interactionID, operation: value }),
+					return new ButtonComponent({
+						type: ComponentType.Button,
+						custom_id: serialize({ interactionID, operation: value }),
 						...rest,
 					});
 				}),
@@ -113,14 +118,10 @@ export function createComponentSelects({
 
 	return nestedSelects.map((s) => {
 		const { controlID, ...rest } = s;
-		const customId = serialize({ interactionID, operation: controlID });
-		return new MessageActionRow({
-			components: [
-				new MessageSelectMenu({
-					customId,
-					...rest,
-				}),
-			],
+		const custom_id = serialize({ interactionID, operation: controlID });
+		return new ActionRow({
+			type: ComponentType.ActionRow,
+			components: [new SelectMenuComponent({ type: ComponentType.SelectMenu, custom_id, ...rest })],
 		});
 	});
 }
@@ -159,11 +160,11 @@ export async function routeComponentInteraction(
 		}
 
 		try {
-			let results: Sendable | Message | undefined;
+			let results: Sendable | InteractionReplyOptions | Embed | string | void | Message | undefined;
 			if (typeof handler === "function") {
 				const channel =
 					interaction.channel ??
-					((await client.channels.fetch(interaction.channelId)) as TextBasedChannels | null);
+					((await client.channels.fetch(interaction.channelId)) as TextBasedChannel | null);
 				const message = await channel?.messages.fetch(interaction.message.id);
 
 				const { guild, user } = interaction;

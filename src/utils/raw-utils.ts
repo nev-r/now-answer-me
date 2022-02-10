@@ -2,12 +2,11 @@
 // client-agnostic functions for use with bot or static methods
 //
 
-import type {
+import {
 	Client,
 	ChannelResolvable,
 	GuildEmoji,
 	GuildResolvable,
-	MessageEmbed,
 	MessageResolvable,
 	UserResolvable,
 	GuildEmojiManager,
@@ -15,6 +14,8 @@ import type {
 	Snowflake,
 	CommandInteraction,
 	MessageComponentInteraction,
+	ChannelType,
+	Embed,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
@@ -40,14 +41,14 @@ export function buildEmojiDictUsingClient(
 export async function sendMessageUsingClient(
 	client: Client,
 	channel: ChannelResolvable,
-	content: string | MessageEmbed,
+	content: string | Embed,
 	publish?: boolean
 ) {
 	const resolvedChannel = await client.channels.fetch(normalizeID(channel));
 	if (!resolvedChannel)
 		throw new Error(`${channel} could not be resolved to a channel this account has access to`);
-	if (!resolvedChannel.isText()) throw new Error(`channel ${channel} is not a text channel`);
-	if (publish && resolvedChannel.type !== "GUILD_NEWS")
+	if (!resolvedChannel.isTextBased()) throw new Error(`channel ${channel} is not a text channel`);
+	if (publish && resolvedChannel.isNews())
 		throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
 	const sentMessage = await resolvedChannel.send(
 		typeof content === "string" ? content : { embeds: [content] }
@@ -68,7 +69,7 @@ export async function editMessageUsingClient(
 	client: Client,
 	channel: ChannelResolvable,
 	message: MessageResolvable,
-	content: string | MessageEmbed
+	content: string | Embed
 ) {
 	const resolvedChannel = await client.channels.fetch(normalizeID(channel));
 	if (!resolvedChannel)
@@ -90,9 +91,9 @@ export async function publishMessageUsingClient(
 	if (!resolvedChannel)
 		throw new Error(`${channel} could not be resolved to a channel this account has access to`);
 
-	if (!resolvedChannel.isText()) throw new Error(`channel ${channel} is not a text channel`);
+	if (!resolvedChannel.isTextBased()) throw new Error(`channel ${channel} is not a text channel`);
 
-	if (resolvedChannel.type !== "GUILD_NEWS")
+	if (resolvedChannel.isNews())
 		throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
 
 	const messageToPublish = await resolvedChannel.messages.fetch(normalizeID(message));
@@ -146,9 +147,7 @@ export function announceToChannels(
 	return arrayify(channelIds).map((channelId) => {
 		const channel = client.channels.cache.get(channelId);
 		return (
-			(channel?.type === "DM" || channel?.type === "GUILD_TEXT") &&
-			channel.isText() &&
-			channel.send(sendableToMessageOptions(message))
+			(channel?.isDM() || channel?.isTextBased()) && channel.send(sendableToMessageOptions(message))
 		);
 	});
 }

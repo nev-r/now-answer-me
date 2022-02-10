@@ -21,9 +21,9 @@ export async function sendMessageUsingClient(client, channel, content, publish) 
     const resolvedChannel = await client.channels.fetch(normalizeID(channel));
     if (!resolvedChannel)
         throw new Error(`${channel} could not be resolved to a channel this account has access to`);
-    if (!resolvedChannel.isText())
+    if (!resolvedChannel.isTextBased())
         throw new Error(`channel ${channel} is not a text channel`);
-    if (publish && resolvedChannel.type !== "GUILD_NEWS")
+    if (publish && resolvedChannel.isNews())
         throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
     const sentMessage = await resolvedChannel.send(typeof content === "string" ? content : { embeds: [content] });
     if (publish)
@@ -53,9 +53,9 @@ export async function publishMessageUsingClient(client, channel, message) {
     const resolvedChannel = await client.channels.fetch(normalizeID(channel));
     if (!resolvedChannel)
         throw new Error(`${channel} could not be resolved to a channel this account has access to`);
-    if (!resolvedChannel.isText())
+    if (!resolvedChannel.isTextBased())
         throw new Error(`channel ${channel} is not a text channel`);
-    if (resolvedChannel.type !== "GUILD_NEWS")
+    if (resolvedChannel.isNews())
         throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
     const messageToPublish = await resolvedChannel.messages.fetch(normalizeID(message));
     if (!messageToPublish)
@@ -97,9 +97,7 @@ export async function uploadEmojisUsingClient(client, guild, emojis) {
 export function announceToChannels(client, message, channelIds) {
     return arrayify(channelIds).map((channelId) => {
         const channel = client.channels.cache.get(channelId);
-        return ((channel?.type === "DM" || channel?.type === "GUILD_TEXT") &&
-            channel.isText() &&
-            channel.send(sendableToMessageOptions(message)));
+        return ((channel?.isDM() || channel?.isTextBased()) && channel.send(sendableToMessageOptions(message)));
     });
 }
 export async function replyOrEdit(interaction, content) {

@@ -1,14 +1,17 @@
-import type {
+import {
 	ApplicationCommandManager,
+	ApplicationCommandOptionType,
+	ApplicationCommandPermissionType,
 	AutocompleteInteraction,
 	ChatInputApplicationCommandData,
 	ClientApplication,
 	CommandInteraction,
 	CommandInteractionOption,
-	ContextMenuInteraction,
+	ContextMenuCommandInteraction,
 	Guild,
 	GuildApplicationCommandManager,
 	GuildResolvable,
+	InteractionReplyOptions,
 	Message,
 } from "discord.js";
 import type {
@@ -125,7 +128,7 @@ export async function routeAutocomplete(interaction: AutocompleteInteraction) {
 	);
 }
 
-export async function routeContextMenuCommand(interaction: ContextMenuInteraction) {
+export async function routeContextMenuCommand(interaction: ContextMenuCommandInteraction) {
 	console.log("stub unsupported.. :(");
 }
 
@@ -150,7 +153,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		);
 	}
 	try {
-		let results: Sendable | Message | undefined;
+		let results: Sendable | InteractionReplyOptions | Message | undefined;
 		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
 			const { optionDict, subCommand, subCommandGroup } = createDictFromSelectedOptions([
@@ -172,7 +175,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 			results = handler;
 		}
 		deferalCountdown && clearTimeout(deferalCountdown);
-		if (results) {
+		if (results && !(results instanceof Message)) {
 			if (interaction.replied)
 				console.log(`${interaction.commandName}: this interaction was already replied to??`);
 			else
@@ -243,22 +246,26 @@ function createDictFromSelectedOptions(
 ) {
 	const optionDict: NodeJS.Dict<any> = {};
 	for (const opt of originalOptions) {
-		if (opt.type === "SUB_COMMAND" || opt.type === "SUB_COMMAND_GROUP") {
-			if (opt.type === "SUB_COMMAND") meta.subCommand = opt.name;
-			if (opt.type === "SUB_COMMAND_GROUP") meta.subCommandGroup = opt.name;
+		if (
+			opt.type === ApplicationCommandOptionType.Subcommand ||
+			opt.type === ApplicationCommandOptionType.SubcommandGroup
+		) {
+			if (opt.type === ApplicationCommandOptionType.Subcommand) meta.subCommand = opt.name;
+			if (opt.type === ApplicationCommandOptionType.SubcommandGroup)
+				meta.subCommandGroup = opt.name;
 			optionDict[opt.name] = createDictFromSelectedOptions(
 				opt.options ? [...opt.options.values()] : [],
 				meta
 			).optionDict;
 		} else {
 			optionDict[opt.name] =
-				opt.type === "CHANNEL"
+				opt.type === ApplicationCommandOptionType.Channel
 					? opt.channel
-					: opt.type === "USER"
+					: opt.type === ApplicationCommandOptionType.User
 					? opt.member ?? opt.user
-					: opt.type === "ROLE"
+					: opt.type === ApplicationCommandOptionType.Role
 					? opt.role
-					: opt.type === "MENTIONABLE"
+					: opt.type === ApplicationCommandOptionType.Mentionable
 					? undefined
 					: opt.value;
 		}
@@ -297,7 +304,11 @@ export async function setPermittedCommandUserInGuild(
 		else return console.log(err);
 	}
 
-	const permissions = users.map((u) => ({ id: u.id, type: "USER" as const, permission: true }));
+	const permissions = users.map((u) => ({
+		id: u.id,
+		type: ApplicationCommandPermissionType.User,
+		permission: true,
+	}));
 	command.permissions.set({ permissions });
 }
 
@@ -314,7 +325,11 @@ export async function setPermittedCommandUserEverywhere(
 		const users = await guild.members.fetch({ user: userIds });
 		if (!users.size) continue;
 
-		const permissions = users.map((u) => ({ id: u.id, type: "USER" as const, permission: true }));
+		const permissions = users.map((u) => ({
+			id: u.id,
+			type: ApplicationCommandPermissionType.User,
+			permission: true,
+		}));
 		command.permissions.set({ permissions });
 	}
 }

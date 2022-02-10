@@ -1,4 +1,4 @@
-import { Client, ClientOptions } from "discord.js";
+import { ChannelType, Client, ClientOptions } from "discord.js";
 import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import { arrayify } from "one-stone/array";
@@ -21,19 +21,13 @@ export { createComponentButtons, createComponentSelects } from "./message-compon
 export const startupTimestamp = new Date();
 
 const clientOptions: ClientOptions = {
-	intents: [
-		"GUILDS",
-		"GUILD_MESSAGES",
-		"DIRECT_MESSAGES",
-		"DIRECT_MESSAGE_REACTIONS",
-		"GUILD_EMOJIS_AND_STICKERS",
-		"GUILD_MESSAGE_REACTIONS",
-		"GUILD_MEMBERS",
-	],
-	rejectOnRateLimit: (_) => {
-		console.log("rejectOnRateLimit");
-		console.log(_);
-		return false;
+	intents: ["Guilds", "GuildMessages", "GuildEmojisAndStickers", "GuildMembers"],
+	rest: {
+		rejectOnRateLimit: (_) => {
+			console.log("rejectOnRateLimit");
+			console.log(_);
+			return false;
+		},
 	},
 };
 
@@ -143,7 +137,7 @@ export function init(token: string) {
 			if (msg.author === client.user) return;
 			if (ignoredServerIds.has(msg.guild?.id!)) return;
 			if (ignoredUserIds.has(msg.author.id)) return;
-			if (doIgnoreDMs && msg.channel.type === "DM") return;
+			if (doIgnoreDMs && msg.channel.type === ChannelType.DM) return;
 			if (messageFilters.some((f) => f(msg) === false)) return;
 
 			routeMessageCommand(msg);
@@ -151,7 +145,7 @@ export function init(token: string) {
 		.on("interactionCreate", async (interaction) => {
 			if (interaction.isAutocomplete()) routeAutocomplete(interaction);
 			if (interaction.isCommand()) routeSlashCommand(interaction);
-			if (interaction.isContextMenu()) routeContextMenuCommand(interaction);
+			if (interaction.isContextMenuCommand()) routeContextMenuCommand(interaction);
 			else if (interaction.isMessageComponent()) routeComponentInteraction(interaction);
 		})
 		.once("ready", async () => {

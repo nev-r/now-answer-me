@@ -58,7 +58,7 @@ export async function singleReaction(
 	abortController: { abort: boolean } = { abort: false }
 ) {
 	try {
-		if (!abortController.abort && !msg.deleted && !msg.reactions.cache.get(reaction)?.me) {
+		if (!abortController.abort && !msg.reactions.cache.get(reaction)?.me) {
 			await msg.react(reaction);
 			await sleep(800); // apparently discord rate limited this
 		}

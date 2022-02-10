@@ -8,19 +8,13 @@ export { addSlashCommand, setPermittedCommandUserInGuild, setPermittedCommandUse
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export const startupTimestamp = new Date();
 const clientOptions = {
-    intents: [
-        "GUILDS",
-        "GUILD_MESSAGES",
-        "DIRECT_MESSAGES",
-        "DIRECT_MESSAGE_REACTIONS",
-        "GUILD_EMOJIS_AND_STICKERS",
-        "GUILD_MESSAGE_REACTIONS",
-        "GUILD_MEMBERS",
-    ],
-    rejectOnRateLimit: (_) => {
-        console.log("rejectOnRateLimit");
-        console.log(_);
-        return false;
+    intents: ["Guilds", "GuildMessages", "GuildEmojisAndStickers", "GuildMembers"],
+    rest: {
+        rejectOnRateLimit: (_) => {
+            console.log("rejectOnRateLimit");
+            console.log(_);
+            return false;
+        },
     },
 };
 export const client = new Client(clientOptions);
@@ -114,7 +108,7 @@ export function init(token) {
             return;
         if (ignoredUserIds.has(msg.author.id))
             return;
-        if (doIgnoreDMs && msg.channel.type === "DM")
+        if (doIgnoreDMs && msg.channel.type === 1 /* DM */)
             return;
         if (messageFilters.some((f) => f(msg) === false))
             return;
@@ -125,7 +119,7 @@ export function init(token) {
             routeAutocomplete(interaction);
         if (interaction.isCommand())
             routeSlashCommand(interaction);
-        if (interaction.isContextMenu())
+        if (interaction.isContextMenuCommand())
             routeContextMenuCommand(interaction);
         else if (interaction.isMessageComponent())
             routeComponentInteraction(interaction);

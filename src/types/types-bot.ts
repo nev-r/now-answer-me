@@ -1,17 +1,9 @@
 import {
 	CommandInteraction,
-	CommandInteractionOption,
+	Embed,
 	Emoji,
-	Guild,
-	GuildChannel,
-	GuildEmoji,
-	GuildMember,
-	GuildResolvable,
 	InteractionReplyOptions,
-	Invite,
 	Message,
-	MessageEmbed,
-	Role,
 	Snowflake,
 	User,
 } from "discord.js";
@@ -91,7 +83,7 @@ export type SlashCommandHandler<
 > =
 	| ((
 			params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, SelectedSubcommandGroup>
-	  ) => Awaitable<InteractionReplyOptions | MessageEmbed | string | undefined | void>)
+	  ) => Awaitable<InteractionReplyOptions | Embed | string | undefined | void>)
 	| Sendable;
 
 /**
