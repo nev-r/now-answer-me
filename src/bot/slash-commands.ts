@@ -49,6 +49,12 @@ const theseStillNeedRegistering: string[] = [];
 // or else it will show up twice in the client command list
 const globalCommands = new Set<string>();
 
+const registrations: Record<"already" | "success" | "failure", NodeJS.Dict<string[]>> = {
+	already: {},
+	success: {},
+	failure: {},
+};
+
 export async function registerCommandsOnConnect() {
 	while (theseStillNeedRegistering.length) {
 		const nameToRegister = theseStillNeedRegistering.pop();
@@ -56,6 +62,20 @@ export async function registerCommandsOnConnect() {
 			const toRegister = slashCommands[nameToRegister];
 			if (toRegister) await registerSlashCommands(toRegister.where, toRegister.config);
 		}
+	}
+
+	for (const [status, reges] of Object.entries(registrations)) {
+		if (!Object.keys(reges).length) continue;
+		console.log(status);
+		const collated: [commands: string, servers: string][] = [];
+
+		for (const [commandname, servers] of Object.entries(reges)) {
+			const serversString = servers!.join("\n");
+			const target = collated.find((c) => c[1] === serversString);
+			if (target) target[0] += "\n" + commandname;
+			else collated.push([commandname, serversString]);
+		}
+		console.table(collated);
 	}
 	cleanupGlobalDupes();
 }
@@ -217,17 +237,16 @@ async function registerSlashCommands(
 		const cache = [...destination.commands.cache.values()];
 
 		for (const conf of configs) {
-			process.stdout.write(`${g(destination)}: registering ${conf.name}: `);
 			const matchingConfig = cache.find((c) => {
 				return c.equals(conf);
 			});
-			if (matchingConfig) console.log("already set up");
+			if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
 			else
 				try {
 					await destination.commands.create(conf);
-					console.log("done");
+					(registrations["success"][conf.name] ??= []).push(g(destination));
 				} catch (e) {
-					console.log("failed..");
+					(registrations["failure"][conf.name] ??= []).push(g(destination));
 					console.log(e);
 				}
 		}

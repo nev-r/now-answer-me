@@ -128,7 +128,6 @@ export function init(token: string) {
 			}
 		})
 		.once("ready", async () => {
-			console.log("connected @ " + new Date().toISOString());
 			clientStatus.hasConnected = true;
 			startActivityUpkeep();
 
@@ -148,6 +147,7 @@ export function init(token: string) {
 			}, 1000);
 		})
 		.on("ready", () => {
+			console.log("connected @ " + new Date().toISOString());
 			try {
 				clientStatus.performReconnects && onReconnects.forEach((fnc) => fnc(client));
 			} catch (e) {

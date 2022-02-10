@@ -8,6 +8,11 @@ const theseStillNeedRegistering = [];
 // anything globally registered shouldn't be registered at a server level
 // or else it will show up twice in the client command list
 const globalCommands = new Set();
+const registrations = {
+    already: {},
+    success: {},
+    failure: {},
+};
 export async function registerCommandsOnConnect() {
     while (theseStillNeedRegistering.length) {
         const nameToRegister = theseStillNeedRegistering.pop();
@@ -16,6 +21,21 @@ export async function registerCommandsOnConnect() {
             if (toRegister)
                 await registerSlashCommands(toRegister.where, toRegister.config);
         }
+    }
+    for (const [status, reges] of Object.entries(registrations)) {
+        if (!Object.keys(reges).length)
+            continue;
+        console.log(status);
+        const collated = [];
+        for (const [commandname, servers] of Object.entries(reges)) {
+            const serversString = servers.join("\n");
+            const target = collated.find((c) => c[1] === serversString);
+            if (target)
+                target[0] += "\n" + commandname;
+            else
+                collated.push([commandname, serversString]);
+        }
+        console.table(collated);
     }
     cleanupGlobalDupes();
 }
@@ -123,6 +143,7 @@ export async function routeSlashCommand(interaction) {
         await replyOrEdit(interaction, { content: "☑", ephemeral: true });
 }
 async function registerSlashCommands(where, config) {
+    var _a, _b, _c, _d, _e, _f;
     const configs = arrayify(config);
     const serverList = new Set(client.guilds.cache.keys());
     const filteredWheres = new Set();
@@ -144,19 +165,18 @@ async function registerSlashCommands(where, config) {
             await destination.commands.fetch();
         const cache = [...destination.commands.cache.values()];
         for (const conf of configs) {
-            process.stdout.write(`${g(destination)}: registering ${conf.name}: `);
             const matchingConfig = cache.find((c) => {
                 return c.equals(conf);
             });
             if (matchingConfig)
-                console.log("already set up");
+                ((_a = registrations["already"])[_b = conf.name] ?? (_a[_b] = [])).push(g(destination));
             else
                 try {
                     await destination.commands.create(conf);
-                    console.log("done");
+                    ((_c = registrations["success"])[_d = conf.name] ?? (_c[_d] = [])).push(g(destination));
                 }
                 catch (e) {
-                    console.log("failed..");
+                    ((_e = registrations["failure"])[_f = conf.name] ?? (_e[_f] = [])).push(g(destination));
                     console.log(e);
                 }
         }
