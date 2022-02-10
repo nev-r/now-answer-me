@@ -105,6 +105,7 @@ export function init(token) {
         }
     })
         .once("ready", async () => {
+        console.log("connected @ " + new Date().toISOString());
         clientStatus.hasConnected = true;
         startActivityUpkeep();
         try {
