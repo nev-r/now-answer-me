@@ -1,7 +1,5 @@
 import { Client } from "discord.js";
-import { Message } from "discord.js";
 import type { ActivityOptions } from "discord.js";
-export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
 export { addSlashCommand, setPermittedCommandUserInGuild, setPermittedCommandUserEverywhere, } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export declare const startupTimestamp: Date;
@@ -39,8 +37,5 @@ declare let onReadies: ((client_: Client) => Promise<void> | void)[];
 export declare function addOnReady(...onReady_: typeof onReadies): void;
 export declare function ignoreServerId(...serverIds: (string | string[])[]): void;
 export declare function ignoreUserId(...userIds: (string | string[])[]): void;
-declare type MessageFilter = (msg: Message) => boolean;
-export declare function addMessageFilter(...messageFilter: MessageFilter[]): void;
-export declare function ignoreDms(setting?: boolean): void;
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export declare function init(token: string): Promise<Client<boolean>>;

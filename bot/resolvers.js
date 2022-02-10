@@ -7,7 +7,8 @@ import { client, clientReady } from "./index.js";
  */
 export async function resolveChannel(channel) {
     await clientReady;
-    return client.channels.resolve(channel);
+    return (client.channels.resolve(channel) ||
+        (typeof channel === "string" ? client.channels.fetch(channel) : null));
 }
 /**
  * waits for client to be ready and then attempts to resolve an emoji

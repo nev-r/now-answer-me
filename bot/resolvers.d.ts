@@ -1,8 +1,8 @@
-import type { Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
+import type { AnyChannel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
 /**
  * waits for client to be ready and then attempts to resolve a channel
  */
-export declare function resolveChannel<T extends Channel>(channel: ChannelResolvable): Promise<T | null>;
+export declare function resolveChannel<T extends AnyChannel>(channel: ChannelResolvable): Promise<T | null>;
 /**
  * waits for client to be ready and then attempts to resolve an emoji
  */

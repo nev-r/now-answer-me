@@ -1,5 +1,4 @@
-import { ChannelType, Client, ClientOptions } from "discord.js";
-import { Message } from "discord.js";
+import { Client, ClientOptions } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import { arrayify } from "one-stone/array";
 import {
@@ -9,8 +8,6 @@ import {
 	routeSlashCommand,
 } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
-import { routeMessageCommand } from "./message-commands.js";
-export { addCommand, addTrigger, setPrefix } from "./message-commands.js";
 export {
 	addSlashCommand,
 	setPermittedCommandUserInGuild,
@@ -21,7 +18,7 @@ export { createComponentButtons, createComponentSelects } from "./message-compon
 export const startupTimestamp = new Date();
 
 const clientOptions: ClientOptions = {
-	intents: ["Guilds", "GuildMessages", "GuildEmojisAndStickers", "GuildMembers"],
+	intents: ["Guilds", "GuildEmojisAndStickers", "GuildMembers"],
 	rest: {
 		rejectOnRateLimit: (_) => {
 			console.log("rejectOnRateLimit");
@@ -115,47 +112,34 @@ export function ignoreUserId(...userIds: (string | string[])[]) {
 		}
 	}
 }
-type MessageFilter = (msg: Message) => boolean;
-
-const messageFilters: MessageFilter[] = [];
-export function addMessageFilter(...messageFilter: MessageFilter[]) {
-	for (const f of messageFilter) {
-		messageFilters.push(f);
-	}
-}
-
-let doIgnoreDMs = false;
-export function ignoreDms(setting = true) {
-	doIgnoreDMs = setting;
-}
 
 /** starts the client up. resolves (to the client) when the client has connected/is ready */
 export function init(token: string) {
 	client
-		.on("messageCreate", async (msg: Message) => {
-			// quit if this is the bot's own message
-			if (msg.author === client.user) return;
-			if (ignoredServerIds.has(msg.guild?.id!)) return;
-			if (ignoredUserIds.has(msg.author.id)) return;
-			if (doIgnoreDMs && msg.channel.type === ChannelType.DM) return;
-			if (messageFilters.some((f) => f(msg) === false)) return;
-
-			routeMessageCommand(msg);
-		})
 		.on("interactionCreate", async (interaction) => {
-			if (interaction.isAutocomplete()) routeAutocomplete(interaction);
-			if (interaction.isCommand()) routeSlashCommand(interaction);
-			if (interaction.isContextMenuCommand()) routeContextMenuCommand(interaction);
-			else if (interaction.isMessageComponent()) routeComponentInteraction(interaction);
+			try {
+				if (interaction.isAutocomplete()) await routeAutocomplete(interaction);
+				if (interaction.isCommand()) await routeSlashCommand(interaction);
+				if (interaction.isContextMenuCommand()) await routeContextMenuCommand(interaction);
+				else if (interaction.isMessageComponent()) await routeComponentInteraction(interaction);
+			} catch (e) {
+				console.log("interaction error!");
+				console.log(e);
+			}
 		})
 		.once("ready", async () => {
 			clientStatus.hasConnected = true;
 			startActivityUpkeep();
 
-			await Promise.allSettled(onConnects.map((fnc) => fnc(client)));
-			await registerCommandsOnConnect();
-			_clientReadyResolve(client);
-			await Promise.allSettled(onReadies.map((fnc) => fnc(client)));
+			try {
+				await Promise.allSettled(onConnects.map((fnc) => fnc(client)));
+				await registerCommandsOnConnect();
+				_clientReadyResolve(client);
+				await Promise.allSettled(onReadies.map((fnc) => fnc(client)));
+			} catch (e) {
+				console.log("once-ready error!");
+				console.log(e);
+			}
 
 			// set performReconnects in 1s, so reconnect events don't fire the first time
 			setTimeout(() => {
@@ -163,7 +147,12 @@ export function init(token: string) {
 			}, 1000);
 		})
 		.on("ready", () => {
-			clientStatus.performReconnects && onReconnects.forEach((fnc) => fnc(client));
+			try {
+				clientStatus.performReconnects && onReconnects.forEach((fnc) => fnc(client));
+			} catch (e) {
+				console.log("on-ready error!");
+				console.log(e);
+			}
 		})
 		.login(token);
 	return clientReady;
@@ -187,6 +176,11 @@ function startActivityUpkeep() {
 
 		// do an update
 		currentlySetActivity = newActivity;
-		client.user?.setActivity(activities[currentActivityIndex]);
+		try {
+			client.user?.setActivity(activities[currentActivityIndex]);
+		} catch (e) {
+			console.log("upkeep error!");
+			console.log(e);
+		}
 	}, 90000);
 }

@@ -1,152 +1,27 @@
-import type {
-	Message,
-	MessageReaction,
-	User,
-	Emoji,
-	AwaitReactionsOptions,
-	Collection,
-} from "discord.js";
-import { arrayify } from "one-stone/array";
-import { sleep } from "one-stone/promise";
-import { ConstraintSet } from "../types/types-bot.js";
-import { normalizeID, normalizeName } from "./data-normalization.js";
-import { boolFilter } from "./misc.js";
+/*
+function getReactionEmojiFromString(str: string) {
+	// strips out 0xFE0F (VS16 "present this char as an emoji")
+	// and 0x20E3 (COMBINING ENCLOSING KEYCAP),
+	// turning "1️⃣" into "1"
+	str = str.replace(/\uFE0F|\u20E3/g, "");
 
-/**
- * listens for, consumes, and yields one reaction at a time,
- * matching collectorParams.constraints, returning nothing when exhausted
- */
-export async function* serialReactionMonitor({
-	limit,
-	...collectorParams
-}: Parameters<typeof consumeReactions>[0] & { limit?: number }) {
-	let i = 0;
-	while (!limit || i++ < limit) {
-		const reaction = await consumeReaction(collectorParams);
-		if (!reaction) return;
-		yield reaction;
+	// (some emoji are 2 string "chars" long, but one codepoint long)
+	// if this seems to be 1 codepoint long
+	if ([...str].length === 1) {
+		// if it's a number, slap the VS16 and KEYCAP back on
+		if (/^[\d*#]$/.test(str)) return str + "\uFE0F\u20E3";
+		// if it looks like an emoji, return it as-is
+		if (/^\p{Emoji}$/u.test(str)) return str;
 	}
+
+	// if tihs is a custom discord emoji, there's a whole markup to parse
+	// we try and extract the snowflake id
+	const snowflake = str.match(/^<a?:(\w+):(?<snowflake>\d+)>$/)?.groups?.snowflake;
+	if (snowflake) str = snowflake;
+
+	// try resolving that snowflake,
+	const resolved = client.emojis.resolve(str);
+	// and if it worked, return it
+	if (resolved) return resolved.id;
 }
-
-/**
- * "consume" a single reaction by deleting reactions as they come in,
- * and returning the reaction once a match is found
- */
-export async function consumeReaction(__: Parameters<typeof consumeReactions>[0]) {
-	return _consumeReaction_(__).collectedReaction;
-}
-
-/** like `consumeReaction` but accepts a `controller` param and returns an endEarly */
-export function _consumeReaction_(__: Parameters<typeof _consumeReactions_>[0]) {
-	// force 1 reaction max
-	__.awaitOptions = { max: 1, time: __.awaitOptions?.time ?? 60000 };
-
-	const { collectedReactions, endEarly } = _consumeReactions_(__);
-	return {
-		endEarly,
-		collectedReaction: collectedReactions.then((cr) => cr?.first()),
-	};
-}
-
-/**
- * consume reactions by deleting valid ones as they come in,
- * and return the collected reactions in standard awaitReactions format
- */
-export async function consumeReactions(__: {
-	msg: Message;
-	constraints?: ConstraintSet;
-	awaitOptions?: AwaitReactionsOptions;
-}) {
-	return _consumeReactions_(__).collectedReactions;
-}
-
-/** like `consumeReactions` but accepts a `controller` param and returns an endEarly */
-export function _consumeReactions_({
-	msg,
-	constraints = {},
-	awaitOptions = { max: 3, time: 60000 },
-	controller = { messageGone: false, consumptionOk: Promise.resolve() },
-}: {
-	msg: Message;
-	constraints?: ConstraintSet;
-	awaitOptions?: AwaitReactionsOptions;
-	controller?: { messageGone: boolean; consumptionOk: Promise<any> };
-}) {
-	// queue holding reaction deletions.
-	// we can only process 1 per... whatever, because heavy rate limiting
-	const reactionDeletions: Promise<any>[] = [];
-
-	// forces the bot to ignore its own reactions
-	constraints.notUsers = [...arrayify(constraints.notUsers ?? []), msg.client.user!];
-	const reactionFilterConditions = buildReactionFilter(constraints);
-
-	// if it's been told to give up, reactionFilter will say yes to any reaction,
-	// but meawhile consumeReactions will resolve undefined
-	const reactionFilter: ReactionFilter = (..._) => {
-		return reactionFilterConditions(..._);
-	};
-
-	const collector = msg.createReactionCollector({ filter: reactionFilter, ...awaitOptions });
-	collector.on("collect", async (reaction, user) => {
-		// a valid reaction was received
-		// make sure upstream has cleared us for reaction deletion, so we don't hit rate limits
-		await controller.consumptionOk;
-
-		// await the current queue of deletions
-		await Promise.allSettled(reactionDeletions);
-
-		// abort if there's no message to delete from
-		if (controller.messageGone) return;
-
-		// and push a new promise into it
-		reactionDeletions.push(reaction.users.remove(user).then(() => sleep(800)));
-	});
-
-	return {
-		endEarly: () => {
-			collector.stop();
-		},
-		collectedReactions: new Promise<Collection<string, MessageReaction> | undefined>((resolve) => {
-			collector.once("end", (reactions) => resolve(reactions.size ? reactions : undefined));
-		}),
-	};
-}
-
-export type ReactionFilter = (reaction: MessageReaction, user: User) => boolean;
-
-export function buildReactionFilter({
-	users,
-	notUsers,
-	emoji,
-	notEmoji,
-}: ConstraintSet): ReactionFilter {
-	const userIDs = users ? arrayify(users).map(normalizeID) : undefined;
-	const notUsersIDs = notUsers ? arrayify(notUsers).map(normalizeID) : undefined;
-	const emojiNamesIDs = emoji
-		? boolFilter(
-				arrayify(emoji).flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id!])
-		  )
-		: undefined;
-	const notEmojiNamesIDs = notEmoji
-		? boolFilter(
-				arrayify(notEmoji).flatMap((e) => [normalizeName(e), typeof e === "string" ? "" : e.id!])
-		  )
-		: undefined;
-
-	return (reaction, user) => {
-		return (
-			// no limits or a limit matches
-			(!userIDs || userIDs.includes(user.id)) &&
-			// no limits or no limits match
-			(!notUsersIDs || !notUsersIDs.includes(user.id)) &&
-			// no limits or a limit matches
-			(!emojiNamesIDs ||
-				emojiNamesIDs.includes(reaction.emoji.name!) ||
-				emojiNamesIDs.includes(reaction.emoji.id!)) &&
-			// no limits or no limits match
-			(!notEmojiNamesIDs ||
-				(!notEmojiNamesIDs.includes(reaction.emoji.name!) &&
-					!notEmojiNamesIDs.includes(reaction.emoji.id!)))
-		);
-	};
-}
+*/
