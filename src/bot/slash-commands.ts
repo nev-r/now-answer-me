@@ -70,12 +70,16 @@ export async function registerCommandsOnConnect() {
 		const collated: [commands: string, servers: string][] = [];
 
 		for (const [commandname, servers] of Object.entries(reges)) {
-			const serversString = servers!.join("\n");
+			const serversString = servers!.join(" & ");
 			const target = collated.find((c) => c[1] === serversString);
-			if (target) target[0] += "\n" + commandname;
+			if (target) target[0] += " & " + commandname;
 			else collated.push([commandname, serversString]);
 		}
-		console.table(collated);
+		for (const [commands, servers] of collated) {
+			console.log("commands: " + commands);
+			console.log("servers: " + servers);
+		}
+		// console.table(collated);
 	}
 	cleanupGlobalDupes();
 }
