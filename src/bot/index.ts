@@ -119,8 +119,8 @@ export function init(token: string) {
 		.on("interactionCreate", async (interaction) => {
 			try {
 				if (interaction.isAutocomplete()) await routeAutocomplete(interaction);
-				if (interaction.isCommand()) await routeSlashCommand(interaction);
-				if (interaction.isContextMenuCommand()) await routeContextMenuCommand(interaction);
+				else if (interaction.isCommand()) await routeSlashCommand(interaction);
+				else if (interaction.isContextMenuCommand()) await routeContextMenuCommand(interaction);
 				else if (interaction.isMessageComponent()) await routeComponentInteraction(interaction);
 			} catch (e) {
 				console.log("interaction error!");

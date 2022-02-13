@@ -92,9 +92,9 @@ export function init(token) {
         try {
             if (interaction.isAutocomplete())
                 await routeAutocomplete(interaction);
-            if (interaction.isCommand())
+            else if (interaction.isCommand())
                 await routeSlashCommand(interaction);
-            if (interaction.isContextMenuCommand())
+            else if (interaction.isContextMenuCommand())
                 await routeContextMenuCommand(interaction);
             else if (interaction.isMessageComponent())
                 await routeComponentInteraction(interaction);
