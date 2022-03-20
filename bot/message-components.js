@@ -4,7 +4,6 @@ import { sendableToInteractionReplyOptions, sendableToMessageOptions, } from "..
 import { arrayify } from "one-stone/array";
 import { deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
-// import { updateComponent } from "../utils/raw-utils.js";
 import { client } from "./index.js";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const wastebasketEmoji = { name: String.fromCodePoint(0x1f5d1) }; // 🗑

@@ -11,7 +11,6 @@ import {
 	Guild,
 	GuildApplicationCommandManager,
 	GuildResolvable,
-	InteractionReplyOptions,
 	Message,
 } from "discord.js";
 import type {
@@ -177,7 +176,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		);
 	}
 	try {
-		let results: Sendable | InteractionReplyOptions | Message | undefined;
+		let results: Sendable | Message | undefined;
 		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
 			const { optionDict, subCommand, subCommandGroup } = createDictFromSelectedOptions([

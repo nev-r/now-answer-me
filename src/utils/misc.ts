@@ -4,7 +4,6 @@
 
 import {
 	EmbedBuilder,
-	InteractionReplyOptions,
 	InteractionUpdateOptions,
 	Message,
 	MessageOptions,
@@ -75,7 +74,7 @@ export function sendableToMessageOptions(
 }
 
 export function sendableToInteractionReplyOptions(
-	sendable: MessageOptions | InteractionReplyOptions | EmbedBuilder | string
+	sendable: MessageOptions | EmbedBuilder | string
 ) {
 	if (sendable instanceof EmbedBuilder) return { embeds: [sendable] };
 	else if (typeof sendable === "string") return { content: sendable };
@@ -83,7 +82,7 @@ export function sendableToInteractionReplyOptions(
 }
 
 export function sendableToInteractionUpdateOptions(
-	sendable: MessageOptions | InteractionReplyOptions | EmbedBuilder | string
+	sendable: MessageOptions | EmbedBuilder | string
 ): InteractionUpdateOptions {
 	if (sendable instanceof EmbedBuilder) return { embeds: [sendable.data] };
 	else if (typeof sendable === "string") return { content: sendable };
