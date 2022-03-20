@@ -1,12 +1,24 @@
 /// <reference types="node" />
-import { AutocompleteInteraction, CommandInteraction, ContextMenuCommandInteraction, GuildResolvable } from "discord.js";
-import type { AutocompleteParams, SlashCommandHandler, SlashCommandLocation } from "../types/types-bot.js";
-import type { CommandOptionsMap, StrictCommand, SubCommandGroupsOf, SubCommandsOf } from "../types/the-option-understander-has-signed-on.js";
+import { AutocompleteInteraction, CommandInteraction, ContextMenuCommandInteraction, EmbedBuilder, GuildResolvable, Message } from "discord.js";
+import type { AutocompleteParams, Sendable, SlashCommandLocation } from "../types/types-bot.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { Awaitable } from "one-stone/types";
 export declare function registerCommandsOnConnect(): Promise<void>;
-export declare function addSlashCommand<Config extends StrictCommand>({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }: {
+export declare function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }: {
+    /** where to register this: 'global' (even in DMs), 'all' (in each server individually), or a server id or list of server ids */
     where: SlashCommandLocation;
-    config: Config;
-    handler: SlashCommandHandler<CommandOptionsMap<Config>, SubCommandsOf<Config>, SubCommandGroupsOf<Config>>;
+    config: SlashCommandBuilder;
+    handler: ((params: {
+        /** the guild where this command was triggered */
+        guild: Message["guild"];
+        /** the user who triggered this command */
+        user: Message["author"];
+        channel: CommandInteraction["channel"];
+        optionList: [string, number][];
+        optionDict: Record<string, number>;
+        subCommand: string | undefined;
+        subCommandGroup: string | undefined;
+    }) => Awaitable<Sendable | EmbedBuilder | string | undefined | void>) | Sendable;
     ephemeral?: boolean;
     deferImmediately?: boolean;
     failIfLong?: boolean;

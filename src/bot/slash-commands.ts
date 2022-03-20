@@ -8,6 +8,7 @@ import {
 	CommandInteraction,
 	CommandInteractionOption,
 	ContextMenuCommandInteraction,
+	EmbedBuilder,
 	Guild,
 	GuildApplicationCommandManager,
 	GuildResolvable,
@@ -29,11 +30,25 @@ import type {
 } from "../types/the-option-understander-has-signed-on.js";
 import { client, clientReady, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { Awaitable } from "one-stone/types";
 
 const slashCommands: NodeJS.Dict<{
 	where: SlashCommandLocation;
-	config: ChatInputApplicationCommandData;
-	handler: SlashCommandHandler<any, any, any>;
+	config: SlashCommandBuilder;
+	handler:
+		| ((params: {
+				/** the guild where this command was triggered */
+				guild: Message["guild"];
+				/** the user who triggered this command */
+				user: Message["author"];
+				channel: CommandInteraction["channel"];
+				optionList: [string, number][];
+				optionDict: Record<string, number>;
+				subCommand: string | undefined;
+				subCommandGroup: string | undefined;
+		  }) => Awaitable<Sendable | EmbedBuilder | string | undefined | void>)
+		| Sendable;
 	autocompleters?: NodeJS.Dict<
 		(params: AutocompleteParams) => string[] | { name: string; value: string | number }[]
 	>;
@@ -41,6 +56,18 @@ const slashCommands: NodeJS.Dict<{
 	deferImmediately?: boolean;
 	failIfLong?: boolean;
 }> = {};
+
+// const slashCommands: NodeJS.Dict<{
+// 	where: SlashCommandLocation;
+// 	config: ChatInputApplicationCommandData;
+// 	handler: SlashCommandHandler<any, any, any>;
+// 	autocompleters?: NodeJS.Dict<
+// 		(params: AutocompleteParams) => string[] | { name: string; value: string | number }[]
+// 	>;
+// 	ephemeral?: boolean;
+// 	deferImmediately?: boolean;
+// 	failIfLong?: boolean;
+// }> = {};
 
 const theseStillNeedRegistering: string[] = [];
 
@@ -95,7 +122,7 @@ async function cleanupGlobalDupes() {
 	}
 }
 
-export function addSlashCommand<Config extends StrictCommand>({
+export function addSlashCommand({
 	where,
 	config,
 	handler,
@@ -104,13 +131,22 @@ export function addSlashCommand<Config extends StrictCommand>({
 	failIfLong,
 	autocompleters,
 }: {
+	/** where to register this: 'global' (even in DMs), 'all' (in each server individually), or a server id or list of server ids */
 	where: SlashCommandLocation;
-	config: Config;
-	handler: SlashCommandHandler<
-		CommandOptionsMap<Config>,
-		SubCommandsOf<Config>,
-		SubCommandGroupsOf<Config>
-	>;
+	config: SlashCommandBuilder;
+	handler:
+		| ((params: {
+				/** the guild where this command was triggered */
+				guild: Message["guild"];
+				/** the user who triggered this command */
+				user: Message["author"];
+				channel: CommandInteraction["channel"];
+				optionList: [string, number][];
+				optionDict: Record<string, number>;
+				subCommand: string | undefined;
+				subCommandGroup: string | undefined;
+		  }) => Awaitable<Sendable | EmbedBuilder | string | undefined | void>)
+		| Sendable;
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
 	failIfLong?: boolean;
@@ -120,10 +156,9 @@ export function addSlashCommand<Config extends StrictCommand>({
 }) {
 	if (where === "global") globalCommands.add(config.name);
 
-	const standardConfig = unConst(config);
 	slashCommands[config.name] = {
 		where,
-		config: standardConfig,
+		config,
 		handler,
 		ephemeral,
 		deferImmediately,
@@ -131,7 +166,7 @@ export function addSlashCommand<Config extends StrictCommand>({
 		autocompleters,
 	};
 
-	if (clientStatus.hasConnected) registerSlashCommands(where, standardConfig);
+	if (clientStatus.hasConnected) registerSlashCommands(where, config);
 	else theseStillNeedRegistering.push(config.name);
 }
 
@@ -218,7 +253,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 
 async function registerSlashCommands(
 	where: SlashCommandLocation,
-	config: ChatInputApplicationCommandData | ChatInputApplicationCommandData[]
+	config: SlashCommandBuilder | SlashCommandBuilder[]
 ) {
 	const configs = arrayify(config);
 
@@ -237,21 +272,21 @@ async function registerSlashCommands(
 		if (!destination) throw `couldn't resolve ${loc} to a guild`;
 
 		if (!destination.commands.cache.size) await (destination as Guild).commands.fetch();
-		const cache = [...destination.commands.cache.values()];
+		// const cache = [...destination.commands.cache.values()];
 
 		for (const conf of configs) {
-			const matchingConfig = cache.find((c) => {
-				return c.equals(conf);
-			});
-			if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
-			else
-				try {
-					await destination.commands.create(conf);
-					(registrations["success"][conf.name] ??= []).push(g(destination));
-				} catch (e) {
-					(registrations["failure"][conf.name] ??= []).push(g(destination));
-					console.log(e);
-				}
+			// const matchingConfig = cache.find((c) => {
+			// 	return c.equals(conf.toJSON());
+			// });
+			// if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
+			// else
+			try {
+				await destination.commands.create(conf.toJSON());
+				(registrations["success"][conf.name] ??= []).push(g(destination));
+			} catch (e) {
+				(registrations["failure"][conf.name] ??= []).push(g(destination));
+				console.log(e);
+			}
 		}
 	}
 }
