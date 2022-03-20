@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, SelectMenuBuilder, } from "discord.js";
 import { escMarkdown } from "one-stone/string";
-import { sendableToInteractionReplyOptions, sendableToMessageOptions, } from "../utils/misc.js";
+import { sendableToInteractionReplyOptions, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";

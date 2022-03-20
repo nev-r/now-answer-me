@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageComponentInteraction, TextBasedChannel, User } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageActionRowComponentBuilder, MessageComponentInteraction, TextBasedChannel, User } from "discord.js";
 import { Sendable } from "../types/types-bot.js";
 import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
@@ -60,6 +60,6 @@ export declare function createComponentButtons({ interactionID, buttons, ...hand
 export declare function createComponentSelects({ interactionID, selects, ...handlingData }: {
     selects: InteractionSelect | InteractionSelect[];
     interactionID: string;
-} & ComponentInteractionHandlingData): ActionRowBuilder[];
+} & ComponentInteractionHandlingData): ActionRowBuilder<MessageActionRowComponentBuilder>[];
 export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<void>;
 export {};

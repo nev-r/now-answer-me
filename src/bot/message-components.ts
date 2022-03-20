@@ -5,6 +5,7 @@ import {
 	ButtonStyle,
 	EmbedBuilder,
 	Guild,
+	MessageActionRowComponentBuilder,
 	MessageComponentInteraction,
 	SelectMenuBuilder,
 	TextBasedChannel,
@@ -14,10 +15,7 @@ import { escMarkdown } from "one-stone/string";
 import { Sendable } from "../types/types-bot.js";
 import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
-import {
-	sendableToInteractionReplyOptions,
-	sendableToMessageOptions,
-} from "../utils/misc.js";
+import { sendableToInteractionReplyOptions, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { ComponentParams, deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
@@ -113,7 +111,7 @@ export function createComponentSelects({
 }: {
 	selects: InteractionSelect | InteractionSelect[];
 	interactionID: string;
-} & ComponentInteractionHandlingData): ActionRowBuilder[] {
+} & ComponentInteractionHandlingData) {
 	componentInteractions[interactionID] = handlingData;
 	const nestedSelects = arrayify(selects);
 
@@ -128,7 +126,7 @@ export function createComponentSelects({
 		s.minValues && select.setMinValues(s.minValues);
 		select.setOptions(...s.options);
 
-		return new ActionRowBuilder().addComponents(select);
+		return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(select);
 	});
 }
 
