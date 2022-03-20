@@ -1,6 +1,6 @@
 import {
 	CommandInteraction,
-	Embed,
+	EmbedBuilder,
 	Emoji,
 	InteractionReplyOptions,
 	Message,
@@ -83,7 +83,7 @@ export type SlashCommandHandler<
 > =
 	| ((
 			params: SlashCommandParams<SelectedOptionMap, SelectedSubcommand, SelectedSubcommandGroup>
-	  ) => Awaitable<InteractionReplyOptions | Embed | string | undefined | void>)
+	  ) => Awaitable<InteractionReplyOptions | EmbedBuilder | string | undefined | void>)
 	| Sendable;
 
 /**

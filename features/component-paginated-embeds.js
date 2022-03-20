@@ -1,5 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, SelectMenuBuilder, } from "@discordjs/builders";
-import { Embed, ButtonStyle, ComponentType, } from "discord.js";
+import { ButtonStyle, ComponentType, ActionRowBuilder, EmbedBuilder, ButtonBuilder, SelectMenuBuilder, } from "discord.js";
 import { serialize } from "../bot/component-id-parser.js";
 import { componentInteractions, lock, lockEmoji, wastebasket, wastebasketEmoji, } from "../bot/message-components.js";
 const paginationInteractionID = "\u2409"; // ␉
@@ -35,7 +34,7 @@ function generatePage(paginatorName, currentPageNum, seed, includeLock, includeR
 async function finalizeContent(paginatorName, selectionNumber, seed) {
     const finalizer = getFinalizer(paginatorName);
     const finalContent = await finalizer(selectionNumber, seed);
-    if (finalContent instanceof Embed)
+    if (finalContent instanceof EmbedBuilder)
         return { embeds: [finalContent], components: [] };
     return finalContent;
 }
@@ -63,19 +62,19 @@ function generatePageControls(paginatorID, currentPageNum, totalPages, seed, inc
     const components = [
         new ButtonBuilder({
             style: ButtonStyle.Primary,
-            custom_id: prevCustomID,
+            customId: prevCustomID,
             emoji: leftArrowEmoji,
         }),
         new ButtonBuilder({
             style: ButtonStyle.Secondary,
-            custom_id: " ",
+            customId: " ",
             label: pageLabel,
             disabled: true,
         }),
         new ButtonBuilder({
             type: ComponentType.Button,
             style: ButtonStyle.Primary,
-            custom_id: nextCustomID,
+            customId: nextCustomID,
             emoji: rightArrowEmoji,
         }),
     ];
@@ -83,14 +82,14 @@ function generatePageControls(paginatorID, currentPageNum, totalPages, seed, inc
         components.push(new ButtonBuilder({
             type: ComponentType.Button,
             style: ButtonStyle.Success,
-            custom_id: lock,
+            customId: lock,
             emoji: lockEmoji,
         }));
     if (includeRemove)
         components.push(new ButtonBuilder({
             type: ComponentType.Button,
             style: ButtonStyle.Danger,
-            custom_id: wastebasket,
+            customId: wastebasket,
             emoji: wastebasketEmoji,
         }));
     return new ActionRowBuilder().setComponents(...components);

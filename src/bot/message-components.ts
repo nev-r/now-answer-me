@@ -3,11 +3,14 @@ import {
 	APISelectMenuOption,
 	ButtonBuilder,
 	ButtonStyle,
-	Embed,
+	EmbedBuilder,
 	Guild,
 	InteractionReplyOptions,
+	MessageActionRowComponentBuilder,
 	MessageComponentInteraction,
+	SelectMenuBuilder,
 	TextBasedChannel,
+	TextInputBuilder,
 	User,
 } from "discord.js";
 import { escMarkdown } from "one-stone/string";
@@ -25,7 +28,6 @@ import { ComponentParams, deserialize, serialize } from "./component-id-parser.j
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 // import { updateComponent } from "../utils/raw-utils.js";
 import { client } from "./index.js";
-import { SelectMenuBuilder } from "@discordjs/builders";
 import { APIMessageComponentEmoji } from "discord.js/node_modules/discord-api-types/v9";
 
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
@@ -86,7 +88,7 @@ export function createComponentButtons({
 }: {
 	buttons: InteractionButton | InteractionButton[] | InteractionButton[][];
 	interactionID: string;
-} & ComponentInteractionHandlingData) {
+} & ComponentInteractionHandlingData): ActionRowBuilder[] {
 	componentInteractions[interactionID] = handlingData;
 	const nestedButtons: InteractionButton[][] = Array.isArray(buttons)
 		? Array.isArray(buttons[0])
@@ -117,7 +119,7 @@ export function createComponentSelects({
 }: {
 	selects: InteractionSelect | InteractionSelect[];
 	interactionID: string;
-} & ComponentInteractionHandlingData) {
+} & ComponentInteractionHandlingData): ActionRowBuilder[] {
 	componentInteractions[interactionID] = handlingData;
 	const nestedSelects = arrayify(selects);
 
@@ -170,7 +172,7 @@ export async function routeComponentInteraction(
 		}
 
 		try {
-			let results: Sendable | Embed | string | void | Message | undefined;
+			let results: Sendable | EmbedBuilder | string | void | Message | undefined;
 			if (typeof handler === "function") {
 				const channel =
 					interaction.channel ??

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, SelectMenuBuilder, } from "discord.js";
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions, sendableToMessageOptions, } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
@@ -6,7 +6,6 @@ import { deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 // import { updateComponent } from "../utils/raw-utils.js";
 import { client } from "./index.js";
-import { SelectMenuBuilder } from "@discordjs/builders";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const wastebasketEmoji = { name: String.fromCodePoint(0x1f5d1) }; // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒

@@ -1,10 +1,10 @@
 /// <reference types="node" />
-import { Client, ChannelResolvable, GuildEmoji, GuildResolvable, MessageResolvable, UserResolvable, GuildEmojiManager, Snowflake, CommandInteraction, MessageComponentInteraction, Embed } from "discord.js";
+import { Client, ChannelResolvable, GuildEmoji, GuildResolvable, MessageResolvable, UserResolvable, GuildEmojiManager, Snowflake, CommandInteraction, MessageComponentInteraction, EmbedBuilder } from "discord.js";
 import { Sendable } from "../types/types-discord.js";
 export declare function buildEmojiDictUsingClient(client: Client, guilds: GuildResolvable | GuildResolvable[]): NodeJS.Dict<GuildEmoji>;
-export declare function sendMessageUsingClient(client: Client, channel: ChannelResolvable, content: string | Embed, publish?: boolean): Promise<import("discord.js").Message<boolean>>;
+export declare function sendMessageUsingClient(client: Client, channel: ChannelResolvable, content: string | EmbedBuilder, publish?: boolean): Promise<import("discord.js").Message<boolean>>;
 export declare function getDMChannelUsingClient(client: Client, user: UserResolvable): Promise<import("discord.js").DMChannel>;
-export declare function editMessageUsingClient(client: Client, channel: ChannelResolvable, message: MessageResolvable, content: string | Embed): Promise<import("discord.js").Message<boolean>>;
+export declare function editMessageUsingClient(client: Client, channel: ChannelResolvable, message: MessageResolvable, content: string | EmbedBuilder): Promise<import("discord.js").Message<boolean>>;
 export declare function publishMessageUsingClient(client: Client, channel: ChannelResolvable, message: MessageResolvable): Promise<import("discord.js").Message<boolean>>;
 declare type EmojiAttachment = Parameters<GuildEmojiManager["create"]>[0];
 declare type EmojiName = Parameters<GuildEmojiManager["create"]>[1];

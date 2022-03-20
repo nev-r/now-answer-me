@@ -46,7 +46,7 @@ export async function editMessageUsingClient(client, channel, message, content) 
     const messageToEdit = await resolvedChannel.messages.fetch(normalizeID(message));
     if (!messageToEdit)
         throw new Error(`couldn't find message ${message} in channel ${resolvedChannel}`);
-    await messageToEdit.edit(typeof content === "string" ? content : { embeds: [content] });
+    await messageToEdit.edit(typeof content === "string" ? content : { embeds: [content.data] });
     return messageToEdit;
 }
 export async function publishMessageUsingClient(client, channel, message) {

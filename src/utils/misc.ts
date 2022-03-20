@@ -3,7 +3,7 @@
 //
 
 import {
-	Embed,
+	EmbedBuilder,
 	InteractionReplyOptions,
 	InteractionUpdateOptions,
 	Message,
@@ -38,7 +38,7 @@ export async function delMsg(msg?: Message) {
 /** deprecated i guess */
 export async function sendMsg(channel: Message["channel"], sendable: Sendable) {
 	let toSend: MessageOptions | MessagePayload | undefined;
-	if (sendable instanceof Embed) toSend = { embeds: [sendable] };
+	if (sendable instanceof EmbedBuilder) toSend = { embeds: [sendable] };
 	else if (typeof sendable === "string") toSend = { content: sendable };
 	else toSend = sendable;
 
@@ -65,7 +65,7 @@ export async function sendMsg(channel: Message["channel"], sendable: Sendable) {
 export function sendableToMessageOptions(
 	sendable: Sendable
 ): Partial<Pick<MessageOptions, "components" | "content" | "files"> & { embeds?: APIEmbed[] }> {
-	if (sendable instanceof Embed) return { embeds: [sendable.data] };
+	if (sendable instanceof EmbedBuilder) return { embeds: [sendable.data] };
 	else if (typeof sendable === "string") return { content: sendable };
 	else {
 		const { content, embeds, components, files } = sendable;
@@ -75,17 +75,17 @@ export function sendableToMessageOptions(
 }
 
 export function sendableToInteractionReplyOptions(
-	sendable: MessageOptions | InteractionReplyOptions | Embed | string
+	sendable: MessageOptions | InteractionReplyOptions | EmbedBuilder | string
 ) {
-	if (sendable instanceof Embed) return { embeds: [sendable] };
+	if (sendable instanceof EmbedBuilder) return { embeds: [sendable] };
 	else if (typeof sendable === "string") return { content: sendable };
 	else return sendable;
 }
 
 export function sendableToInteractionUpdateOptions(
-	sendable: MessageOptions | InteractionReplyOptions | Embed | string
+	sendable: MessageOptions | InteractionReplyOptions | EmbedBuilder | string
 ): InteractionUpdateOptions {
-	if (sendable instanceof Embed) return { embeds: [sendable] };
+	if (sendable instanceof EmbedBuilder) return { embeds: [sendable.data] };
 	else if (typeof sendable === "string") return { content: sendable };
 	else
 		return {
@@ -95,8 +95,8 @@ export function sendableToInteractionUpdateOptions(
 		};
 }
 
-export function sendableToPayload(sendable: MessagePayload | Embed | string | Sendable) {
-	if (sendable instanceof Embed) return { embeds: [sendable] };
+export function sendableToPayload(sendable: MessagePayload | EmbedBuilder | string | Sendable) {
+	if (sendable instanceof EmbedBuilder) return { embeds: [sendable] };
 	else if (typeof sendable === "string") return { content: sendable };
 	else return sendable;
 }

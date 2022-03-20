@@ -1,8 +1,8 @@
 import type {
 	BufferResolvable,
 	ChannelResolvable,
+	EmbedBuilder,
 	GuildResolvable,
-	Embed,
 	MessageResolvable,
 } from "discord.js";
 import {
@@ -23,7 +23,7 @@ import { doSomethingUsingTempClient } from "../utils/temp-client.js";
 export async function sendSingleMessage(
 	apiToken: string,
 	channel: ChannelResolvable,
-	content: string | Embed,
+	content: string | EmbedBuilder,
 	publish?: boolean
 ) {
 	return doSomethingUsingTempClient(apiToken, async (client) => {
@@ -55,7 +55,7 @@ export async function editSingleMessage(
 	apiToken: string,
 	channel: ChannelResolvable,
 	messageId: MessageResolvable,
-	content: string | Embed
+	content: string | EmbedBuilder
 ) {
 	return doSomethingUsingTempClient(apiToken, async (client) => {
 		return editMessageUsingClient(client, channel, messageId, content);

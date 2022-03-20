@@ -1,19 +1,18 @@
-import { ActionRowBuilder, MessageActionRowComponentBuilder } from "@discordjs/builders";
-import { Embed, APISelectMenuOption } from "discord.js";
+import { APISelectMenuOption, ActionRowBuilder, MessageActionRowComponentBuilder, EmbedBuilder } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { Sendable } from "../types/types-discord.js";
 export declare function createPaginator({ paginatorName, getPageData, }: {
     paginatorName: string;
-    getPageData: (pageNum: number, seed?: string) => [requestedPage: Embed, totalPages: number];
+    getPageData: (pageNum: number, seed?: string) => [requestedPage: EmbedBuilder, totalPages: number];
 }): (seed?: string | undefined) => {
-    embeds: Embed[];
+    embeds: EmbedBuilder[];
     components: ActionRowBuilder<MessageActionRowComponentBuilder>[];
 };
 export declare function createPaginatedSelector({ paginatorName, getPageData, finalizer, }: {
     paginatorName: string;
-    getPageData: (pageNum: number, seed?: string) => [requestedPage: Embed, totalPages: number, selectorOptions: APISelectMenuOption[]];
+    getPageData: (pageNum: number, seed?: string) => [requestedPage: EmbedBuilder, totalPages: number, selectorOptions: APISelectMenuOption[]];
     finalizer: (selectionNumber: string, seed?: string) => Awaitable<Sendable>;
 }): (seed?: string | undefined) => {
-    embeds: Embed[];
+    embeds: EmbedBuilder[];
     components: ActionRowBuilder<MessageActionRowComponentBuilder>[];
 };

@@ -1,12 +1,12 @@
 /// <reference types="node" />
-import type { BufferResolvable, ChannelResolvable, GuildResolvable, Embed, MessageResolvable } from "discord.js";
+import type { BufferResolvable, ChannelResolvable, EmbedBuilder, GuildResolvable, MessageResolvable } from "discord.js";
 /**
  * logs into discord, sends a message to a specific channel, and logs out.
  * optionally crossposts/publishes it
  *
  * returns the message that was sent
  */
-export declare function sendSingleMessage(apiToken: string, channel: ChannelResolvable, content: string | Embed, publish?: boolean): Promise<import("discord.js").Message<boolean>>;
+export declare function sendSingleMessage(apiToken: string, channel: ChannelResolvable, content: string | EmbedBuilder, publish?: boolean): Promise<import("discord.js").Message<boolean>>;
 /**
  * logs into discord, publishes an existing message found in a specific channel, and logs out
  *
@@ -18,7 +18,7 @@ export declare function publishSingleMessage(apiToken: string, channel: ChannelR
  *
  * returns the message that was edited
  */
-export declare function editSingleMessage(apiToken: string, channel: ChannelResolvable, messageId: MessageResolvable, content: string | Embed): Promise<import("discord.js").Message<boolean>>;
+export declare function editSingleMessage(apiToken: string, channel: ChannelResolvable, messageId: MessageResolvable, content: string | EmbedBuilder): Promise<import("discord.js").Message<boolean>>;
 /**
  * logs into discord, and builds an emoji dict from a server or array of servers
  *

@@ -56,10 +56,10 @@ declare type InteractionSelect = {
 export declare function createComponentButtons({ interactionID, buttons, ...handlingData }: {
     buttons: InteractionButton | InteractionButton[] | InteractionButton[][];
     interactionID: string;
-} & ComponentInteractionHandlingData): ActionRowBuilder<import("@discordjs/builders").MessageActionRowComponentBuilder | import("@discordjs/builders").TextInputBuilder>[];
+} & ComponentInteractionHandlingData): ActionRowBuilder[];
 export declare function createComponentSelects({ interactionID, selects, ...handlingData }: {
     selects: InteractionSelect | InteractionSelect[];
     interactionID: string;
-} & ComponentInteractionHandlingData): ActionRowBuilder<import("@discordjs/builders").MessageActionRowComponentBuilder | import("@discordjs/builders").TextInputBuilder>[];
+} & ComponentInteractionHandlingData): ActionRowBuilder[];
 export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<void>;
 export {};

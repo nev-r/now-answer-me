@@ -14,11 +14,7 @@ import {
 	Snowflake,
 	CommandInteraction,
 	MessageComponentInteraction,
-	ChannelType,
-	Embed,
-	InteractionReplyOptions,
-	MessageOptions,
-	InteractionUpdateOptions,
+	EmbedBuilder,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
@@ -44,7 +40,7 @@ export function buildEmojiDictUsingClient(
 export async function sendMessageUsingClient(
 	client: Client,
 	channel: ChannelResolvable,
-	content: string | Embed,
+	content: string | EmbedBuilder,
 	publish?: boolean
 ) {
 	const resolvedChannel = await client.channels.fetch(normalizeID(channel));
@@ -72,7 +68,7 @@ export async function editMessageUsingClient(
 	client: Client,
 	channel: ChannelResolvable,
 	message: MessageResolvable,
-	content: string | Embed
+	content: string | EmbedBuilder
 ) {
 	const resolvedChannel = await client.channels.fetch(normalizeID(channel));
 	if (!resolvedChannel)
@@ -81,7 +77,7 @@ export async function editMessageUsingClient(
 	const messageToEdit = await resolvedChannel.messages.fetch(normalizeID(message));
 	if (!messageToEdit)
 		throw new Error(`couldn't find message ${message} in channel ${resolvedChannel}`);
-	await messageToEdit.edit(typeof content === "string" ? content : { embeds: [content] });
+	await messageToEdit.edit(typeof content === "string" ? content : { embeds: [content.data] });
 	return messageToEdit;
 }
 

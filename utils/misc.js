@@ -1,7 +1,7 @@
 //
 // delayed resolvers
 //
-import { Embed, } from "discord.js";
+import { EmbedBuilder, } from "discord.js";
 /** try to do whatever func wants to do, but delete msg if there's an error */
 export async function bugOut(msg, func) {
     try {
@@ -24,7 +24,7 @@ export async function delMsg(msg) {
 /** deprecated i guess */
 export async function sendMsg(channel, sendable) {
     let toSend;
-    if (sendable instanceof Embed)
+    if (sendable instanceof EmbedBuilder)
         toSend = { embeds: [sendable] };
     else if (typeof sendable === "string")
         toSend = { content: sendable };
@@ -51,7 +51,7 @@ export async function sendMsg(channel, sendable) {
 //   flags?: BitFieldResolvable<Extract<MessageFlagsString, 'SuppressEmbeds'>, number>;
 // }
 export function sendableToMessageOptions(sendable) {
-    if (sendable instanceof Embed)
+    if (sendable instanceof EmbedBuilder)
         return { embeds: [sendable.data] };
     else if (typeof sendable === "string")
         return { content: sendable };
@@ -62,7 +62,7 @@ export function sendableToMessageOptions(sendable) {
     }
 }
 export function sendableToInteractionReplyOptions(sendable) {
-    if (sendable instanceof Embed)
+    if (sendable instanceof EmbedBuilder)
         return { embeds: [sendable] };
     else if (typeof sendable === "string")
         return { content: sendable };
@@ -70,8 +70,8 @@ export function sendableToInteractionReplyOptions(sendable) {
         return sendable;
 }
 export function sendableToInteractionUpdateOptions(sendable) {
-    if (sendable instanceof Embed)
-        return { embeds: [sendable] };
+    if (sendable instanceof EmbedBuilder)
+        return { embeds: [sendable.data] };
     else if (typeof sendable === "string")
         return { content: sendable };
     else
@@ -82,7 +82,7 @@ export function sendableToInteractionUpdateOptions(sendable) {
         };
 }
 export function sendableToPayload(sendable) {
-    if (sendable instanceof Embed)
+    if (sendable instanceof EmbedBuilder)
         return { embeds: [sendable] };
     else if (typeof sendable === "string")
         return { content: sendable };

@@ -1,18 +1,12 @@
 import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	MessageActionRowComponentBuilder,
-	SelectMenuBuilder,
-} from "@discordjs/builders";
-import {
-	InteractionReplyOptions,
-	ActionRow,
-	ButtonComponent,
-	Embed,
-	SelectMenuComponent,
 	ButtonStyle,
 	ComponentType,
 	APISelectMenuOption,
+	ActionRowBuilder,
+	MessageActionRowComponentBuilder,
+	EmbedBuilder,
+	ButtonBuilder,
+	SelectMenuBuilder,
 } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { serialize } from "../bot/component-id-parser.js";
@@ -85,7 +79,7 @@ function generatePage(
 async function finalizeContent(paginatorName: string, selectionNumber: string, seed?: string) {
 	const finalizer = getFinalizer(paginatorName);
 	const finalContent = await finalizer(selectionNumber, seed);
-	if (finalContent instanceof Embed) return { embeds: [finalContent], components: [] };
+	if (finalContent instanceof EmbedBuilder) return { embeds: [finalContent], components: [] };
 	return finalContent;
 }
 
@@ -120,19 +114,19 @@ function generatePageControls(
 	const components = [
 		new ButtonBuilder({
 			style: ButtonStyle.Primary,
-			custom_id: prevCustomID,
+			customId: prevCustomID,
 			emoji: leftArrowEmoji,
 		}),
 		new ButtonBuilder({
 			style: ButtonStyle.Secondary,
-			custom_id: " ",
+			customId: " ",
 			label: pageLabel,
 			disabled: true,
 		}),
 		new ButtonBuilder({
 			type: ComponentType.Button,
 			style: ButtonStyle.Primary,
-			custom_id: nextCustomID,
+			customId: nextCustomID,
 			emoji: rightArrowEmoji,
 		}),
 	];
@@ -141,7 +135,7 @@ function generatePageControls(
 			new ButtonBuilder({
 				type: ComponentType.Button,
 				style: ButtonStyle.Success,
-				custom_id: lock,
+				customId: lock,
 				emoji: lockEmoji,
 			})
 		);
@@ -150,7 +144,7 @@ function generatePageControls(
 			new ButtonBuilder({
 				type: ComponentType.Button,
 				style: ButtonStyle.Danger,
-				custom_id: wastebasket,
+				customId: wastebasket,
 				emoji: wastebasketEmoji,
 			})
 		);
@@ -211,11 +205,11 @@ const paginationSchemes: NodeJS.Dict<
 	(
 		pageNum: number,
 		seed?: string
-	) => [requestedPage: Embed, totalPages: number, selectorOptions?: APISelectMenuOption[]]
+	) => [requestedPage: EmbedBuilder, totalPages: number, selectorOptions?: APISelectMenuOption[]]
 > = {};
 
 const finalizers: NodeJS.Dict<
-	(selectionNumber: string, seed?: string) => Awaitable<Sendable | Embed>
+	(selectionNumber: string, seed?: string) => Awaitable<Sendable | EmbedBuilder>
 > = {};
 
 export function createPaginator({
@@ -223,7 +217,10 @@ export function createPaginator({
 	getPageData,
 }: {
 	paginatorName: string;
-	getPageData: (pageNum: number, seed?: string) => [requestedPage: Embed, totalPages: number];
+	getPageData: (
+		pageNum: number,
+		seed?: string
+	) => [requestedPage: EmbedBuilder, totalPages: number];
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationInteractionID] = paginationHandler;
@@ -242,7 +239,7 @@ export function createPaginatedSelector({
 	getPageData: (
 		pageNum: number,
 		seed?: string
-	) => [requestedPage: Embed, totalPages: number, selectorOptions: APISelectMenuOption[]];
+	) => [requestedPage: EmbedBuilder, totalPages: number, selectorOptions: APISelectMenuOption[]];
 	finalizer: (selectionNumber: string, seed?: string) => Awaitable<Sendable>;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
