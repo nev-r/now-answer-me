@@ -14,8 +14,8 @@ export declare function addSlashCommand({ where, config, handler, ephemeral, def
         /** the user who triggered this command */
         user: Message["author"];
         channel: CommandInteraction["channel"];
-        optionList: [string, number][];
-        optionDict: Record<string, number>;
+        optionList: [string, any][];
+        optionDict: Record<string, any>;
         subCommand: string | undefined;
         subCommandGroup: string | undefined;
     }) => Awaitable<Sendable | EmbedBuilder | string | undefined | void>) | Sendable;
