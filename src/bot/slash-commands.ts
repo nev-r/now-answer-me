@@ -30,12 +30,13 @@ import type {
 } from "../types/the-option-understander-has-signed-on.js";
 import { client, clientReady, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
+import {} from "@discordjs/builders";
 import { Awaitable } from "one-stone/types";
+import { RESTPostAPIApplicationCommandsJSONBody } from "discord.js/node_modules/discord-api-types/v9";
 
 const slashCommands: NodeJS.Dict<{
 	where: SlashCommandLocation;
-	config: SlashCommandBuilder;
+	config: RESTPostAPIApplicationCommandsJSONBody;
 	handler:
 		| ((params: {
 				/** the guild where this command was triggered */
@@ -133,7 +134,7 @@ export function addSlashCommand({
 }: {
 	/** where to register this: 'global' (even in DMs), 'all' (in each server individually), or a server id or list of server ids */
 	where: SlashCommandLocation;
-	config: SlashCommandBuilder;
+	config: RESTPostAPIApplicationCommandsJSONBody;
 	handler:
 		| ((params: {
 				/** the guild where this command was triggered */
@@ -253,7 +254,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 
 async function registerSlashCommands(
 	where: SlashCommandLocation,
-	config: SlashCommandBuilder | SlashCommandBuilder[]
+	config: RESTPostAPIApplicationCommandsJSONBody | RESTPostAPIApplicationCommandsJSONBody[]
 ) {
 	const configs = arrayify(config);
 
@@ -281,7 +282,7 @@ async function registerSlashCommands(
 			// if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
 			// else
 			try {
-				await destination.commands.create(conf.toJSON());
+				await destination.commands.create(conf);
 				(registrations["success"][conf.name] ??= []).push(g(destination));
 			} catch (e) {
 				(registrations["failure"][conf.name] ??= []).push(g(destination));

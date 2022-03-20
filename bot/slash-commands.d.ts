@@ -1,13 +1,13 @@
 /// <reference types="node" />
 import { AutocompleteInteraction, CommandInteraction, ContextMenuCommandInteraction, EmbedBuilder, GuildResolvable, Message } from "discord.js";
 import type { AutocompleteParams, Sendable, SlashCommandLocation } from "../types/types-bot.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
 import { Awaitable } from "one-stone/types";
+import { RESTPostAPIApplicationCommandsJSONBody } from "discord.js/node_modules/discord-api-types/v9";
 export declare function registerCommandsOnConnect(): Promise<void>;
 export declare function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }: {
     /** where to register this: 'global' (even in DMs), 'all' (in each server individually), or a server id or list of server ids */
     where: SlashCommandLocation;
-    config: SlashCommandBuilder;
+    config: RESTPostAPIApplicationCommandsJSONBody;
     handler: ((params: {
         /** the guild where this command was triggered */
         guild: Message["guild"];

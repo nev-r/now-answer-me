@@ -185,7 +185,7 @@ async function registerSlashCommands(where, config) {
             // if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
             // else
             try {
-                await destination.commands.create(conf.toJSON());
+                await destination.commands.create(conf);
                 ((_a = registrations["success"])[_b = conf.name] ?? (_a[_b] = [])).push(g(destination));
             }
             catch (e) {
