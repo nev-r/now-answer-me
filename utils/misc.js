@@ -32,13 +32,34 @@ export async function sendMsg(channel, sendable) {
         toSend = sendable;
     return channel.send(toSend);
 }
+// {
+//   tts?: boolean;
+//   nonce?: string | number;
+//   content?: string | null;
+//   embeds?: (JSONEncodable<APIEmbed> | APIEmbed)[];
+//   components?: (
+//     | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+//     | ActionRow<MessageActionRowComponent>
+//     | (Required<BaseComponentData> & ActionRowData<MessageActionRowComponentData | MessageActionRowComponent>)
+//     | APIActionRowComponent<APIMessageActionRowComponent>
+//   )[];
+//   allowedMentions?: MessageMentionOptions;
+//   files?: (FileOptions | BufferResolvable | Stream | MessageAttachment)[];
+//   reply?: ReplyOptions;
+//   stickers?: StickerResolvable[];
+//   attachments?: MessageAttachment[];
+//   flags?: BitFieldResolvable<Extract<MessageFlagsString, 'SuppressEmbeds'>, number>;
+// }
 export function sendableToMessageOptions(sendable) {
     if (sendable instanceof Embed)
-        return { embeds: [sendable] };
+        return { embeds: [sendable.data] };
     else if (typeof sendable === "string")
         return { content: sendable };
-    else
-        return sendable;
+    else {
+        const { content, embeds, components, files } = sendable;
+        const embeds2 = embeds?.map((e) => ("toJSON" in e ? e.toJSON() : e));
+        return { content, embeds: embeds2, components, files };
+    }
 }
 export function sendableToInteractionReplyOptions(sendable) {
     if (sendable instanceof Embed)
@@ -47,6 +68,18 @@ export function sendableToInteractionReplyOptions(sendable) {
         return { content: sendable };
     else
         return sendable;
+}
+export function sendableToInteractionUpdateOptions(sendable) {
+    if (sendable instanceof Embed)
+        return { embeds: [sendable] };
+    else if (typeof sendable === "string")
+        return { content: sendable };
+    else
+        return {
+            ...sendable,
+            embeds: sendable.embeds?.map((e) => ("toJSON" in e ? e.toJSON() : e)),
+            flags: undefined,
+        };
 }
 export function sendableToPayload(sendable) {
     if (sendable instanceof Embed)

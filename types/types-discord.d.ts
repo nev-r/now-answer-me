@@ -4,4 +4,6 @@ import type { Embed, MessageOptions } from "discord.js";
  *
  * strings, MessageOptions, embeds, attachments, arrays of the aforementioned, etc.
  */
-export declare type Sendable = Embed | MessageOptions | string;
+export declare type Sendable = Embed | (MessageOptions & {
+    ephemeral?: boolean;
+}) | string;

@@ -1,13 +1,18 @@
-import { APISelectMenuOption } from "discord-api-types";
+import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	MessageActionRowComponentBuilder,
+	SelectMenuBuilder,
+} from "@discordjs/builders";
 import {
 	InteractionReplyOptions,
 	ActionRow,
 	ButtonComponent,
 	Embed,
 	SelectMenuComponent,
-	MessageSelectOptionData,
 	ButtonStyle,
 	ComponentType,
+	APISelectMenuOption,
 } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { serialize } from "../bot/component-id-parser.js";
@@ -20,6 +25,7 @@ import {
 	wastebasket,
 	wastebasketEmoji,
 } from "../bot/message-components.js";
+import { Sendable } from "../types/types-discord.js";
 
 const paginationInteractionID = "\u2409"; // ␉
 const rightArrow = "\u27a1"; // ➡
@@ -58,7 +64,7 @@ function generatePage(
 	const paginator = getPaginator(paginatorName);
 	const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
 
-	const components: ActionRow[] = [];
+	const components: ActionRowBuilder<MessageActionRowComponentBuilder>[] = [];
 	if (totalPages > 1)
 		components.push(
 			generatePageControls(
@@ -112,20 +118,18 @@ function generatePageControls(
 	});
 	const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
 	const components = [
-		new ButtonComponent({
-			type: ComponentType.Button,
+		new ButtonBuilder({
 			style: ButtonStyle.Primary,
 			custom_id: prevCustomID,
 			emoji: leftArrowEmoji,
 		}),
-		new ButtonComponent({
-			type: ComponentType.Button,
+		new ButtonBuilder({
 			style: ButtonStyle.Secondary,
 			custom_id: " ",
 			label: pageLabel,
 			disabled: true,
 		}),
-		new ButtonComponent({
+		new ButtonBuilder({
 			type: ComponentType.Button,
 			style: ButtonStyle.Primary,
 			custom_id: nextCustomID,
@@ -134,7 +138,7 @@ function generatePageControls(
 	];
 	if (includeLock)
 		components.push(
-			new ButtonComponent({
+			new ButtonBuilder({
 				type: ComponentType.Button,
 				style: ButtonStyle.Success,
 				custom_id: lock,
@@ -143,7 +147,7 @@ function generatePageControls(
 		);
 	if (includeRemove)
 		components.push(
-			new ButtonComponent({
+			new ButtonBuilder({
 				type: ComponentType.Button,
 				style: ButtonStyle.Danger,
 				custom_id: wastebasket,
@@ -151,7 +155,7 @@ function generatePageControls(
 			})
 		);
 
-	return new ActionRow({ type: ComponentType.ActionRow, components });
+	return new ActionRowBuilder().setComponents(...components);
 }
 
 function generateSelectorControls(
@@ -166,10 +170,7 @@ function generateSelectorControls(
 		operation: "pick",
 	});
 
-	return new ActionRow({
-		type: ComponentType.ActionRow,
-		components: [new SelectMenuComponent({ type: ComponentType.SelectMenu, options, custom_id })],
-	});
+	return new ActionRowBuilder().setComponents(new SelectMenuBuilder({ options, custom_id }));
 }
 
 function generateInitialPagination(
@@ -214,7 +215,7 @@ const paginationSchemes: NodeJS.Dict<
 > = {};
 
 const finalizers: NodeJS.Dict<
-	(selectionNumber: string, seed?: string) => Awaitable<InteractionReplyOptions | Embed>
+	(selectionNumber: string, seed?: string) => Awaitable<Sendable | Embed>
 > = {};
 
 export function createPaginator({
@@ -242,7 +243,7 @@ export function createPaginatedSelector({
 		pageNum: number,
 		seed?: string
 	) => [requestedPage: Embed, totalPages: number, selectorOptions: APISelectMenuOption[]];
-	finalizer: (selectionNumber: string, seed?: string) => Awaitable<InteractionReplyOptions | Embed>;
+	finalizer: (selectionNumber: string, seed?: string) => Awaitable<Sendable>;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
 	componentInteractions[paginationInteractionID] = paginationHandler;

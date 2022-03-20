@@ -14,7 +14,6 @@ export declare function uploadEmojisUsingClient(client: Client, guild: GuildReso
 }[]): Promise<Record<string, GuildEmoji>>;
 export declare function announceToChannels(client: Client, message: Sendable, channelIds: Snowflake | Snowflake[]): (false | Promise<import("discord.js").Message<boolean>> | undefined)[];
 export declare function replyOrEdit(interaction: CommandInteraction | MessageComponentInteraction, content: Parameters<CommandInteraction["reply"]>[0] | Parameters<CommandInteraction["editReply"]>[0]): Promise<void>;
-export declare function updateComponent(interaction: MessageComponentInteraction, content: Parameters<MessageComponentInteraction["editReply"]>[0]): Promise<void>;
 /**
  * provide in-discord feedback to an interaction,
  * whether that's an initial reply, an edit to a deferral,

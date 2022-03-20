@@ -1,4 +1,5 @@
-import { ActionRow, ButtonComponent, Embed, SelectMenuComponent, } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, SelectMenuBuilder, } from "@discordjs/builders";
+import { Embed, ButtonStyle, ComponentType, } from "discord.js";
 import { serialize } from "../bot/component-id-parser.js";
 import { componentInteractions, lock, lockEmoji, wastebasket, wastebasketEmoji, } from "../bot/message-components.js";
 const paginationInteractionID = "\u2409"; // ␉
@@ -60,41 +61,39 @@ function generatePageControls(paginatorID, currentPageNum, totalPages, seed, inc
     });
     const pageLabel = `${currentPageNum + 1} / ${totalPages}`;
     const components = [
-        new ButtonComponent({
-            type: 2 /* Button */,
-            style: 1 /* Primary */,
+        new ButtonBuilder({
+            style: ButtonStyle.Primary,
             custom_id: prevCustomID,
             emoji: leftArrowEmoji,
         }),
-        new ButtonComponent({
-            type: 2 /* Button */,
-            style: 2 /* Secondary */,
+        new ButtonBuilder({
+            style: ButtonStyle.Secondary,
             custom_id: " ",
             label: pageLabel,
             disabled: true,
         }),
-        new ButtonComponent({
-            type: 2 /* Button */,
-            style: 1 /* Primary */,
+        new ButtonBuilder({
+            type: ComponentType.Button,
+            style: ButtonStyle.Primary,
             custom_id: nextCustomID,
             emoji: rightArrowEmoji,
         }),
     ];
     if (includeLock)
-        components.push(new ButtonComponent({
-            type: 2 /* Button */,
-            style: 3 /* Success */,
+        components.push(new ButtonBuilder({
+            type: ComponentType.Button,
+            style: ButtonStyle.Success,
             custom_id: lock,
             emoji: lockEmoji,
         }));
     if (includeRemove)
-        components.push(new ButtonComponent({
-            type: 2 /* Button */,
-            style: 4 /* Danger */,
+        components.push(new ButtonBuilder({
+            type: ComponentType.Button,
+            style: ButtonStyle.Danger,
             custom_id: wastebasket,
             emoji: wastebasketEmoji,
         }));
-    return new ActionRow({ type: 1 /* ActionRow */, components });
+    return new ActionRowBuilder().setComponents(...components);
 }
 function generateSelectorControls(paginatorID, options, seed) {
     const custom_id = serialize({
@@ -103,10 +102,7 @@ function generateSelectorControls(paginatorID, options, seed) {
         seed,
         operation: "pick",
     });
-    return new ActionRow({
-        type: 1 /* ActionRow */,
-        components: [new SelectMenuComponent({ type: 3 /* SelectMenu */, options, custom_id })],
-    });
+    return new ActionRowBuilder().setComponents(new SelectMenuBuilder({ options, custom_id }));
 }
 function generateInitialPagination(paginatorName, seed, includeLock, includeRemove) {
     return generatePage(paginatorName, 0, seed, includeLock, includeRemove);

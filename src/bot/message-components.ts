@@ -1,15 +1,12 @@
 import {
-	ActionRow,
-	ButtonComponent,
+	ActionRowBuilder,
+	APISelectMenuOption,
+	ButtonBuilder,
 	ButtonStyle,
-	ComponentType,
 	Embed,
-	EmojiIdentifierResolvable,
 	Guild,
 	InteractionReplyOptions,
 	MessageComponentInteraction,
-	MessageSelectOptionData,
-	SelectMenuComponent,
 	TextBasedChannel,
 	User,
 } from "discord.js";
@@ -17,17 +14,24 @@ import { escMarkdown } from "one-stone/string";
 import { Sendable } from "../types/types-bot.js";
 import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
-import { sendableToInteractionReplyOptions, sendableToPayload } from "../utils/misc.js";
+import {
+	sendableToInteractionReplyOptions,
+	sendableToInteractionUpdateOptions,
+	sendableToMessageOptions,
+	sendableToPayload,
+} from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { ComponentParams, deserialize, serialize } from "./component-id-parser.js";
-import { forceFeedback, replyOrEdit, updateComponent } from "../utils/raw-utils.js";
+import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
+// import { updateComponent } from "../utils/raw-utils.js";
 import { client } from "./index.js";
-import { APIMessageComponentEmoji, APISelectMenuOption } from "discord-api-types";
+import { SelectMenuBuilder } from "@discordjs/builders";
+import { APIMessageComponentEmoji } from "discord.js/node_modules/discord-api-types/v9";
 
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
-export const wastebasketEmoji = {name:String.fromCodePoint(0x1f5d1)}; // 🗑
+export const wastebasketEmoji = { name: String.fromCodePoint(0x1f5d1) }; // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
-export const lockEmoji = {name:String.fromCodePoint(0x1f512)}; // 🔒
+export const lockEmoji = { name: String.fromCodePoint(0x1f512) }; // 🔒
 
 export type ComponentInteractionHandlingData = {
 	handler:
@@ -40,10 +44,11 @@ export type ComponentInteractionHandlingData = {
 				interactionID: string;
 				componentParams: ComponentParams;
 				values?: string[];
-		  }) => Awaitable<InteractionReplyOptions | Embed | string | undefined | void>);
+		  }) => Awaitable<Sendable | undefined | void>);
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
 	allowTimeout?: boolean;
+	/** send this reponse by updating the interacted message, instead of creating a new message */
 	update?: boolean;
 	public?: boolean;
 };
@@ -89,19 +94,19 @@ export function createComponentButtons({
 			: [buttons as InteractionButton[]]
 		: [[buttons]];
 
-	return nestedButtons.map(
-		(r) =>
-			new ActionRow({
-				type: ComponentType.ActionRow,
-				components: r.map((b) => {
-					const { value, ...rest } = b;
-					return new ButtonComponent({
-						type: ComponentType.Button,
-						custom_id: serialize({ interactionID, operation: value }),
-						...rest,
-					});
-				}),
+	return nestedButtons.map((r) =>
+		new ActionRowBuilder().addComponents(
+			...r.map((b) => {
+				const button = new ButtonBuilder();
+				b.emoji && button.setEmoji(b.emoji);
+				button.setDisabled(b.disabled);
+				button.setStyle(b.style);
+				b.label && button.setLabel(b.label);
+				button.setCustomId(serialize({ interactionID, operation: b.value }));
+
+				return button;
 			})
+		)
 	);
 }
 
@@ -118,11 +123,16 @@ export function createComponentSelects({
 
 	return nestedSelects.map((s) => {
 		const { controlID, ...rest } = s;
-		const custom_id = serialize({ interactionID, operation: controlID });
-		return new ActionRow({
-			type: ComponentType.ActionRow,
-			components: [new SelectMenuComponent({ type: ComponentType.SelectMenu, custom_id, ...rest })],
-		});
+		const select = new SelectMenuBuilder();
+		select.setCustomId(serialize({ interactionID, operation: controlID }));
+
+		select.setDisabled(s.disabled);
+		s.placeholder && select.setPlaceholder(s.placeholder);
+		s.maxValues && select.setMaxValues(s.maxValues);
+		s.minValues && select.setMinValues(s.minValues);
+		select.setOptions(...s.options);
+
+		return new ActionRowBuilder().addComponents(select);
 	});
 }
 
@@ -155,12 +165,12 @@ export async function routeComponentInteraction(
 			// might run past the 3 second response window
 			const deferralDelay = deferImmediately ? 0 : 2200;
 			const deferralMethod = () =>
-				update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral });
+				handlingData.update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral });
 			deferalCountdown = setTimeout(deferralMethod, deferralDelay);
 		}
 
 		try {
-			let results: Sendable | InteractionReplyOptions | Embed | string | void | Message | undefined;
+			let results: Sendable | Embed | string | void | Message | undefined;
 			if (typeof handler === "function") {
 				const channel =
 					interaction.channel ??
@@ -187,8 +197,10 @@ export async function routeComponentInteraction(
 			deferalCountdown !== undefined && clearTimeout(deferalCountdown);
 
 			if (results) {
-				if (update) {
-					await updateComponent(interaction, sendableToInteractionReplyOptions(results));
+				if (handlingData.update) {
+					if (interaction.deferred) await interaction.editReply(sendableToMessageOptions(results));
+					else await interaction.update(sendableToMessageOptions(results));
+					// await updateComponent(interaction,);
 				} else {
 					if (!interaction.replied) {
 						await replyOrEdit(interaction, {
@@ -228,7 +240,7 @@ function unhandledInteraction(interaction: MessageComponentInteraction) {
 componentInteractions[lock] = {
 	handler: async ({ message, channel }) => {
 		if (message) {
-			const returnOptions: InteractionReplyOptions = { components: [] };
+			const returnOptions: Sendable = { components: [] };
 			if (message.content) returnOptions.content = message.content;
 			if (message.embeds) returnOptions.embeds = message.embeds;
 

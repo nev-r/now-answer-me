@@ -107,9 +107,13 @@ export async function replyOrEdit(interaction, content) {
     else
         await (interaction.deferred ? interaction.editReply(content) : interaction.reply(content));
 }
-export async function updateComponent(interaction, content) {
-    await (interaction.deferred ? interaction.editReply(content) : interaction.update(content));
-}
+// export async function updateComponent(
+// 	interaction: MessageComponentInteraction,
+// 	content: Parameters<(typeof interaction)['editReply']>[0] |Parameters<(typeof interaction)["update"] >[0]
+// 	// content: MessageOptions | InteractionReplyOptions
+// ) {
+// 	await (interaction.deferred ? interaction.editReply(content) : interaction.update(content));
+// }
 /**
  * provide in-discord feedback to an interaction,
  * whether that's an initial reply, an edit to a deferral,

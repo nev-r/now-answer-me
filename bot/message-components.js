@@ -1,10 +1,12 @@
-import { ActionRow, ButtonComponent, SelectMenuComponent, } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, } from "discord.js";
 import { escMarkdown } from "one-stone/string";
-import { sendableToInteractionReplyOptions } from "../utils/misc.js";
+import { sendableToInteractionReplyOptions, sendableToMessageOptions, } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { deserialize, serialize } from "./component-id-parser.js";
-import { forceFeedback, replyOrEdit, updateComponent } from "../utils/raw-utils.js";
+import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
+// import { updateComponent } from "../utils/raw-utils.js";
 import { client } from "./index.js";
+import { SelectMenuBuilder } from "@discordjs/builders";
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const wastebasketEmoji = { name: String.fromCodePoint(0x1f5d1) }; // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
@@ -17,28 +19,29 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
             ? buttons
             : [buttons]
         : [[buttons]];
-    return nestedButtons.map((r) => new ActionRow({
-        type: 1 /* ActionRow */,
-        components: r.map((b) => {
-            const { value, ...rest } = b;
-            return new ButtonComponent({
-                type: 2 /* Button */,
-                custom_id: serialize({ interactionID, operation: value }),
-                ...rest,
-            });
-        }),
-    }));
+    return nestedButtons.map((r) => new ActionRowBuilder().addComponents(...r.map((b) => {
+        const button = new ButtonBuilder();
+        b.emoji && button.setEmoji(b.emoji);
+        button.setDisabled(b.disabled);
+        button.setStyle(b.style);
+        b.label && button.setLabel(b.label);
+        button.setCustomId(serialize({ interactionID, operation: b.value }));
+        return button;
+    })));
 }
 export function createComponentSelects({ interactionID, selects, ...handlingData }) {
     componentInteractions[interactionID] = handlingData;
     const nestedSelects = arrayify(selects);
     return nestedSelects.map((s) => {
         const { controlID, ...rest } = s;
-        const custom_id = serialize({ interactionID, operation: controlID });
-        return new ActionRow({
-            type: 1 /* ActionRow */,
-            components: [new SelectMenuComponent({ type: 3 /* SelectMenu */, custom_id, ...rest })],
-        });
+        const select = new SelectMenuBuilder();
+        select.setCustomId(serialize({ interactionID, operation: controlID }));
+        select.setDisabled(s.disabled);
+        s.placeholder && select.setPlaceholder(s.placeholder);
+        s.maxValues && select.setMaxValues(s.maxValues);
+        s.minValues && select.setMinValues(s.minValues);
+        select.setOptions(...s.options);
+        return new ActionRowBuilder().addComponents(select);
     });
 }
 export async function routeComponentInteraction(interaction) {
@@ -65,7 +68,7 @@ export async function routeComponentInteraction(interaction) {
             // otherwise, defer in 2.2 seconds if it looks like the function
             // might run past the 3 second response window
             const deferralDelay = deferImmediately ? 0 : 2200;
-            const deferralMethod = () => update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral });
+            const deferralMethod = () => handlingData.update ? interaction.deferUpdate() : interaction.deferReply({ ephemeral });
             deferalCountdown = setTimeout(deferralMethod, deferralDelay);
         }
         try {
@@ -94,8 +97,12 @@ export async function routeComponentInteraction(interaction) {
             // the response function finished. we can cancel the scheduled deferral
             deferalCountdown !== undefined && clearTimeout(deferalCountdown);
             if (results) {
-                if (update) {
-                    await updateComponent(interaction, sendableToInteractionReplyOptions(results));
+                if (handlingData.update) {
+                    if (interaction.deferred)
+                        await interaction.editReply(sendableToMessageOptions(results));
+                    else
+                        await interaction.update(sendableToMessageOptions(results));
+                    // await updateComponent(interaction,);
                 }
                 else {
                     if (!interaction.replied) {

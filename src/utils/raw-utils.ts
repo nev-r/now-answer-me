@@ -16,6 +16,9 @@ import {
 	MessageComponentInteraction,
 	ChannelType,
 	Embed,
+	InteractionReplyOptions,
+	MessageOptions,
+	InteractionUpdateOptions,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
@@ -167,12 +170,13 @@ export async function replyOrEdit(
 	} else await (interaction.deferred ? interaction.editReply(content) : interaction.reply(content));
 }
 
-export async function updateComponent(
-	interaction: MessageComponentInteraction,
-	content: Parameters<MessageComponentInteraction["editReply"]>[0]
-) {
-	await (interaction.deferred ? interaction.editReply(content) : interaction.update(content));
-}
+// export async function updateComponent(
+// 	interaction: MessageComponentInteraction,
+// 	content: Parameters<(typeof interaction)['editReply']>[0] |Parameters<(typeof interaction)["update"] >[0]
+// 	// content: MessageOptions | InteractionReplyOptions
+// ) {
+// 	await (interaction.deferred ? interaction.editReply(content) : interaction.update(content));
+// }
 
 /**
  * provide in-discord feedback to an interaction,

@@ -1,4 +1,4 @@
-import { Message, } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandPermissionType, Message, } from "discord.js";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { client, clientStatus } from "./index.js";
@@ -192,23 +192,23 @@ function createDictFromSelectedOptions(originalOptions, meta = {
 }) {
     const optionDict = {};
     for (const opt of originalOptions) {
-        if (opt.type === 1 /* Subcommand */ ||
-            opt.type === 2 /* SubcommandGroup */) {
-            if (opt.type === 1 /* Subcommand */)
+        if (opt.type === ApplicationCommandOptionType.Subcommand ||
+            opt.type === ApplicationCommandOptionType.SubcommandGroup) {
+            if (opt.type === ApplicationCommandOptionType.Subcommand)
                 meta.subCommand = opt.name;
-            if (opt.type === 2 /* SubcommandGroup */)
+            if (opt.type === ApplicationCommandOptionType.SubcommandGroup)
                 meta.subCommandGroup = opt.name;
             optionDict[opt.name] = createDictFromSelectedOptions(opt.options ? [...opt.options.values()] : [], meta).optionDict;
         }
         else {
             optionDict[opt.name] =
-                opt.type === 7 /* Channel */
+                opt.type === ApplicationCommandOptionType.Channel
                     ? opt.channel
-                    : opt.type === 6 /* User */
+                    : opt.type === ApplicationCommandOptionType.User
                         ? opt.member ?? opt.user
-                        : opt.type === 8 /* Role */
+                        : opt.type === ApplicationCommandOptionType.Role
                             ? opt.role
-                            : opt.type === 9 /* Mentionable */
+                            : opt.type === ApplicationCommandOptionType.Mentionable
                                 ? undefined
                                 : opt.value;
         }
@@ -246,7 +246,7 @@ export async function setPermittedCommandUserInGuild(commandName, guildId, userI
     }
     const permissions = users.map((u) => ({
         id: u.id,
-        type: 2 /* User */,
+        type: ApplicationCommandPermissionType.User,
         permission: true,
     }));
     command.permissions.set({ permissions });
@@ -263,7 +263,7 @@ export async function setPermittedCommandUserEverywhere(commandName, userIds) {
             continue;
         const permissions = users.map((u) => ({
             id: u.id,
-            type: 2 /* User */,
+            type: ApplicationCommandPermissionType.User,
             permission: true,
         }));
         command.permissions.set({ permissions });
