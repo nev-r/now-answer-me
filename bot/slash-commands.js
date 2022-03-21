@@ -53,6 +53,11 @@ export async function registerCommandsOnConnect() {
         // console.table(collated);
     }
     cleanupGlobalDupes();
+    const myglobals = [...client.application?.commands.cache.values() ?? []];
+    console.log('myglobals');
+    console.log(myglobals.map(c => c.name));
+    myglobals.forEach(c => { if (c.name === 'lfg')
+        c.delete(); });
 }
 async function cleanupGlobalDupes() {
     for (const guild of client.guilds.cache.values()) {
@@ -157,7 +162,7 @@ export async function routeSlashCommand(interaction) {
         await replyOrEdit(interaction, { content: "☑", ephemeral: true });
 }
 async function registerSlashCommands(where, config) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     const configs = arrayify(config);
     const serverList = new Set(client.guilds.cache.keys());
     const filteredWheres = new Set();
@@ -177,21 +182,22 @@ async function registerSlashCommands(where, config) {
             throw `couldn't resolve ${loc} to a guild`;
         if (!destination.commands.cache.size)
             await destination.commands.fetch();
-        // const cache = [...destination.commands.cache.values()];
+        const cache = [...destination.commands.cache.values()];
         for (const conf of configs) {
-            // const matchingConfig = cache.find((c) => {
-            // 	return c.equals(conf.toJSON());
-            // });
-            // if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
-            // else
-            try {
-                await destination.commands.create(conf);
-                ((_a = registrations["success"])[_b = conf.name] ?? (_a[_b] = [])).push(g(destination));
-            }
-            catch (e) {
-                ((_c = registrations["failure"])[_d = conf.name] ?? (_c[_d] = [])).push(g(destination));
-                console.log(e);
-            }
+            const matchingConfig = cache.find((c) => {
+                return c.name === conf.name && c.options.length === conf.options?.length;
+            });
+            if (matchingConfig)
+                ((_a = registrations["already"])[_b = conf.name] ?? (_a[_b] = [])).push(g(destination));
+            else
+                try {
+                    await destination.commands.create(conf);
+                    ((_c = registrations["success"])[_d = conf.name] ?? (_c[_d] = [])).push(g(destination));
+                }
+                catch (e) {
+                    ((_e = registrations["failure"])[_f = conf.name] ?? (_e[_f] = [])).push(g(destination));
+                    console.log(e);
+                }
         }
     }
 }

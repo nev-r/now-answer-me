@@ -93,7 +93,7 @@ export function createComponentButtons({
 			...r.map((b) => {
 				const button = new ButtonBuilder();
 				b.emoji && button.setEmoji(b.emoji);
-				button.setDisabled(b.disabled);
+				button.setDisabled(!!b.disabled);
 				button.setStyle(b.style);
 				b.label && button.setLabel(b.label);
 				button.setCustomId(serialize({ interactionID, operation: b.value }));
@@ -116,11 +116,10 @@ export function createComponentSelects({
 	const nestedSelects = arrayify(selects);
 
 	return nestedSelects.map((s) => {
-		const { controlID, ...rest } = s;
 		const select = new SelectMenuBuilder();
-		select.setCustomId(serialize({ interactionID, operation: controlID }));
+		select.setCustomId(serialize({ interactionID, operation: s.controlID }));
 
-		select.setDisabled(s.disabled);
+		select.setDisabled(!!s.disabled);
 		s.placeholder && select.setPlaceholder(s.placeholder);
 		s.maxValues && select.setMaxValues(s.maxValues);
 		s.minValues && select.setMinValues(s.minValues);

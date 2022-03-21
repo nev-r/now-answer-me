@@ -109,6 +109,10 @@ export async function registerCommandsOnConnect() {
 		// console.table(collated);
 	}
 	cleanupGlobalDupes();
+	const myglobals = [...client.application?.commands.cache.values()??[]];
+	console.log('myglobals');
+	console.log(myglobals.map(c=>c.name));
+	myglobals.forEach(c=>{if (c.name==='lfg') c.delete()})
 }
 
 async function cleanupGlobalDupes() {
@@ -273,21 +277,21 @@ async function registerSlashCommands(
 		if (!destination) throw `couldn't resolve ${loc} to a guild`;
 
 		if (!destination.commands.cache.size) await (destination as Guild).commands.fetch();
-		// const cache = [...destination.commands.cache.values()];
+		const cache = [...destination.commands.cache.values()];
 
 		for (const conf of configs) {
-			// const matchingConfig = cache.find((c) => {
-			// 	return c.equals(conf.toJSON());
-			// });
-			// if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
-			// else
-			try {
-				await destination.commands.create(conf);
-				(registrations["success"][conf.name] ??= []).push(g(destination));
-			} catch (e) {
-				(registrations["failure"][conf.name] ??= []).push(g(destination));
-				console.log(e);
-			}
+			const matchingConfig = cache.find((c) => {
+				return c.name === conf.name && c.options.length === conf.options?.length;
+			});
+			if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
+			else
+				try {
+					await destination.commands.create(conf);
+					(registrations["success"][conf.name] ??= []).push(g(destination));
+				} catch (e) {
+					(registrations["failure"][conf.name] ??= []).push(g(destination));
+					console.log(e);
+				}
 		}
 	}
 }
