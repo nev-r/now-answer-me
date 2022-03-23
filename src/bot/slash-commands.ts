@@ -13,6 +13,7 @@ import {
 	GuildApplicationCommandManager,
 	GuildResolvable,
 	Message,
+	ModalSubmitInteraction,
 } from "discord.js";
 import type {
 	AutocompleteParams,
@@ -30,7 +31,7 @@ import type {
 } from "../types/the-option-understander-has-signed-on.js";
 import { client, clientReady, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
-import {} from "@discordjs/builders";
+import { ModalBuilder } from "@discordjs/builders";
 import { Awaitable } from "one-stone/types";
 import { RESTPostAPIApplicationCommandsJSONBody } from "discord.js/node_modules/discord-api-types/v9";
 
@@ -48,7 +49,7 @@ const slashCommands: NodeJS.Dict<{
 				optionDict: Record<string, number>;
 				subCommand: string | undefined;
 				subCommandGroup: string | undefined;
-		  }) => Awaitable<Sendable | EmbedBuilder | string | undefined | void>)
+		  }) => Awaitable<Sendable | EmbedBuilder | ModalBuilder | string | undefined | void>)
 		| Sendable;
 	autocompleters?: NodeJS.Dict<
 		(params: AutocompleteParams) => string[] | { name: string; value: string | number }[]
@@ -109,10 +110,12 @@ export async function registerCommandsOnConnect() {
 		// console.table(collated);
 	}
 	cleanupGlobalDupes();
-	const myglobals = [...client.application?.commands.cache.values()??[]];
-	console.log('myglobals');
-	console.log(myglobals.map(c=>c.name));
-	myglobals.forEach(c=>{if (c.name==='lfg') c.delete()})
+	const myglobals = [...(client.application?.commands.cache.values() ?? [])];
+	console.log("myglobals");
+	console.log(myglobals.map((c) => c.name));
+	myglobals.forEach((c) => {
+		if (c.name === "lfg") c.delete();
+	});
 }
 
 async function cleanupGlobalDupes() {
@@ -150,7 +153,7 @@ export function addSlashCommand({
 				optionDict: Record<string, any>;
 				subCommand: string | undefined;
 				subCommandGroup: string | undefined;
-		  }) => Awaitable<Sendable | EmbedBuilder | string | undefined | void>)
+		  }) => Awaitable<Sendable | EmbedBuilder | ModalBuilder | string | undefined | void>)
 		| Sendable;
 	ephemeral?: boolean;
 	deferImmediately?: boolean;
@@ -216,7 +219,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 		);
 	}
 	try {
-		let results: Sendable | Message | undefined;
+		let results: Sendable | Message | ModalBuilder | undefined;
 		if (typeof handler === "function") {
 			const { guild, channel, user } = interaction;
 			const { optionDict, subCommand, subCommandGroup } = createDictFromSelectedOptions([
@@ -238,14 +241,19 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 			results = handler;
 		}
 		deferalCountdown && clearTimeout(deferalCountdown);
-		if (results && !(results instanceof Message)) {
-			if (interaction.replied)
-				console.log(`${interaction.commandName}: this interaction was already replied to??`);
-			else
-				await replyOrEdit(interaction, {
-					ephemeral,
-					...sendableToInteractionReplyOptions(results),
-				});
+		if (results) {
+			if (results instanceof ModalBuilder) {
+				await interaction.showModal(results);
+			} else if (results instanceof Message) {
+			} else {
+				if (interaction.replied)
+					console.log(`${interaction.commandName}: this interaction was already replied to??`);
+				else
+					await replyOrEdit(interaction, {
+						ephemeral,
+						...sendableToInteractionReplyOptions(results),
+					});
+			}
 		}
 	} catch (e) {
 		deferalCountdown && clearTimeout(deferalCountdown);
@@ -255,6 +263,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 	deferalCountdown && clearTimeout(deferalCountdown);
 	if (!interaction.replied) await replyOrEdit(interaction, { content: "☑", ephemeral: true });
 }
+
 
 async function registerSlashCommands(
 	where: SlashCommandLocation,

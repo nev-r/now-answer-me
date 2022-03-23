@@ -3,6 +3,7 @@ import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { client, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
+import { ModalBuilder } from "@discordjs/builders";
 const slashCommands = {};
 // const slashCommands: NodeJS.Dict<{
 // 	where: SlashCommandLocation;
@@ -53,11 +54,13 @@ export async function registerCommandsOnConnect() {
         // console.table(collated);
     }
     cleanupGlobalDupes();
-    const myglobals = [...client.application?.commands.cache.values() ?? []];
-    console.log('myglobals');
-    console.log(myglobals.map(c => c.name));
-    myglobals.forEach(c => { if (c.name === 'lfg')
-        c.delete(); });
+    const myglobals = [...(client.application?.commands.cache.values() ?? [])];
+    console.log("myglobals");
+    console.log(myglobals.map((c) => c.name));
+    myglobals.forEach((c) => {
+        if (c.name === "lfg")
+            c.delete();
+    });
 }
 async function cleanupGlobalDupes() {
     for (const guild of client.guilds.cache.values()) {
@@ -142,14 +145,21 @@ export async function routeSlashCommand(interaction) {
             results = handler;
         }
         deferalCountdown && clearTimeout(deferalCountdown);
-        if (results && !(results instanceof Message)) {
-            if (interaction.replied)
-                console.log(`${interaction.commandName}: this interaction was already replied to??`);
-            else
-                await replyOrEdit(interaction, {
-                    ephemeral,
-                    ...sendableToInteractionReplyOptions(results),
-                });
+        if (results) {
+            if (results instanceof ModalBuilder) {
+                await interaction.showModal(results);
+            }
+            else if (results instanceof Message) {
+            }
+            else {
+                if (interaction.replied)
+                    console.log(`${interaction.commandName}: this interaction was already replied to??`);
+                else
+                    await replyOrEdit(interaction, {
+                        ephemeral,
+                        ...sendableToInteractionReplyOptions(results),
+                    });
+            }
         }
     }
     catch (e) {

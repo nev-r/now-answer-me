@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { AutocompleteInteraction, CommandInteraction, ContextMenuCommandInteraction, EmbedBuilder, GuildResolvable, Message } from "discord.js";
 import type { AutocompleteParams, Sendable, SlashCommandLocation } from "../types/types-bot.js";
+import { ModalBuilder } from "@discordjs/builders";
 import { Awaitable } from "one-stone/types";
 import { RESTPostAPIApplicationCommandsJSONBody } from "discord.js/node_modules/discord-api-types/v9";
 export declare function registerCommandsOnConnect(): Promise<void>;
@@ -18,7 +19,7 @@ export declare function addSlashCommand({ where, config, handler, ephemeral, def
         optionDict: Record<string, any>;
         subCommand: string | undefined;
         subCommandGroup: string | undefined;
-    }) => Awaitable<Sendable | EmbedBuilder | string | undefined | void>) | Sendable;
+    }) => Awaitable<Sendable | EmbedBuilder | ModalBuilder | string | undefined | void>) | Sendable;
     ephemeral?: boolean;
     deferImmediately?: boolean;
     failIfLong?: boolean;
