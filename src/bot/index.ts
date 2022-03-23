@@ -8,12 +8,14 @@ import {
 	routeSlashCommand,
 } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
+import { routeModalSubmit } from "./modals.js";
 export {
 	addSlashCommand,
 	setPermittedCommandUserInGuild,
 	setPermittedCommandUserEverywhere,
 } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
+export { registerModal } from "./modals.js";
 
 export const startupTimestamp = new Date();
 
@@ -120,6 +122,7 @@ export function init(token: string) {
 			try {
 				if (interaction.isAutocomplete()) await routeAutocomplete(interaction);
 				else if (interaction.isCommand()) await routeSlashCommand(interaction);
+				else if (interaction.isModalSubmit()) await routeModalSubmit(interaction);
 				else if (interaction.isContextMenuCommand()) await routeContextMenuCommand(interaction);
 				else if (interaction.isMessageComponent()) await routeComponentInteraction(interaction);
 			} catch (e) {

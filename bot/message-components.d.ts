@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageActionRowComponentBuilder, MessageComponentInteraction, TextBasedChannel, User } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageActionRowComponentBuilder, MessageComponentInteraction, ModalSubmitInteraction, TextBasedChannel, User } from "discord.js";
 import { Sendable } from "../types/types-bot.js";
 import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
@@ -30,7 +30,7 @@ export declare type ComponentInteractionHandlingData = {
     update?: boolean;
     public?: boolean;
 };
-export declare const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData>;
+export declare const componentHandlers: NodeJS.Dict<ComponentInteractionHandlingData>;
 declare type InteractionButton = {
     disabled?: boolean;
     style: Exclude<ButtonStyle, "LINK" | ButtonStyle.Link>;
@@ -62,4 +62,5 @@ export declare function createComponentSelects({ interactionID, selects, ...hand
     interactionID: string;
 } & ComponentInteractionHandlingData): ActionRowBuilder<MessageActionRowComponentBuilder>[];
 export declare function routeComponentInteraction(interaction: MessageComponentInteraction): Promise<void>;
+export declare function unhandledInteraction(interaction: MessageComponentInteraction | ModalSubmitInteraction): void;
 export {};

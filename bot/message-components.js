@@ -9,9 +9,9 @@ export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const wastebasketEmoji = { name: String.fromCodePoint(0x1f5d1) }; // 🗑
 export const lock = String.fromCodePoint(0x1f512); // 🔒
 export const lockEmoji = { name: String.fromCodePoint(0x1f512) }; // 🔒
-export const componentInteractions = {};
+export const componentHandlers = {};
 export function createComponentButtons({ interactionID, buttons, ...handlingData }) {
-    componentInteractions[interactionID] = handlingData;
+    componentHandlers[interactionID] = handlingData;
     const nestedButtons = Array.isArray(buttons)
         ? Array.isArray(buttons[0])
             ? buttons
@@ -28,7 +28,7 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
     })));
 }
 export function createComponentSelects({ interactionID, selects, ...handlingData }) {
-    componentInteractions[interactionID] = handlingData;
+    componentHandlers[interactionID] = handlingData;
     const nestedSelects = arrayify(selects);
     return nestedSelects.map((s) => {
         const select = new SelectMenuBuilder();
@@ -43,7 +43,7 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
 }
 export async function routeComponentInteraction(interaction) {
     const { interactionID, ...componentParams } = deserialize(interaction.customId);
-    const handlingData = componentInteractions[interactionID];
+    const handlingData = componentHandlers[interactionID];
     if (!handlingData)
         unhandledInteraction(interaction);
     else {
@@ -119,10 +119,10 @@ export async function routeComponentInteraction(interaction) {
         }
     }
 }
-function unhandledInteraction(interaction) {
+export function unhandledInteraction(interaction) {
     let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
     content += `\ndeserialized as:\n${JSON.stringify(deserialize(interaction.customId), null, 2)}`;
-    content += `\nkeys available${Object.keys(componentInteractions).join(", ")}\n`;
+    content += `\nkeys available${Object.keys(componentHandlers).join(", ")}\n`;
     if (interaction.isSelectMenu()) {
         const values = interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ");
         content += `\nvalues submitted: ${values}`;
@@ -134,7 +134,7 @@ function unhandledInteraction(interaction) {
 }
 // register handler for lock functionality
 // (removes components so it can receive no further interaction)
-componentInteractions[lock] = {
+componentHandlers[lock] = {
     handler: async ({ message, channel }) => {
         if (message) {
             const returnOptions = { components: [] };
@@ -149,7 +149,7 @@ componentInteractions[lock] = {
 };
 // register handler for remove functionality
 // (removes the message)
-componentInteractions[wastebasket] = {
+componentHandlers[wastebasket] = {
     handler: async ({ message }) => {
         await message?.delete();
     },

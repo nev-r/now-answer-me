@@ -2,6 +2,7 @@ import { Client } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 export { addSlashCommand, setPermittedCommandUserInGuild, setPermittedCommandUserEverywhere, } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
+export { registerModal } from "./modals.js";
 export declare const startupTimestamp: Date;
 export declare const client: Client<boolean>;
 /** resolves when the client has connected */

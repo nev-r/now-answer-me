@@ -7,6 +7,7 @@ import {
 	Guild,
 	MessageActionRowComponentBuilder,
 	MessageComponentInteraction,
+	ModalSubmitInteraction,
 	SelectMenuBuilder,
 	TextBasedChannel,
 	User,
@@ -47,7 +48,7 @@ export type ComponentInteractionHandlingData = {
 	public?: boolean;
 };
 
-export const componentInteractions: NodeJS.Dict<ComponentInteractionHandlingData> = {};
+export const componentHandlers: NodeJS.Dict<ComponentInteractionHandlingData> = {};
 
 type InteractionButton = {
 	disabled?: boolean;
@@ -81,7 +82,7 @@ export function createComponentButtons({
 	buttons: InteractionButton | InteractionButton[] | InteractionButton[][];
 	interactionID: string;
 } & ComponentInteractionHandlingData): ActionRowBuilder[] {
-	componentInteractions[interactionID] = handlingData;
+	componentHandlers[interactionID] = handlingData;
 	const nestedButtons: InteractionButton[][] = Array.isArray(buttons)
 		? Array.isArray(buttons[0])
 			? (buttons as InteractionButton[][])
@@ -112,7 +113,7 @@ export function createComponentSelects({
 	selects: InteractionSelect | InteractionSelect[];
 	interactionID: string;
 } & ComponentInteractionHandlingData) {
-	componentInteractions[interactionID] = handlingData;
+	componentHandlers[interactionID] = handlingData;
 	const nestedSelects = arrayify(selects);
 
 	return nestedSelects.map((s) => {
@@ -133,7 +134,7 @@ export async function routeComponentInteraction(
 	interaction: MessageComponentInteraction
 ): Promise<void> {
 	const { interactionID, ...componentParams } = deserialize(interaction.customId);
-	const handlingData = componentInteractions[interactionID];
+	const handlingData = componentHandlers[interactionID];
 	if (!handlingData) unhandledInteraction(interaction);
 	else {
 		// if it's a private interaction, only the initiator may click its buttons
@@ -212,10 +213,11 @@ export async function routeComponentInteraction(
 	}
 }
 
-function unhandledInteraction(interaction: MessageComponentInteraction) {
+
+export function unhandledInteraction(interaction: MessageComponentInteraction|ModalSubmitInteraction) {
 	let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
 	content += `\ndeserialized as:\n${JSON.stringify(deserialize(interaction.customId), null, 2)}`;
-	content += `\nkeys available${Object.keys(componentInteractions).join(", ")}\n`;
+	content += `\nkeys available${Object.keys(componentHandlers).join(", ")}\n`;
 
 	if (interaction.isSelectMenu()) {
 		const values = interaction.values.map((v) => `\`${escMarkdown(v)}\``).join(" ");
@@ -230,7 +232,7 @@ function unhandledInteraction(interaction: MessageComponentInteraction) {
 
 // register handler for lock functionality
 // (removes components so it can receive no further interaction)
-componentInteractions[lock] = {
+componentHandlers[lock] = {
 	handler: async ({ message, channel }) => {
 		if (message) {
 			const returnOptions: Sendable = { components: [] };
@@ -245,7 +247,7 @@ componentInteractions[lock] = {
 
 // register handler for remove functionality
 // (removes the message)
-componentInteractions[wastebasket] = {
+componentHandlers[wastebasket] = {
 	handler: async ({ message }) => {
 		await message?.delete();
 	},

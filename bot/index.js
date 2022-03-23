@@ -2,8 +2,10 @@ import { Client } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { registerCommandsOnConnect, routeAutocomplete, routeContextMenuCommand, routeSlashCommand, } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
+import { routeModalSubmit } from "./modals.js";
 export { addSlashCommand, setPermittedCommandUserInGuild, setPermittedCommandUserEverywhere, } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
+export { registerModal } from "./modals.js";
 export const startupTimestamp = new Date();
 const clientOptions = {
     intents: ["Guilds", "GuildEmojisAndStickers", "GuildMembers"],
@@ -94,6 +96,8 @@ export function init(token) {
                 await routeAutocomplete(interaction);
             else if (interaction.isCommand())
                 await routeSlashCommand(interaction);
+            else if (interaction.isModalSubmit())
+                await routeModalSubmit(interaction);
             else if (interaction.isContextMenuCommand())
                 await routeContextMenuCommand(interaction);
             else if (interaction.isMessageComponent())

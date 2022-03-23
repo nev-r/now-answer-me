@@ -1,6 +1,6 @@
 import { ButtonStyle, ComponentType, ActionRowBuilder, EmbedBuilder, ButtonBuilder, SelectMenuBuilder, } from "discord.js";
 import { serialize } from "../bot/component-id-parser.js";
-import { componentInteractions, lock, lockEmoji, wastebasket, wastebasketEmoji, } from "../bot/message-components.js";
+import { componentHandlers, lock, lockEmoji, wastebasket, wastebasketEmoji, } from "../bot/message-components.js";
 const paginationInteractionID = "\u2409"; // ␉
 const rightArrow = "\u27a1"; // ➡
 const rightArrowEmoji = { name: "\u27a1" }; // ➡
@@ -132,14 +132,14 @@ const paginationSchemes = {};
 const finalizers = {};
 export function createPaginator({ paginatorName, getPageData, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
-    componentInteractions[paginationInteractionID] = paginationHandler;
+    componentHandlers[paginationInteractionID] = paginationHandler;
     paginationSchemes[paginatorName] = getPageData;
     // return the function that initiates this paginator
     return (seed) => generateInitialPagination(paginatorName, seed, true, true);
 }
 export function createPaginatedSelector({ paginatorName, getPageData, finalizer, }) {
     // do one-time setup by enabling pagination (␉) among other component handlers
-    componentInteractions[paginationInteractionID] = paginationHandler;
+    componentHandlers[paginationInteractionID] = paginationHandler;
     // register this specific paginator and finalizer
     finalizers[paginatorName] = finalizer;
     paginationSchemes[paginatorName] = getPageData;

@@ -12,8 +12,8 @@ import { Awaitable } from "one-stone/types";
 import { serialize } from "../bot/component-id-parser.js";
 
 import {
+	componentHandlers,
 	ComponentInteractionHandlingData,
-	componentInteractions,
 	lock,
 	lockEmoji,
 	wastebasket,
@@ -223,7 +223,7 @@ export function createPaginator({
 	) => [requestedPage: EmbedBuilder, totalPages: number];
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
-	componentInteractions[paginationInteractionID] = paginationHandler;
+	componentHandlers[paginationInteractionID] = paginationHandler;
 	paginationSchemes[paginatorName] = getPageData;
 
 	// return the function that initiates this paginator
@@ -243,7 +243,7 @@ export function createPaginatedSelector({
 	finalizer: (selectionNumber: string, seed?: string) => Awaitable<Sendable>;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
-	componentInteractions[paginationInteractionID] = paginationHandler;
+	componentHandlers[paginationInteractionID] = paginationHandler;
 
 	// register this specific paginator and finalizer
 	finalizers[paginatorName] = finalizer;

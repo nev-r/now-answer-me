@@ -15,6 +15,7 @@ import {
 	CommandInteraction,
 	MessageComponentInteraction,
 	EmbedBuilder,
+	ModalSubmitInteraction,
 } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
@@ -180,7 +181,7 @@ export async function replyOrEdit(
  * or a completely separate followup message
  */
 export async function forceFeedback(
-	interaction: CommandInteraction | MessageComponentInteraction,
+	interaction: CommandInteraction | MessageComponentInteraction | ModalSubmitInteraction,
 	content:
 		| Parameters<CommandInteraction["followUp"]>[0]
 		| Parameters<CommandInteraction["reply"]>[0]
