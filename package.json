@@ -29,16 +29,16 @@
 	},
 	"homepage": "https://github.com/nev-r/now-answer-me#readme",
 	"dependencies": {
-		"discord-api-types": "^0.30.0-next.e822e45.1647086028",
+		"discord-api-types": "^0.32.1-next.d331e0d.1651267240",
 		"one-stone": "^1.0.3"
 	},
 	"devDependencies": {
-		"@discordjs/builders": "^0.13.0-dev.1647259738.2297c2b",
+		"@discordjs/builders": "^0.14.0-dev.1651493044-4ba0f56",
 		"@types/node": "^16.7.10",
 		"@types/node-fetch": "^2.5.12",
 		"@typescript-eslint/eslint-plugin": "^4.13.0",
 		"@typescript-eslint/parser": "^4.13.0",
-		"discord.js": "^14.0.0-dev.1647259751.2297c2b",
+		"discord.js": "^14.0.0-dev.1651493371-4ba0f56",
 		"eledoc": "^0.2.1",
 		"eslint": "^7.18.0",
 		"eslint-plugin-import": "^2.22.1",

@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { GuildEmoji } from "discord.js";
 export declare function createDynamicEmojiManager(guilds: string[], drainUntilFree?: number): {
-    (emojis: {
+    (emoji: {
         attachment: string | Buffer;
         name: string;
     }): Promise<GuildEmoji>;

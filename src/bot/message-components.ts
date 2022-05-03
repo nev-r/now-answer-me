@@ -90,8 +90,8 @@ export function createComponentButtons({
 		: [[buttons]];
 
 	return nestedButtons.map((r) =>
-		new ActionRowBuilder().addComponents(
-			...r.map((b) => {
+		new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+			r.map((b) => {
 				const button = new ButtonBuilder();
 				b.emoji && button.setEmoji(b.emoji);
 				button.setDisabled(!!b.disabled);
@@ -124,9 +124,9 @@ export function createComponentSelects({
 		s.placeholder && select.setPlaceholder(s.placeholder);
 		s.maxValues && select.setMaxValues(s.maxValues);
 		s.minValues && select.setMinValues(s.minValues);
-		select.setOptions(...s.options);
+		select.setOptions(s.options);
 
-		return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(select);
+		return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents([select]);
 	});
 }
 
@@ -213,8 +213,9 @@ export async function routeComponentInteraction(
 	}
 }
 
-
-export function unhandledInteraction(interaction: MessageComponentInteraction|ModalSubmitInteraction) {
+export function unhandledInteraction(
+	interaction: MessageComponentInteraction | ModalSubmitInteraction
+) {
 	let content = `unhandled component interaction 🙂\nid: \`${escMarkdown(interaction.customId)}\``;
 	content += `\ndeserialized as:\n${JSON.stringify(deserialize(interaction.customId), null, 2)}`;
 	content += `\nkeys available${Object.keys(componentHandlers).join(", ")}\n`;

@@ -3,7 +3,10 @@ import { arrayify } from "one-stone/array";
 import { registerCommandsOnConnect, routeAutocomplete, routeContextMenuCommand, routeSlashCommand, } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
 import { routeModalSubmit } from "./modals.js";
-export { addSlashCommand, setPermittedCommandUserInGuild, setPermittedCommandUserEverywhere, } from "./slash-commands.js";
+export { addSlashCommand,
+// setPermittedCommandUserInGuild,
+// setPermittedCommandUserEverywhere,
+ } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export { registerModal } from "./modals.js";
 export const startupTimestamp = new Date();

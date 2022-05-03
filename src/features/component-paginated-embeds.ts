@@ -7,6 +7,8 @@ import {
 	EmbedBuilder,
 	ButtonBuilder,
 	SelectMenuBuilder,
+	AnyComponentBuilder,
+	MessageActionRowComponentData,
 } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { serialize } from "../bot/component-id-parser.js";
@@ -57,6 +59,12 @@ function generatePage(
 ) {
 	const paginator = getPaginator(paginatorName);
 	const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
+
+	// components?: (
+	//   |
+	//   | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
+	//   | APIActionRowComponent<APIMessageActionRowComponent>
+	// )[];
 
 	const components: ActionRowBuilder<MessageActionRowComponentBuilder>[] = [];
 	if (totalPages > 1)
@@ -149,7 +157,7 @@ function generatePageControls(
 			})
 		);
 
-	return new ActionRowBuilder().setComponents(...components);
+	return new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(components);
 }
 
 function generateSelectorControls(
@@ -164,7 +172,9 @@ function generateSelectorControls(
 		operation: "pick",
 	});
 
-	return new ActionRowBuilder().setComponents(new SelectMenuBuilder({ options, custom_id }));
+	return new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents([
+		new SelectMenuBuilder({ options, custom_id }),
+	]);
 }
 
 function generateInitialPagination(

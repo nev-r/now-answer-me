@@ -17,7 +17,7 @@ export function createComponentButtons({ interactionID, buttons, ...handlingData
             ? buttons
             : [buttons]
         : [[buttons]];
-    return nestedButtons.map((r) => new ActionRowBuilder().addComponents(...r.map((b) => {
+    return nestedButtons.map((r) => new ActionRowBuilder().addComponents(r.map((b) => {
         const button = new ButtonBuilder();
         b.emoji && button.setEmoji(b.emoji);
         button.setDisabled(!!b.disabled);
@@ -37,8 +37,8 @@ export function createComponentSelects({ interactionID, selects, ...handlingData
         s.placeholder && select.setPlaceholder(s.placeholder);
         s.maxValues && select.setMaxValues(s.maxValues);
         s.minValues && select.setMinValues(s.minValues);
-        select.setOptions(...s.options);
-        return new ActionRowBuilder().addComponents(select);
+        select.setOptions(s.options);
+        return new ActionRowBuilder().addComponents([select]);
     });
 }
 export async function routeComponentInteraction(interaction) {

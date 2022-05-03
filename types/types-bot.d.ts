@@ -71,11 +71,4 @@ export interface ConstraintSet {
     emoji?: null | string | Snowflake | Emoji | (Snowflake | string | Emoji)[];
     notEmoji?: null | string | Snowflake | Emoji | (Snowflake | string | Emoji)[];
 }
-declare type StringLike = {
-    [x: number]: string;
-    [Symbol.iterator]: () => IterableIterator<string>;
-} & {
-    [K in keyof String]?: String[K];
-};
-declare type Hint<A extends string> = StringLike | A;
-export declare type SlashCommandLocation = Hint<"global" | "all"> | Snowflake[];
+export declare type SlashCommandLocation = "global" | "all" | `${number}` | `${number}`[];

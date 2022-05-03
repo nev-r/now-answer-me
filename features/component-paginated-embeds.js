@@ -24,6 +24,11 @@ function getFinalizer(paginatorName) {
 function generatePage(paginatorName, currentPageNum, seed, includeLock, includeRemove) {
     const paginator = getPaginator(paginatorName);
     const [requestedPage, totalPages, selectorOptions] = paginator(currentPageNum, seed);
+    // components?: (
+    //   |
+    //   | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
+    //   | APIActionRowComponent<APIMessageActionRowComponent>
+    // )[];
     const components = [];
     if (totalPages > 1)
         components.push(generatePageControls(paginatorName, currentPageNum, totalPages, seed, !selectorOptions, includeRemove));
@@ -92,7 +97,7 @@ function generatePageControls(paginatorID, currentPageNum, totalPages, seed, inc
             customId: wastebasket,
             emoji: wastebasketEmoji,
         }));
-    return new ActionRowBuilder().setComponents(...components);
+    return new ActionRowBuilder().setComponents(components);
 }
 function generateSelectorControls(paginatorID, options, seed) {
     const custom_id = serialize({
@@ -101,7 +106,9 @@ function generateSelectorControls(paginatorID, options, seed) {
         seed,
         operation: "pick",
     });
-    return new ActionRowBuilder().setComponents(new SelectMenuBuilder({ options, custom_id }));
+    return new ActionRowBuilder().setComponents([
+        new SelectMenuBuilder({ options, custom_id }),
+    ]);
 }
 function generateInitialPagination(paginatorName, seed, includeLock, includeRemove) {
     return generatePage(paginatorName, 0, seed, includeLock, includeRemove);

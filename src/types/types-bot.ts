@@ -1,11 +1,4 @@
-import {
-	CommandInteraction,
-	EmbedBuilder,
-	Emoji,
-	Message,
-	Snowflake,
-	User,
-} from "discord.js";
+import { CommandInteraction, EmbedBuilder, Emoji, Message, Snowflake, User } from "discord.js";
 import type { Awaitable } from "one-stone/types";
 import type { Sendable } from "./types-discord.js";
 export { Sendable } from "./types-discord.js";
@@ -112,14 +105,15 @@ export interface ConstraintSet {
 	notEmoji?: null | string | Snowflake | Emoji | (Snowflake | string | Emoji)[];
 }
 
-type StringLike = {
-	[x: number]: string;
-	[Symbol.iterator]: () => IterableIterator<string>;
-} & { [K in keyof String]?: String[K] };
+export type SlashCommandLocation = "global" | "all" | `${number}` | `${number}`[];
 
-type Hint<A extends string> = StringLike | A;
+// type StringLike = {
+// 	[x: number]: string;
+// 	[Symbol.iterator]: () => IterableIterator<string>;
+// } & { [K in keyof String]?: String[K] };
+// type Hint<A extends string> = StringLike | A;
+// export type SlashCommandLocation = Hint<"global" | "all"> | Snowflake[];
 
-export type SlashCommandLocation = Hint<"global" | "all"> | Snowflake[];
 // | Guild
 // | GuildChannel
 // | GuildMember

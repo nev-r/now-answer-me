@@ -11,8 +11,8 @@ import { routeComponentInteraction } from "./message-components.js";
 import { routeModalSubmit } from "./modals.js";
 export {
 	addSlashCommand,
-	setPermittedCommandUserInGuild,
-	setPermittedCommandUserEverywhere,
+	// setPermittedCommandUserInGuild,
+	// setPermittedCommandUserEverywhere,
 } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export { registerModal } from "./modals.js";

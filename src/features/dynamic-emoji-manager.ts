@@ -27,14 +27,16 @@ export function createDynamicEmojiManager(guilds: string[], drainUntilFree = 10)
 		// we're ready enough to start taking requests
 		isReady = true;
 
-    let spacesAvailable = 0;
+		let spacesAvailable = 0;
 		for (const k in perGuildEmptySlots) spacesAvailable += perGuildEmptySlots[k];
-    console.log(`initialized an emoji manager using ${guilds.length} servers with ${spacesAvailable} slots`)
+		console.log(
+			`initialized an emoji manager using ${guilds.length} servers with ${spacesAvailable} slots`
+		);
 	})();
 
 	return upload;
 
-	async function upload(emojis: { attachment: string | Buffer; name: string }): Promise<GuildEmoji>;
+	async function upload(emoji: { attachment: string | Buffer; name: string }): Promise<GuildEmoji>;
 	async function upload(
 		emojis: { attachment: string | Buffer; name: string }[]
 	): Promise<NodeJS.Dict<GuildEmoji>>;
