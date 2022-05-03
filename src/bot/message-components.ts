@@ -9,6 +9,7 @@ import {
 	MessageComponentInteraction,
 	ModalSubmitInteraction,
 	SelectMenuBuilder,
+	SelectMenuComponentOptionData,
 	TextBasedChannel,
 	User,
 } from "discord.js";
@@ -70,7 +71,7 @@ type InteractionSelect = {
 	disabled?: boolean;
 	maxValues?: number;
 	minValues?: number;
-	options: APISelectMenuOption[];
+	options: (APISelectMenuOption | SelectMenuComponentOptionData)[];
 	placeholder?: string;
 };
 

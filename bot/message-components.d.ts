@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageActionRowComponentBuilder, MessageComponentInteraction, ModalSubmitInteraction, TextBasedChannel, User } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageActionRowComponentBuilder, MessageComponentInteraction, ModalSubmitInteraction, SelectMenuComponentOptionData, TextBasedChannel, User } from "discord.js";
 import { Sendable } from "../types/types-bot.js";
 import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
@@ -50,7 +50,7 @@ declare type InteractionSelect = {
     disabled?: boolean;
     maxValues?: number;
     minValues?: number;
-    options: APISelectMenuOption[];
+    options: (APISelectMenuOption | SelectMenuComponentOptionData)[];
     placeholder?: string;
 };
 export declare function createComponentButtons({ interactionID, buttons, ...handlingData }: {
