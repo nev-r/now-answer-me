@@ -9,6 +9,7 @@ import {
 	SelectMenuBuilder,
 	AnyComponentBuilder,
 	MessageActionRowComponentData,
+	SelectMenuComponentOptionData,
 } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { serialize } from "../bot/component-id-parser.js";
@@ -162,7 +163,7 @@ function generatePageControls(
 
 function generateSelectorControls(
 	paginatorID: string,
-	options: APISelectMenuOption[],
+	options: (APISelectMenuOption|SelectMenuComponentOptionData)[],
 	seed?: string
 ) {
 	const custom_id = serialize({
