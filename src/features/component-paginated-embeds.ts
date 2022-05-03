@@ -163,7 +163,7 @@ function generatePageControls(
 
 function generateSelectorControls(
 	paginatorID: string,
-	options: (APISelectMenuOption|SelectMenuComponentOptionData)[],
+	options: (APISelectMenuOption | SelectMenuComponentOptionData)[],
 	seed?: string
 ) {
 	const custom_id = serialize({
@@ -216,7 +216,11 @@ const paginationSchemes: NodeJS.Dict<
 	(
 		pageNum: number,
 		seed?: string
-	) => [requestedPage: EmbedBuilder, totalPages: number, selectorOptions?: APISelectMenuOption[]]
+	) => [
+		requestedPage: EmbedBuilder,
+		totalPages: number,
+		selectorOptions?: (APISelectMenuOption | SelectMenuComponentOptionData)[]
+	]
 > = {};
 
 const finalizers: NodeJS.Dict<
@@ -250,7 +254,11 @@ export function createPaginatedSelector({
 	getPageData: (
 		pageNum: number,
 		seed?: string
-	) => [requestedPage: EmbedBuilder, totalPages: number, selectorOptions: APISelectMenuOption[]];
+	) => [
+		requestedPage: EmbedBuilder,
+		totalPages: number,
+		selectorOptions: (APISelectMenuOption | SelectMenuComponentOptionData)[]
+	];
 	finalizer: (selectionNumber: string, seed?: string) => Awaitable<Sendable>;
 }) {
 	// do one-time setup by enabling pagination (␉) among other component handlers
