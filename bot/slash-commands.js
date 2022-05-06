@@ -100,7 +100,7 @@ export async function routeAutocomplete(interaction) {
     const { name, value } = interaction.options.getFocused(true);
     const handler = slashCommand.autocompleters?.[name];
     const { guild, channel, user } = interaction;
-    const options = handler?.({ guild, channel, user, stub: value }) ?? [];
+    const options = await handler?.({ guild, channel, user, stub: value }) ?? [];
     interaction.respond(options.slice(0, 25).map((o) => (typeof o === "string" ? { name: o, value: o } : o)));
 }
 export async function routeContextMenuCommand(interaction) {
