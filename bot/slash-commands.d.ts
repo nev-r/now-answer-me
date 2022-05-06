@@ -23,10 +23,10 @@ export declare function addSlashCommand({ where, config, handler, ephemeral, def
     ephemeral?: boolean;
     deferImmediately?: boolean;
     failIfLong?: boolean;
-    autocompleters?: NodeJS.Dict<(params: AutocompleteParams) => string[] | {
+    autocompleters?: NodeJS.Dict<(params: AutocompleteParams) => Awaitable<string[] | {
         name: string;
         value: string | number;
-    }[]>;
+    }[]>>;
 }): void;
 export declare function routeAutocomplete(interaction: AutocompleteInteraction): Promise<never[] | undefined>;
 export declare function routeContextMenuCommand(interaction: ContextMenuCommandInteraction): Promise<void>;

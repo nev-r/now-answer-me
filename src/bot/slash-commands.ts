@@ -159,8 +159,8 @@ export function addSlashCommand({
 	deferImmediately?: boolean;
 	failIfLong?: boolean;
 	autocompleters?: NodeJS.Dict<
-		(params: AutocompleteParams) => string[] | { name: string; value: string | number }[]
-	>;
+	(params: AutocompleteParams) => Awaitable<string[] | { name: string; value: string | number }[]>
+>;
 }) {
 	if (where === "global") globalCommands.add(config.name);
 
