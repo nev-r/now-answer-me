@@ -93,7 +93,7 @@ export async function publishMessageUsingClient(
 
 	if (!resolvedChannel.isTextBased()) throw new Error(`channel ${channel} is not a text channel`);
 
-	if (resolvedChannel.isNews())
+	if (!resolvedChannel.isNews())
 		throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
 
 	const messageToPublish = await resolvedChannel.messages.fetch(normalizeID(message));

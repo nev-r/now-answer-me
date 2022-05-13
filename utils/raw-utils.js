@@ -55,7 +55,7 @@ export async function publishMessageUsingClient(client, channel, message) {
         throw new Error(`${channel} could not be resolved to a channel this account has access to`);
     if (!resolvedChannel.isTextBased())
         throw new Error(`channel ${channel} is not a text channel`);
-    if (resolvedChannel.isNews())
+    if (!resolvedChannel.isNews())
         throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
     const messageToPublish = await resolvedChannel.messages.fetch(normalizeID(message));
     if (!messageToPublish)
