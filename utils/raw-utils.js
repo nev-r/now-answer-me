@@ -23,7 +23,7 @@ export async function sendMessageUsingClient(client, channel, content, publish) 
         throw new Error(`${channel} could not be resolved to a channel this account has access to`);
     if (!resolvedChannel.isTextBased())
         throw new Error(`channel ${channel} is not a text channel`);
-    if (publish && resolvedChannel.isNews())
+    if (publish && !resolvedChannel.isNews())
         throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
     const sentMessage = await resolvedChannel.send(typeof content === "string" ? content : { embeds: [content] });
     if (publish)
