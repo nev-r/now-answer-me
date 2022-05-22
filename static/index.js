@@ -50,8 +50,7 @@ export async function staticBuildEmojiDict(apiToken, guilds) {
  * returns the emoji dict
  */
 export async function uploadEmojis(apiToken, guild, emojis) {
-    return doSomethingUsingTempClient(apiToken, async (client) => {
-        await sleep(5000);
+    return doSomethingUsingTempClient(apiToken, (client) => {
         return uploadEmojisUsingClient(client, guild, emojis);
     });
 }
@@ -61,8 +60,9 @@ export async function uploadEmojis(apiToken, guild, emojis) {
  * returns the emoji dict
  */
 export async function dynamicUploadEmojis(apiToken, guilds, emojis) {
-    return doSomethingUsingTempClient(apiToken, (client) => {
+    return doSomethingUsingTempClient(apiToken, async (client) => {
         const uploader = rawCreateDynamicEmojiManager(client, guilds);
+        await sleep(3000);
         return uploader(emojis);
     });
 }

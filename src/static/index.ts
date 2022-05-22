@@ -89,8 +89,7 @@ export async function uploadEmojis(
 	guild: GuildResolvable,
 	emojis: { attachment: BufferResolvable; name: string }[]
 ) {
-	return doSomethingUsingTempClient(apiToken, async (client) => {
-		await sleep(5000);
+	return doSomethingUsingTempClient(apiToken, (client) => {
 		return uploadEmojisUsingClient(client, guild, emojis);
 	});
 }
@@ -105,8 +104,9 @@ export async function dynamicUploadEmojis(
 	guilds: string[],
 	emojis: { attachment: BufferResolvable; name: string }[]
 ) {
-	return doSomethingUsingTempClient(apiToken, (client) => {
+	return doSomethingUsingTempClient(apiToken, async (client) => {
 		const uploader = rawCreateDynamicEmojiManager(client, guilds);
+		await sleep(3000);
 		return uploader(emojis);
 	});
 }
