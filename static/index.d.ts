@@ -34,3 +34,12 @@ export declare function uploadEmojis(apiToken: string, guild: GuildResolvable, e
     attachment: BufferResolvable;
     name: string;
 }[]): Promise<Record<string, import("discord.js").GuildEmoji>>;
+/**
+ * makes sure an array of emoji is all uploaded, potentially across multiple servers.
+ *
+ * returns the emoji dict
+ */
+export declare function dynamicUploadEmojis(apiToken: string, guilds: string[], emojis: {
+    attachment: BufferResolvable;
+    name: string;
+}[]): Promise<NodeJS.Dict<import("discord.js").GuildEmoji>>;

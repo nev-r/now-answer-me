@@ -1,12 +1,11 @@
 /// <reference types="node" />
-import { GuildEmoji } from "discord.js";
 export declare function createDynamicEmojiManager(guilds: string[], drainUntilFree?: number): {
     (emoji: {
         attachment: string | Buffer;
         name: string;
-    }): Promise<GuildEmoji>;
+    }): Promise<import("discord.js").GuildEmoji>;
     (emojis: {
         attachment: string | Buffer;
         name: string;
-    }[]): Promise<NodeJS.Dict<GuildEmoji>>;
+    }[]): Promise<NodeJS.Dict<import("discord.js").GuildEmoji>>;
 };

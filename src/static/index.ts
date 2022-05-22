@@ -5,6 +5,7 @@ import type {
 	GuildResolvable,
 	MessageResolvable,
 } from "discord.js";
+import { rawCreateDynamicEmojiManager } from "../utils/raw-emoji-manager.js";
 import {
 	buildEmojiDictUsingClient,
 	editMessageUsingClient,
@@ -89,5 +90,21 @@ export async function uploadEmojis(
 ) {
 	return doSomethingUsingTempClient(apiToken, (client) => {
 		return uploadEmojisUsingClient(client, guild, emojis);
+	});
+}
+
+/**
+ * makes sure an array of emoji is all uploaded, potentially across multiple servers.
+ *
+ * returns the emoji dict
+ */
+export async function dynamicUploadEmojis(
+	apiToken: string,
+	guilds: string[],
+	emojis: { attachment: BufferResolvable; name: string }[]
+) {
+	return doSomethingUsingTempClient(apiToken, (client) => {
+		const uploader = rawCreateDynamicEmojiManager(client, guilds);
+		return uploader(emojis);
 	});
 }

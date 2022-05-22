@@ -1,3 +1,4 @@
+import { rawCreateDynamicEmojiManager } from "../utils/raw-emoji-manager.js";
 import { buildEmojiDictUsingClient, editMessageUsingClient, publishMessageUsingClient, sendMessageUsingClient, uploadEmojisUsingClient, } from "../utils/raw-utils.js";
 import { doSomethingUsingTempClient } from "../utils/temp-client.js";
 /**
@@ -50,5 +51,16 @@ export async function staticBuildEmojiDict(apiToken, guilds) {
 export async function uploadEmojis(apiToken, guild, emojis) {
     return doSomethingUsingTempClient(apiToken, (client) => {
         return uploadEmojisUsingClient(client, guild, emojis);
+    });
+}
+/**
+ * makes sure an array of emoji is all uploaded, potentially across multiple servers.
+ *
+ * returns the emoji dict
+ */
+export async function dynamicUploadEmojis(apiToken, guilds, emojis) {
+    return doSomethingUsingTempClient(apiToken, (client) => {
+        const uploader = rawCreateDynamicEmojiManager(client, guilds);
+        return uploader(emojis);
     });
 }
