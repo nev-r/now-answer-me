@@ -1,3 +1,4 @@
+import { sleep } from "one-stone/promise";
 import { rawCreateDynamicEmojiManager } from "../utils/raw-emoji-manager.js";
 import { buildEmojiDictUsingClient, editMessageUsingClient, publishMessageUsingClient, sendMessageUsingClient, uploadEmojisUsingClient, } from "../utils/raw-utils.js";
 import { doSomethingUsingTempClient } from "../utils/temp-client.js";
@@ -49,7 +50,8 @@ export async function staticBuildEmojiDict(apiToken, guilds) {
  * returns the emoji dict
  */
 export async function uploadEmojis(apiToken, guild, emojis) {
-    return doSomethingUsingTempClient(apiToken, (client) => {
+    return doSomethingUsingTempClient(apiToken, async (client) => {
+        await sleep(5000);
         return uploadEmojisUsingClient(client, guild, emojis);
     });
 }

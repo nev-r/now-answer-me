@@ -5,6 +5,7 @@ import type {
 	GuildResolvable,
 	MessageResolvable,
 } from "discord.js";
+import { sleep } from "one-stone/promise";
 import { rawCreateDynamicEmojiManager } from "../utils/raw-emoji-manager.js";
 import {
 	buildEmojiDictUsingClient,
@@ -88,7 +89,8 @@ export async function uploadEmojis(
 	guild: GuildResolvable,
 	emojis: { attachment: BufferResolvable; name: string }[]
 ) {
-	return doSomethingUsingTempClient(apiToken, (client) => {
+	return doSomethingUsingTempClient(apiToken, async (client) => {
+		await sleep(5000);
 		return uploadEmojisUsingClient(client, guild, emojis);
 	});
 }
