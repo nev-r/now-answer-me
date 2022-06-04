@@ -37,7 +37,7 @@ import { RESTPostAPIApplicationCommandsJSONBody } from "discord.js/node_modules/
 
 const slashCommands: NodeJS.Dict<{
 	where: SlashCommandLocation;
-	config: RESTPostAPIApplicationCommandsJSONBody;
+	config: ChatInputApplicationCommandData;
 	handler:
 		| ((params: {
 				/** the guild where this command was triggered */
@@ -141,7 +141,7 @@ export function addSlashCommand({
 }: {
 	/** where to register this: 'global' (even in DMs), 'all' (in each server individually), or a server id or list of server ids */
 	where: SlashCommandLocation;
-	config: RESTPostAPIApplicationCommandsJSONBody;
+	config: ChatInputApplicationCommandData;
 	handler:
 		| ((params: {
 				/** the guild where this command was triggered */
@@ -159,8 +159,8 @@ export function addSlashCommand({
 	deferImmediately?: boolean;
 	failIfLong?: boolean;
 	autocompleters?: NodeJS.Dict<
-	(params: AutocompleteParams) => Awaitable<string[] | { name: string; value: string | number }[]>
->;
+		(params: AutocompleteParams) => Awaitable<string[] | { name: string; value: string | number }[]>
+	>;
 }) {
 	if (where === "global") globalCommands.add(config.name);
 
@@ -188,7 +188,7 @@ export async function routeAutocomplete(interaction: AutocompleteInteraction) {
 	const { name, value } = interaction.options.getFocused(true);
 	const handler = slashCommand.autocompleters?.[name];
 	const { guild, channel, user } = interaction;
-	const options = await handler?.({ guild, channel, user, stub: value }) ?? [];
+	const options = (await handler?.({ guild, channel, user, stub: value })) ?? [];
 	interaction.respond(
 		options.slice(0, 25).map((o) => (typeof o === "string" ? { name: o, value: o } : o))
 	);
@@ -266,7 +266,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 
 async function registerSlashCommands(
 	where: SlashCommandLocation,
-	config: RESTPostAPIApplicationCommandsJSONBody | RESTPostAPIApplicationCommandsJSONBody[]
+	config: ChatInputApplicationCommandData | ChatInputApplicationCommandData[]
 ) {
 	const configs = arrayify(config);
 
@@ -288,9 +288,7 @@ async function registerSlashCommands(
 		const cache = [...destination.commands.cache.values()];
 
 		for (const conf of configs) {
-			const matchingConfig = cache.find((c) => {
-				return c.name === conf.name && c.options.length === conf.options?.length;
-			});
+			const matchingConfig = cache.find((c) => c.equals(conf));
 			if (matchingConfig) (registrations["already"][conf.name] ??= []).push(g(destination));
 			else
 				try {

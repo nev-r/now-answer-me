@@ -13,6 +13,9 @@ export function rawCreateDynamicEmojiManager(
 	const perGuildEmptySlots: Record<string, number> = {};
 	let drainTimer: NodeJS.Timeout | undefined;
 
+	client.on("shardDisconnect", () => {
+		if (drainTimer !== undefined) clearTimeout(drainTimer);
+	});
 	// do initial setup once the client has connected and guilds are available
 	(async () => {
 		await (client.isReady()
