@@ -1,4 +1,5 @@
 import {
+	ApplicationCommandData,
 	ApplicationCommandManager,
 	ApplicationCommandOptionType,
 	ApplicationCommandPermissionType,
@@ -266,7 +267,7 @@ export async function routeSlashCommand(interaction: CommandInteraction) {
 
 async function registerSlashCommands(
 	where: SlashCommandLocation,
-	config: ChatInputApplicationCommandData | ChatInputApplicationCommandData[]
+	config: ApplicationCommandData | ApplicationCommandData[]
 ) {
 	const configs = arrayify(config);
 
