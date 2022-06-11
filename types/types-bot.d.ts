@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { CommandInteraction, EmbedBuilder, Emoji, Message, Snowflake, User } from "discord.js";
 import type { Awaitable } from "one-stone/types";
 import type { Sendable } from "./types-discord.js";
@@ -33,6 +34,7 @@ export interface SlashCommandParams<SelectedOptions extends any, SelectedSubcomm
 export interface AutocompleteParams extends IncitingParams {
     channel: Message["channel"] | null;
     stub: string | number;
+    otherOptions: NodeJS.Dict<string>;
 }
 /**
  * basic discord metadata about who and where a command was triggered

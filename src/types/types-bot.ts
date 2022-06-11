@@ -41,6 +41,7 @@ export interface SlashCommandParams<
 export interface AutocompleteParams extends IncitingParams {
 	channel: Message["channel"] | null;
 	stub: string | number;
+	otherOptions: NodeJS.Dict<string>;
 }
 
 /**
