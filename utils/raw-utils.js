@@ -1,6 +1,7 @@
 //
 // client-agnostic functions for use with bot or static methods
 //
+import { ChannelType, } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { normalizeID } from "./data-normalization.js";
@@ -23,7 +24,9 @@ export async function sendMessageUsingClient(client, channel, content, publish) 
         throw new Error(`${channel} could not be resolved to a channel this account has access to`);
     if (!resolvedChannel.isTextBased())
         throw new Error(`channel ${channel} is not a text channel`);
-    if (publish && !resolvedChannel.isNews())
+    if (resolvedChannel.isDMBased())
+        throw new Error(`channel ${channel} is a DM`);
+    if (publish && resolvedChannel.type !== ChannelType.GuildNews)
         throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
     const sentMessage = await resolvedChannel.send(typeof content === "string" ? content : { embeds: [content] });
     if (publish)
@@ -41,7 +44,7 @@ export async function editMessageUsingClient(client, channel, message, content) 
     const resolvedChannel = await client.channels.fetch(normalizeID(channel));
     if (!resolvedChannel)
         throw new Error(`${channel} could not be resolved to a channel this account has access to`);
-    if (!resolvedChannel.isText())
+    if (!resolvedChannel.isTextBased())
         throw new Error(`channel ${channel} is not a text channel`);
     const messageToEdit = await resolvedChannel.messages.fetch(normalizeID(message));
     if (!messageToEdit)
@@ -55,7 +58,7 @@ export async function publishMessageUsingClient(client, channel, message) {
         throw new Error(`${channel} could not be resolved to a channel this account has access to`);
     if (!resolvedChannel.isTextBased())
         throw new Error(`channel ${channel} is not a text channel`);
-    if (!resolvedChannel.isNews())
+    if (resolvedChannel.type !== ChannelType.GuildNews)
         throw new Error(`cannot publish. channel ${channel} is not a news/announcement channel`);
     const messageToPublish = await resolvedChannel.messages.fetch(normalizeID(message));
     if (!messageToPublish)
@@ -74,7 +77,10 @@ export async function uploadEmojisUsingClient(client, guild, emojis) {
         for (const emoji of emojis) {
             if (!currentlyAvailableEmoji[emoji.name]) {
                 console.log(`uploading emoji for ${emoji.name}`);
-                await storageServer.emojis.create(emoji.attachment, emoji.name);
+                await storageServer.emojis.create({
+                    attachment: emoji.attachment,
+                    name: emoji.name,
+                });
             }
         }
         currentlyAvailableEmoji = await buildEmojiDictUsingClient(client, storageServer);
@@ -97,7 +103,7 @@ export async function uploadEmojisUsingClient(client, guild, emojis) {
 export function announceToChannels(client, message, channelIds) {
     return arrayify(channelIds).map((channelId) => {
         const channel = client.channels.cache.get(channelId);
-        return ((channel?.isDM() || channel?.isTextBased()) && channel.send(sendableToMessageOptions(message)));
+        return channel?.isTextBased() && channel.send(sendableToMessageOptions(message));
     });
 }
 export async function replyOrEdit(interaction, content) {

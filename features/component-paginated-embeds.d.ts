@@ -4,7 +4,7 @@ import { Sendable } from "../types/types-discord.js";
 export declare function createPaginator({ paginatorName, getPageData, }: {
     paginatorName: string;
     getPageData: (pageNum: number, seed?: string) => [requestedPage: EmbedBuilder, totalPages: number];
-}): (seed?: string | undefined) => {
+}): (seed?: string) => {
     embeds: EmbedBuilder[];
     components: ActionRowBuilder<MessageActionRowComponentBuilder>[];
 };
@@ -16,7 +16,7 @@ export declare function createPaginatedSelector({ paginatorName, getPageData, fi
         selectorOptions: (APISelectMenuOption | SelectMenuComponentOptionData)[]
     ];
     finalizer: (selectionNumber: string, seed?: string) => Awaitable<Sendable>;
-}): (seed?: string | undefined) => {
+}): (seed?: string) => {
     embeds: EmbedBuilder[];
     components: ActionRowBuilder<MessageActionRowComponentBuilder>[];
 };

@@ -2,18 +2,13 @@
 // delayed resolvers
 //
 
-import type {
-	AnyChannel,
-	ChannelResolvable,
-	EmojiResolvable,
-	GuildResolvable,
-} from "discord.js";
+import type { Channel, ChannelResolvable, EmojiResolvable, GuildResolvable } from "discord.js";
 import { client, clientReady } from "./index.js";
 
 /**
  * waits for client to be ready and then attempts to resolve a channel
  */
-export async function resolveChannel<T extends AnyChannel>(
+export async function resolveChannel<T extends Channel>(
 	channel: ChannelResolvable
 ): Promise<T | null> {
 	await clientReady;

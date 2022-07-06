@@ -1,4 +1,4 @@
-import { Client, ClientOptions } from "discord.js";
+import { Client, ClientOptions, InteractionType } from "discord.js";
 import type { ActivityOptions } from "discord.js";
 import { arrayify } from "one-stone/array";
 import {
@@ -9,11 +9,9 @@ import {
 } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
 import { routeModalSubmit } from "./modals.js";
-export {
-	addSlashCommand,
-	// setPermittedCommandUserInGuild,
-	// setPermittedCommandUserEverywhere,
-} from "./slash-commands.js";
+export { addSlashCommand } from // setPermittedCommandUserInGuild,
+// setPermittedCommandUserEverywhere,
+"./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export { registerModal } from "./modals.js";
 
@@ -120,11 +118,14 @@ export function init(token: string) {
 	client
 		.on("interactionCreate", async (interaction) => {
 			try {
-				if (interaction.isAutocomplete()) await routeAutocomplete(interaction);
-				else if (interaction.isCommand()) await routeSlashCommand(interaction);
-				else if (interaction.isModalSubmit()) await routeModalSubmit(interaction);
+				if (interaction.type === InteractionType.ApplicationCommandAutocomplete)
+					await routeAutocomplete(interaction);
+				else if (interaction.isChatInputCommand()) await routeSlashCommand(interaction);
+				else if (interaction.type === InteractionType.ModalSubmit)
+					await routeModalSubmit(interaction);
 				else if (interaction.isContextMenuCommand()) await routeContextMenuCommand(interaction);
-				else if (interaction.isMessageComponent()) await routeComponentInteraction(interaction);
+				else if (interaction.type === InteractionType.MessageComponent)
+					await routeComponentInteraction(interaction);
 			} catch (e) {
 				console.log("interaction error!");
 				console.log(e);

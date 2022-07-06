@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
 import type { ActivityOptions } from "discord.js";
-export { addSlashCommand, } from "./slash-commands.js";
+export { addSlashCommand } from "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export { registerModal } from "./modals.js";
 export declare const startupTimestamp: Date;

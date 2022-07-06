@@ -1,12 +1,12 @@
-import { Client } from "discord.js";
+import { Client, InteractionType } from "discord.js";
 import { arrayify } from "one-stone/array";
 import { registerCommandsOnConnect, routeAutocomplete, routeContextMenuCommand, routeSlashCommand, } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
 import { routeModalSubmit } from "./modals.js";
-export { addSlashCommand,
-// setPermittedCommandUserInGuild,
+export { addSlashCommand } from // setPermittedCommandUserInGuild,
+ 
 // setPermittedCommandUserEverywhere,
- } from "./slash-commands.js";
+"./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export { registerModal } from "./modals.js";
 export const startupTimestamp = new Date();
@@ -95,15 +95,15 @@ export function init(token) {
     client
         .on("interactionCreate", async (interaction) => {
         try {
-            if (interaction.isAutocomplete())
+            if (interaction.type === InteractionType.ApplicationCommandAutocomplete)
                 await routeAutocomplete(interaction);
-            else if (interaction.isCommand())
+            else if (interaction.isChatInputCommand())
                 await routeSlashCommand(interaction);
-            else if (interaction.isModalSubmit())
+            else if (interaction.type === InteractionType.ModalSubmit)
                 await routeModalSubmit(interaction);
             else if (interaction.isContextMenuCommand())
                 await routeContextMenuCommand(interaction);
-            else if (interaction.isMessageComponent())
+            else if (interaction.type === InteractionType.MessageComponent)
                 await routeComponentInteraction(interaction);
         }
         catch (e) {

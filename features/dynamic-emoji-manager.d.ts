@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 export declare function createDynamicEmojiManager(guilds: string[], drainUntilFree?: number): {
     (emoji: {
         attachment: string | Buffer;

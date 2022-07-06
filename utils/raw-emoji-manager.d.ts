@@ -1,4 +1,8 @@
 /// <reference types="node" />
+/// <reference types="node" />
+/// <reference types="node" />
+/// <reference types="node" />
+/// <reference types="node" />
 import type { Client, GuildEmoji } from "discord.js";
 /** the client must be connected to use this */
 export declare function rawCreateDynamicEmojiManager(client: Client, guilds: string[], drainUntilFree?: number): {

@@ -61,7 +61,10 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
                     throw `guild ${emptiest} was unavailable..`;
                 perGuildEmptySlots[emptiest]--;
                 try {
-                    const newEmoji = await uploadGuild.emojis.create(e.attachment, e.name);
+                    const newEmoji = await uploadGuild.emojis.create({
+                        attachment: e.attachment,
+                        name: e.name,
+                    });
                     emojiDict[e.name] = newEmoji;
                 }
                 catch {
@@ -84,7 +87,10 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
                     throw `guild ${emptiest} was unavailable..`;
                 perGuildEmptySlots[emptiest]--;
                 try {
-                    const newEmoji = await uploadGuild.emojis.create(emojis.attachment, emojis.name);
+                    const newEmoji = await uploadGuild.emojis.create({
+                        attachment: emojis.attachment,
+                        name: emojis.name,
+                    });
                     emojiDict[emojis.name] = newEmoji;
                     return newEmoji;
                 }
@@ -127,13 +133,28 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
         drainTimer = undefined;
     }
     async function drainServer(gid, drainServerUntilFree) {
-        const allEmojis = [...(client.guilds.resolve(gid)?.emojis.cache.values() ?? [])].sort(oldestEmojiLast);
+        const allEmojis = [...(client.guilds.resolve(gid)?.emojis.cache.values() ?? [])];
+        allEmojis.sort(oldestEmojiLast);
+        let errorCount = 0;
         while (50 - allEmojis.length < drainServerUntilFree) {
             const e = allEmojis.pop();
             if (e) {
-                await e.delete();
-                perGuildEmptySlots[gid]++;
-                delete emojiDict[e.name];
+                try {
+                    await sleep(60000);
+                    await e.delete();
+                    perGuildEmptySlots[gid]++;
+                    delete emojiDict[e.name];
+                    errorCount = 0;
+                }
+                catch {
+                    console.log(e);
+                    errorCount++;
+                    // if errors are stacking, wait a half hour
+                    if (errorCount)
+                        await sleep(1800000);
+                    if (errorCount > 3)
+                        throw `something went majorly wrong and let's not get cloudflare banned`;
+                }
             }
         }
     }
