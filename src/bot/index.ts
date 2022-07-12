@@ -9,6 +9,15 @@ import {
 } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
 import { routeModalSubmit } from "./modals.js";
+
+import process from 'node:process';
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+	throw 'ok bye now';
+});
+
+
 export { addSlashCommand } from // setPermittedCommandUserInGuild,
 // setPermittedCommandUserEverywhere,
 "./slash-commands.js";
