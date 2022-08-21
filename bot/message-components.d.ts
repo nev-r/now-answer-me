@@ -1,10 +1,8 @@
 /// <reference types="node" />
-import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageActionRowComponentBuilder, MessageComponentInteraction, ModalSubmitInteraction, SelectMenuComponentOptionData, TextBasedChannel, User } from "discord.js";
+import { ActionRowBuilder, APISelectMenuOption, ButtonStyle, Guild, MessageActionRowComponentBuilder, MessageComponentInteraction, ModalSubmitInteraction, SelectMenuComponentOptionData, TextBasedChannel, User, Message, APIMessageComponentEmoji } from 'discord.js';
 import { Sendable } from "../types/types-bot.js";
-import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { ComponentParams } from "./component-id-parser.js";
-import { APIMessageComponentEmoji } from "discord.js/node_modules/discord-api-types/v9";
 export declare const wastebasket: string;
 export declare const wastebasketEmoji: {
     name: string;

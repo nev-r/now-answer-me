@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, SelectMenuBuilder, } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, SelectMenuBuilder } from 'discord.js';
 import { escMarkdown } from "one-stone/string";
 import { sendableToInteractionReplyOptions, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";

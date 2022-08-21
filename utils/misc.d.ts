@@ -1,5 +1,4 @@
-import { EmbedBuilder, InteractionUpdateOptions, Message, MessageOptions, MessagePayload } from "discord.js";
-import { APIEmbed } from "discord.js/node_modules/discord-api-types/v9";
+import { EmbedBuilder, InteractionUpdateOptions, Message, MessageOptions, MessagePayload, APIEmbed } from "discord.js";
 import { Sendable } from "../types/types-discord.js";
 /** try to do whatever func wants to do, but delete msg if there's an error */
 export declare function bugOut<T extends any>(msg: Message | undefined, func: (() => T) | (() => Promise<T>)): Promise<T>;

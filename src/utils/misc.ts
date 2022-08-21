@@ -8,8 +8,8 @@ import {
 	Message,
 	MessageOptions,
 	MessagePayload,
+	APIEmbed,
 } from "discord.js";
-import { APIEmbed } from "discord.js/node_modules/discord-api-types/v9";
 import { Sendable } from "../types/types-discord.js";
 
 /** try to do whatever func wants to do, but delete msg if there's an error */

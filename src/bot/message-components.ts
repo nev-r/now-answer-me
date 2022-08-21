@@ -12,17 +12,17 @@ import {
 	SelectMenuComponentOptionData,
 	TextBasedChannel,
 	User,
-} from "discord.js";
+	Message,
+	APIMessageComponentEmoji
+} from 'discord.js';
 import { escMarkdown } from "one-stone/string";
 import { Sendable } from "../types/types-bot.js";
-import { Message } from "discord.js";
 import { Awaitable } from "one-stone/types";
 import { sendableToInteractionReplyOptions, sendableToMessageOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { ComponentParams, deserialize, serialize } from "./component-id-parser.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
 import { client } from "./index.js";
-import { APIMessageComponentEmoji } from "discord.js/node_modules/discord-api-types/v9";
 
 export const wastebasket = String.fromCodePoint(0x1f5d1); // 🗑
 export const wastebasketEmoji = { name: String.fromCodePoint(0x1f5d1) }; // 🗑

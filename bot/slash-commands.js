@@ -1,9 +1,8 @@
-import { ApplicationCommandOptionType, Message, } from "discord.js";
+import { ApplicationCommandOptionType, Message, ModalBuilder, } from "discord.js";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
 import { client, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
-import { ModalBuilder } from "@discordjs/builders";
 const slashCommands = {};
 // const slashCommands: NodeJS.Dict<{
 // 	where: SlashCommandLocation;

@@ -1,8 +1,6 @@
 import {
 	ApplicationCommandData,
-	ApplicationCommandManager,
 	ApplicationCommandOptionType,
-	ApplicationCommandPermissionType,
 	AutocompleteInteraction,
 	ChatInputApplicationCommandData,
 	ClientApplication,
@@ -11,30 +9,16 @@ import {
 	ContextMenuCommandInteraction,
 	EmbedBuilder,
 	Guild,
-	GuildApplicationCommandManager,
-	GuildResolvable,
 	Message,
-	ModalSubmitInteraction,
+	ModalBuilder,
 } from "discord.js";
-import type {
-	AutocompleteParams,
-	Sendable,
-	SlashCommandHandler,
-	SlashCommandLocation,
-} from "../types/types-bot.js";
+import type { AutocompleteParams, Sendable, SlashCommandLocation } from "../types/types-bot.js";
 import { sendableToInteractionReplyOptions } from "../utils/misc.js";
 import { arrayify } from "one-stone/array";
-import type {
-	CommandOptionsMap,
-	StrictCommand,
-	SubCommandGroupsOf,
-	SubCommandsOf,
-} from "../types/the-option-understander-has-signed-on.js";
-import { client, clientReady, clientStatus } from "./index.js";
+import type { StrictCommand } from "../types/the-option-understander-has-signed-on.js";
+import { client, clientStatus } from "./index.js";
 import { forceFeedback, replyOrEdit } from "../utils/raw-utils.js";
-import { ModalBuilder } from "@discordjs/builders";
 import { Awaitable } from "one-stone/types";
-import { RESTPostAPIApplicationCommandsJSONBody } from "discord.js/node_modules/discord-api-types/v9";
 
 const slashCommands: NodeJS.Dict<{
 	where: SlashCommandLocation;

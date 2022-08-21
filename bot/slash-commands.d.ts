@@ -1,7 +1,6 @@
 /// <reference types="node" />
-import { AutocompleteInteraction, ChatInputApplicationCommandData, CommandInteraction, ContextMenuCommandInteraction, EmbedBuilder, Message } from "discord.js";
+import { AutocompleteInteraction, ChatInputApplicationCommandData, CommandInteraction, ContextMenuCommandInteraction, EmbedBuilder, Message, ModalBuilder } from "discord.js";
 import type { AutocompleteParams, Sendable, SlashCommandLocation } from "../types/types-bot.js";
-import { ModalBuilder } from "@discordjs/builders";
 import { Awaitable } from "one-stone/types";
 export declare function registerCommandsOnConnect(): Promise<void>;
 export declare function addSlashCommand({ where, config, handler, ephemeral, deferImmediately, failIfLong, autocompleters, }: {
