@@ -114,7 +114,8 @@ export function rawCreateDynamicEmojiManager(
 					});
 					emojiDict[emojis.name] = newEmoji;
 					return newEmoji;
-				} catch {
+				} catch(e) {
+					console.log(e);
 					perGuildEmptySlots[emptiest]++;
 					throw `upload to ${emptiest} failed`;
 				}
@@ -156,16 +157,17 @@ export function rawCreateDynamicEmojiManager(
 		allEmojis.sort(oldestEmojiLast);
 		let errorCount = 0;
 		while (50 - allEmojis.length < drainServerUntilFree) {
-			const e = allEmojis.pop();
-			if (e) {
+			const emoji = allEmojis.pop();
+			if (emoji) {
 				try {
 					await sleep(60000);
-					await e.delete();
+					await emoji.delete();
 					perGuildEmptySlots[gid]++;
-					delete emojiDict[e.name!];
+					delete emojiDict[emoji.name!];
 					errorCount = 0;
-				} catch {
-					console.log(e);
+				} catch (err) {
+					console.log('error while draining:');
+					console.log(err);
 					errorCount++;
 
 					// if errors are stacking, wait a half hour
