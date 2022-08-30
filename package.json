@@ -29,7 +29,7 @@
 	},
 	"homepage": "https://github.com/nev-r/now-answer-me#readme",
 	"dependencies": {
-		"discord.js": "^14.1.2",
+		"discord.js": "^14.3.0",
 		"one-stone": "^1.0.3"
 	},
 	"devDependencies": {
