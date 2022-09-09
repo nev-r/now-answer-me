@@ -57,7 +57,7 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
         console.log(`${spacesAvailable} spaces available across ${guilds.length} guilds`);
         if (spacesNeeded + guilds.length > spacesAvailable) {
             const spaceToClearOnEach = Math.floor(spacesNeeded / guilds.length) + 1;
-            await Promise.all(guilds.map((gid) => drainServer(gid, spaceToClearOnEach)));
+            await Promise.all(guilds.map((gid) => drainServer(gid, spaceToClearOnEach, true)));
         }
         // multiple emojis submitted. return the entire dict.
         if (Array.isArray(emojis)) {
@@ -143,7 +143,7 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
         takeStock();
         drainTimer = undefined;
     }
-    async function drainServer(gid, drainServerUntilFree) {
+    async function drainServer(gid, drainServerUntilFree, fast = false) {
         console.log(`ensuring ${gid} has ${drainServerUntilFree} slots free`);
         const allEmojis = [...(client.guilds.resolve(gid)?.emojis.cache.values() ?? [])];
         allEmojis.sort(oldestEmojiLast);
@@ -156,7 +156,7 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
             const emoji = allEmojis.pop();
             if (emoji) {
                 try {
-                    await sleep(10000);
+                    await sleep(fast ? 300 : 10000);
                     console.log(`deleting ${emoji.name} in ${emoji.guild.id}`);
                     await emoji.delete();
                     perGuildEmptySlots[gid]++;
