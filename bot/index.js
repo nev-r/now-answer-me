@@ -3,15 +3,14 @@ import { arrayify } from "one-stone/array";
 import { registerCommandsOnConnect, routeAutocomplete, routeContextMenuCommand, routeSlashCommand, } from "./slash-commands.js";
 import { routeComponentInteraction } from "./message-components.js";
 import { routeModalSubmit } from "./modals.js";
-import process from 'node:process';
-process.on('unhandledRejection', (reason, promise) => {
-    console.log('Unhandled Rejection at:', promise, 'reason:', reason);
-    throw 'ok bye now';
+import process from "node:process";
+process.on("unhandledRejection", (reason, promise) => {
+    console.log("Unhandled Rejection at:", promise, "reason:", reason);
+    throw "ok bye now";
 });
-export { addSlashCommand } from // setPermittedCommandUserInGuild,
- 
-// setPermittedCommandUserEverywhere,
-"./slash-commands.js";
+export { addSlashCommand, // setPermittedCommandUserInGuild,
+ } from // setPermittedCommandUserEverywhere,
+ "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export { registerModal } from "./modals.js";
 export const startupTimestamp = new Date();
@@ -19,8 +18,7 @@ const clientOptions = {
     intents: ["Guilds", "GuildEmojisAndStickers", "GuildMembers"],
     rest: {
         rejectOnRateLimit: (_) => {
-            console.log("rejectOnRateLimit");
-            console.log(_);
+            console.log(`rejectOnRateLimit: ${_.limit} ${_.timeToReset} ${_.majorParameter} ${_.route}`);
             return false;
         },
     },

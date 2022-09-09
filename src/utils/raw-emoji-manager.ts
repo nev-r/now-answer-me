@@ -65,9 +65,12 @@ export function rawCreateDynamicEmojiManager(
 		if (!isReady) throw "dynamic emoji uploader was called before client was connected";
 
 		// clear room first if needed
+		takeStock();
 		const spacesNeeded = Array.isArray(emojis) ? emojis.length : 1;
+		console.log(`going to upload ${spacesNeeded} emoji`);
 		let spacesAvailable = 0;
 		for (const k in perGuildEmptySlots) spacesAvailable += perGuildEmptySlots[k];
+		console.log(`${spacesAvailable} spaces available across ${guilds.length} guilds`);
 		if (spacesNeeded + guilds.length > spacesAvailable) {
 			const spaceToClearOnEach = Math.floor(spacesNeeded / guilds.length) + 1;
 			await Promise.all(guilds.map((gid) => drainServer(gid, spaceToClearOnEach)));
@@ -114,7 +117,7 @@ export function rawCreateDynamicEmojiManager(
 					});
 					emojiDict[emojis.name] = newEmoji;
 					return newEmoji;
-				} catch(e) {
+				} catch (e) {
 					console.log(e);
 					perGuildEmptySlots[emptiest]++;
 					throw `upload to ${emptiest} failed`;
@@ -153,21 +156,27 @@ export function rawCreateDynamicEmojiManager(
 	}
 
 	async function drainServer(gid: string, drainServerUntilFree: number) {
+		console.log(`ensuring ${gid} has ${drainServerUntilFree} slots free`);
 		const allEmojis = [...(client.guilds.resolve(gid)?.emojis.cache.values() ?? [])];
 		allEmojis.sort(oldestEmojiLast);
 		let errorCount = 0;
 		while (50 - allEmojis.length < drainServerUntilFree) {
+			if (client.isReady()) {
+				console.log("skipping drain. client is offline.");
+				return;
+			}
 			const emoji = allEmojis.pop();
 			if (emoji) {
 				try {
-					await sleep(60000);
+					await sleep(10000);
+					console.log(`deleting ${emoji.name}`);
 					await emoji.delete();
 					perGuildEmptySlots[gid]++;
 					delete emojiDict[emoji.name!];
 					errorCount = 0;
 				} catch (err) {
-					console.log('error while draining:');
-					console.log(err);
+					console.log(`error while draining ${emoji.name}:`);
+					console.log(`${err}`);
 					errorCount++;
 
 					// if errors are stacking, wait a half hour

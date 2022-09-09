@@ -10,16 +10,16 @@ import {
 import { routeComponentInteraction } from "./message-components.js";
 import { routeModalSubmit } from "./modals.js";
 
-import process from 'node:process';
+import process from "node:process";
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
-	throw 'ok bye now';
+process.on("unhandledRejection", (reason, promise) => {
+	console.log("Unhandled Rejection at:", promise, "reason:", reason);
+	throw "ok bye now";
 });
 
-
-export { addSlashCommand } from // setPermittedCommandUserInGuild,
-// setPermittedCommandUserEverywhere,
+export {
+	addSlashCommand, // setPermittedCommandUserInGuild,
+} from // setPermittedCommandUserEverywhere,
 "./slash-commands.js";
 export { createComponentButtons, createComponentSelects } from "./message-components.js";
 export { registerModal } from "./modals.js";
@@ -30,8 +30,7 @@ const clientOptions: ClientOptions = {
 	intents: ["Guilds", "GuildEmojisAndStickers", "GuildMembers"],
 	rest: {
 		rejectOnRateLimit: (_) => {
-			console.log("rejectOnRateLimit");
-			console.log(_);
+			console.log(`rejectOnRateLimit: ${_.limit} ${_.timeToReset} ${_.majorParameter} ${_.route}`);
 			return false;
 		},
 	},
