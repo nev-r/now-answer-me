@@ -149,7 +149,7 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
         allEmojis.sort(oldestEmojiLast);
         let errorCount = 0;
         while (50 - allEmojis.length < drainServerUntilFree) {
-            if (client.isReady()) {
+            if (!client.isReady()) {
                 console.log("skipping drain. client is offline.");
                 return;
             }
