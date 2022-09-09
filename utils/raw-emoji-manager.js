@@ -51,7 +51,6 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
         });
         const spacesNeeded = emojiList.length;
         console.log(`uploading/locating ${spacesNeeded} emoji`);
-        console.log(arrayify(emojis).map((e) => e.name));
         let spacesAvailable = 0;
         for (const k in perGuildEmptySlots)
             spacesAvailable += perGuildEmptySlots[k];
