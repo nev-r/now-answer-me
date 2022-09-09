@@ -1,4 +1,5 @@
 import type { Client, GuildEmoji } from "discord.js";
+import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { buildEmojiDictUsingClient } from "./raw-utils.js";
 
@@ -66,8 +67,16 @@ export function rawCreateDynamicEmojiManager(
 
 		// clear room first if needed
 		takeStock();
-		const spacesNeeded = Array.isArray(emojis) ? emojis.length : 1;
-		console.log(`going to upload ${spacesNeeded} emoji`);
+		const deDupe = new Set<string>();
+
+		const emojiList = arrayify(emojis).filter((e) => {
+			const had = deDupe.has(e.name);
+			deDupe.add(e.name);
+			return !had;
+		});
+		const spacesNeeded = emojiList.length;
+		console.log(`uploading/locating ${spacesNeeded} emoji`);
+		console.log(arrayify(emojis).map((e) => e.name));
 		let spacesAvailable = 0;
 		for (const k in perGuildEmptySlots) spacesAvailable += perGuildEmptySlots[k];
 		console.log(`${spacesAvailable} spaces available across ${guilds.length} guilds`);
@@ -78,26 +87,26 @@ export function rawCreateDynamicEmojiManager(
 
 		// multiple emojis submitted. return the entire dict.
 		if (Array.isArray(emojis)) {
+			const uploadEmojiList = emojiList.filter((emoji) => !(emoji.name in emojiDict));
+			console.log(`uploading ${uploadEmojiList.length} emoji`);
 			await Promise.all(
-				emojis
-					.filter((emoji) => !(emoji.name in emojiDict))
-					.map(async (e, i) => {
-						await sleep(i * 20);
-						const emptiest = getEmptiest();
-						const uploadGuild = client.guilds.resolve(emptiest);
-						if (!uploadGuild) throw `guild ${emptiest} was unavailable..`;
-						perGuildEmptySlots[emptiest]--;
-						try {
-							const newEmoji = await uploadGuild.emojis.create({
-								attachment: e.attachment,
-								name: e.name,
-							});
-							emojiDict[e.name] = newEmoji;
-						} catch {
-							perGuildEmptySlots[emptiest]++;
-							throw `upload to ${emptiest} failed`;
-						}
-					})
+				uploadEmojiList.map(async (e, i) => {
+					await sleep(i * 20);
+					const emptiest = getEmptiest();
+					const uploadGuild = client.guilds.resolve(emptiest);
+					if (!uploadGuild) throw `guild ${emptiest} was unavailable..`;
+					perGuildEmptySlots[emptiest]--;
+					try {
+						const newEmoji = await uploadGuild.emojis.create({
+							attachment: e.attachment,
+							name: e.name,
+						});
+						emojiDict[e.name] = newEmoji;
+					} catch {
+						perGuildEmptySlots[emptiest]++;
+						throw `upload to ${emptiest} failed`;
+					}
+				})
 			);
 			if (drainTimer === undefined) drainTimer = setTimeout(drainOldEmoji, 300000);
 			return emojiDict;

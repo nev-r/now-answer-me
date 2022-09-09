@@ -1,3 +1,4 @@
+import { arrayify } from "one-stone/array";
 import { sleep } from "one-stone/promise";
 import { buildEmojiDictUsingClient } from "./raw-utils.js";
 /** the client must be connected to use this */
@@ -42,8 +43,15 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
             throw "dynamic emoji uploader was called before client was connected";
         // clear room first if needed
         takeStock();
-        const spacesNeeded = Array.isArray(emojis) ? emojis.length : 1;
-        console.log(`going to upload ${spacesNeeded} emoji`);
+        const deDupe = new Set();
+        const emojiList = arrayify(emojis).filter((e) => {
+            const had = deDupe.has(e.name);
+            deDupe.add(e.name);
+            return !had;
+        });
+        const spacesNeeded = emojiList.length;
+        console.log(`uploading/locating ${spacesNeeded} emoji`);
+        console.log(arrayify(emojis).map((e) => e.name));
         let spacesAvailable = 0;
         for (const k in perGuildEmptySlots)
             spacesAvailable += perGuildEmptySlots[k];
@@ -54,9 +62,9 @@ export function rawCreateDynamicEmojiManager(client, guilds, drainUntilFree = 10
         }
         // multiple emojis submitted. return the entire dict.
         if (Array.isArray(emojis)) {
-            await Promise.all(emojis
-                .filter((emoji) => !(emoji.name in emojiDict))
-                .map(async (e, i) => {
+            const uploadEmojiList = emojiList.filter((emoji) => !(emoji.name in emojiDict));
+            console.log(`uploading ${uploadEmojiList.length} emoji`);
+            await Promise.all(uploadEmojiList.map(async (e, i) => {
                 await sleep(i * 20);
                 const emptiest = getEmptiest();
                 const uploadGuild = client.guilds.resolve(emptiest);
