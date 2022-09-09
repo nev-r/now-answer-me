@@ -169,7 +169,7 @@ export function rawCreateDynamicEmojiManager(
 			if (emoji) {
 				try {
 					await sleep(10000);
-					console.log(`deleting ${emoji.name}`);
+					console.log(`deleting ${emoji.name} in ${emoji.guild.id}`);
 					await emoji.delete();
 					perGuildEmptySlots[gid]++;
 					delete emojiDict[emoji.name!];
