@@ -169,7 +169,7 @@ export function rawCreateDynamicEmojiManager(
 		allEmojis.sort(oldestEmojiLast);
 		let errorCount = 0;
 		while (50 - allEmojis.length < drainServerUntilFree) {
-			if (!client.isReady()) {
+			if ((client.ws as any).destroyed) {
 				console.log("skipping drain. client is offline.");
 				return;
 			}
